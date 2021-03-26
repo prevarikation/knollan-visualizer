@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>mh's Visualizer</title>
+    <script src="js/StateTable1.js"></script>
+    <script src="js/StateTable2.js"></script>
+    <script src="js/AxisIndex.js"></script>
+    <script src="js/AxisStates.js"></script>
+    <script src="js/AxisColorSelector.js"></script>
+    <script src="js/AxisBackground.js"></script>
+    <script src="js/AxisGateTestingPiece.js"></script>
+    <script src="js/AxisDisk.js"></script>
+    <script src="js/AxisKnobInterfacePlate.js"></script>
+    <script src="js/AxisVisualizer.js"></script>
+	<script type="text/javascript">
+    /*
+    MIT License
+
+    Copyright (c) 2008-2021 Michael Huebler
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    */
+    /* Modified for HTML5 <canvas> by prevarikation, March 2021. */
+
+    var visualizer;
+    window.addEventListener('load', function(){
+        visualizer = new AxisVisualizer(document.getElementById('visualizer'));
+        visualizer.draw();
+
+        document.getElementById('fit-canvas').addEventListener('click', function(e){
+            document.getElementById('visualizer').classList.toggle('scale-to-screen', !document.getElementById('visualizer').classList.contains('scale-to-screen'));
+        })
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Up"    || e.key === "ArrowUp" ||
+                e.key === "Left"  || e.key === "ArrowLeft" ||
+                e.key === "Down"  || e.key === "ArrowDown" ||
+                e.key === "Right" || e.key === "ArrowRight" ||
+                e.key === " ") {
+                    e.preventDefault();
+            }
+
+            switch(e.key) {
+                case "g":
+                case "G": visualizer.toggleGatesVisibility(); break;
+                case "8":
+                case "u":
+                case "U": visualizer.selectDisk(AxisDisk.DISK_TOP); break;
+                case "4":
+                case "h":
+                case "H": visualizer.selectDisk(AxisDisk.DISK_LEFT); break;
+                case "2":
+                case "n":
+                case "N": visualizer.selectDisk(AxisDisk.DISK_BOTTOM); break;
+                case "6":
+                case "j":
+                case "J": visualizer.selectDisk(AxisDisk.DISK_RIGHT); break;
+                case "m":
+                case "M": visualizer.setMarker(); break;
+                case "c":
+                case "C": AxisColorSelector.changeColor(); break;
+                case "d":
+                case "D": visualizer.deleteLastMarker(); break;
+            }
+
+            if (visualizer.currentMovement === AxisDisk.MOVE_UNAFFECTED) {
+                switch(e.key) {
+                    case "Up":
+                    case "ArrowUp":    visualizer.startMovement(AxisDisk.MOVE_UP, !e.shiftKey); break;
+                    case "Left":
+                    case "ArrowLeft":  visualizer.startMovement(AxisDisk.MOVE_LEFT, !e.shiftKey); break;
+                    case "Down":
+                    case "ArrowDown":  visualizer.startMovement(AxisDisk.MOVE_DOWN, !e.shiftKey); break;
+                    case "Right":
+                    case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey); break;
+                    case "Delete":     visualizer.clearAllMarkers(); break;
+                    case "f":
+                    case "F": AxisVisualizer.STEP_INC = (AxisVisualizer.STEP_INC === 5 ? 10 : 5); break;
+                    case "s":
+                    case "S": visualizer.setGates(); break;
+                    case "+": visualizer.turnCCW(AxisVisualizer.selectedDisk); break;
+                    case "-": visualizer.turnCW( AxisVisualizer.selectedDisk); break;
+                }
+            } else {
+                if (!visualizer.automatic && (visualizer.step > AxisVisualizer.startManualMove || visualizer.step < AxisVisualizer.endManualMove)) {
+                    if (e.key === " ") {
+                        // automatically finish move
+                        visualizer.startMovement(visualizer.currentMovement, true);
+                        //visualizer.automatic = true; // TODO: what else?
+                    } else {
+                        if (visualizer.currentMovement === AxisDisk.MOVE_UP) {
+                            if (e.key === "Up" || e.key === "ArrowUp") { visualizer.nextStep(); }
+                            if (e.key === "Down" || e.key === "ArrowDown") { visualizer.previousStep(); }
+                        } else if (visualizer.currentMovement === AxisDisk.MOVE_LEFT) {
+                            if (e.key === "Left" || e.key === "ArrowLeft") { visualizer.nextStep(); }
+                            if (e.key === "Right" || e.key === "ArrowRight") { visualizer.previousStep(); }
+                        } else if (visualizer.currentMovement === AxisDisk.MOVE_DOWN) {
+                            if (e.key === "Down" || e.key === "ArrowDown") { visualizer.nextStep(); }
+                            if (e.key === "Up" || e.key === "ArrowUp") { visualizer.previousStep(); }
+                        } else if (visualizer.currentMovement === AxisDisk.MOVE_RIGHT) {
+                            if (e.key === "Right" || e.key === "ArrowRight") { visualizer.nextStep(); }
+                            if (e.key === "Left" || e.key === "ArrowLeft") { visualizer.previousStep(); }
+                        }
+                    }
+                }
+            }
+
+            if (e.key === "r" || e.key === "R") {
+                visualizer.reset();
+            }
+
+            visualizer.draw();
+        });
+    });
+	</script>
+    <style type="text/css">
+    html, body, #content { height: 100%; margin: 0; }
+    .images { display: none; }
+    #visualizer { vertical-align: top; }
+    .scale-to-screen {
+        max-width: 100%;
+        max-height: 100%;
+    }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <canvas id="visualizer" class="scale-to-screen" width="1222" height="900">Needs HTML5 &lt;canvas&gt; tag support!</canvas>
+        <label><input id="fit-canvas" type="checkbox" checked="checked"> Fit visualizer to window</label>
+    </div>
+    <div class="images">
+        <img id="background" src="img/AxisVisualizerBackground V4.png"><!-- 1222x900 -->
+        <img id="gate-tester" src="img/Gate Tester.png"><!-- 820x821 -->
+        <img id="knob-interface" src="img/Knob Interface Plate 2.png"><!-- 578x577 -->
+        <img id="disk" src="img/New Disk 2.png"><!-- 274x274 -->
+    </div>
+</body>
+</html>
