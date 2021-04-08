@@ -269,13 +269,11 @@ class AxisDisk
             }
 			angle = - (AxisDisk.controlCurves[controlCurveNumber][Math.round(step)] - AxisDisk.controlCurves[controlCurveNumber][0]);
 		}
-		//console.log(angle);
 		return angle;
 	}
 
 	move(movement) {
 		var increment = Math.round(this.controlCurveAngle(movement, 99) / 24);
-		//console.log("movement:", movement, "| increment:", increment);
 
 		this.index.M += increment;
 		if (this.index.M > 1) {
