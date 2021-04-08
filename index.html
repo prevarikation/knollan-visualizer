@@ -89,6 +89,8 @@
                     case "ArrowDown":  visualizer.startMovement(AxisDisk.MOVE_DOWN, !e.shiftKey); break;
                     case "Right":
                     case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey); break;
+                    case "b":
+                    case "B":          visualizer.undoLastMovement();
                     case "Delete":     visualizer.clearAllMarkers(); break;
                     case "f":
                     case "F": AxisVisualizer.STEP_INC = (AxisVisualizer.STEP_INC === 5 ? 10 : 5); break;

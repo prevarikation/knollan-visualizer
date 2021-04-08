@@ -92,6 +92,7 @@ class AxisVisualizer
             }
         ];
 
+        this.history = [];
         this.reset();
     }
 
@@ -109,6 +110,7 @@ class AxisVisualizer
         this.x = 0;
         this.y = 0;
 
+        this.history.push(AxisDisk.MOVE_UNAFFECTED);
         this.currentMovement = AxisDisk.MOVE_UNAFFECTED;
 
         for (var disk of this.disks.disks) {
@@ -146,6 +148,27 @@ class AxisVisualizer
         }
     }
 
+    undoLastMovement() {
+        /* going back to last reset and replaying moves seems like the easiest way to get correct disk positions. */
+        /* TODO: animate reversal. */
+        if (this.history.length > 1) {
+            var lastReset = this.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED, (this.history[this.history.length-1] === AxisDisk.MOVE_UNAFFECTED ? this.history.length-2 : Infinity));
+            var replayMoves = this.history.splice(lastReset);
+            replayMoves.pop();
+            for (var move of replayMoves) {
+                if (move === AxisDisk.MOVE_UNAFFECTED) {
+                    this.reset();
+                } else {
+                    this.history.push(move);
+                    for (var disk of this.disks.disks) {
+                        disk.move(move);
+                    }
+                }
+            }
+            this.draw();
+        }
+    }
+
     nextStep() {
         if (this.step < AxisVisualizer.MAX_STEP) {
             this.step += (!AxisVisualizer.automatic ? 5 : AxisVisualizer.STEP_INC);
@@ -180,6 +203,7 @@ class AxisVisualizer
             this.step = this.x = this.y = 0;
             this.knobInterfacePlate.moveToAbsoluteIndex(this.x, this.y);
 
+            this.history.push(this.currentMovement);
             for (var disk of this.disks.disks) {
                 disk.move(this.currentMovement);
             }
