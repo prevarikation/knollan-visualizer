@@ -92,6 +92,7 @@ class AxisVisualizer
             }
         ];
 
+        this.movingAutomatically = false;
         this.animationStats = null;
         this.history = [];
         this.reset();
@@ -137,19 +138,21 @@ class AxisVisualizer
         var elapsed = new Date() - this.animationStats.start;
         var expectedSteps = Math.floor( (elapsed/AxisVisualizer.AUTOMATIC_ANIMATION_TIME) * (AxisVisualizer.MAX_STEP/AxisVisualizer.STEP_INC) );
         var shouldRepaint = (this.animationStats.totalSteps < expectedSteps);
-        // MAX_STEP+1 is used because when we're beyond the max step, the move is changed to MOVE_UNAFFECTED, which we need to keep everything synced.
-        while (this.animationStats.totalSteps < Math.min(expectedSteps, AxisVisualizer.MAX_STEP + 1)) {
-            this.nextStep();
+        while (this.animationStats.totalSteps < expectedSteps) {
+            // when beyond the max step, move is changed to MOVE_UNAFFECTED and attemping to step forward will cause an error.
+            if (this.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
+                this.nextStep();
+            }
             ++this.animationStats.totalSteps;
         }
         if (shouldRepaint) {
             this.draw();
         }
 
-        // see above.
         if (this.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
             setTimeout(this.animate.bind(this), 25);
         } else {
+            this.movingAutomatically = false;
             this.animationStats = null;
         }
     }
@@ -162,9 +165,17 @@ class AxisVisualizer
     }
 
     startMovement(direction, automatic) {
+        if (automatic) {
+            if (this.movingAutomatically) {
+                return;
+            } else {
+                this.movingAutomatically = true;
+            }
+        }
+
         this.currentMovement = direction;
         AxisVisualizer.automatic = automatic;
-        
+
         if (AxisVisualizer.automatic) {
             this.animate(this.currentMovement);
         } else {
