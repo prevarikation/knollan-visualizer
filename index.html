@@ -90,7 +90,7 @@
                     case "Right":
                     case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey); break;
                     case "b":
-                    case "B":          visualizer.undoLastMovement();
+                    case "B":          visualizer.undoLastMovement(); break;
                     case "Delete":     visualizer.clearAllMarkers(); break;
                     case "f": //time in milliseconds
                     case "F": AxisVisualizer.AUTOMATIC_ANIMATION_TIME = (AxisVisualizer.AUTOMATIC_ANIMATION_TIME === 500 ? 900 : 500); break;
