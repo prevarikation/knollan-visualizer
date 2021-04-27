@@ -92,8 +92,8 @@
                     case "b":
                     case "B":          visualizer.undoLastMovement();
                     case "Delete":     visualizer.clearAllMarkers(); break;
-                    case "f":
-                    case "F": AxisVisualizer.STEP_INC = (AxisVisualizer.STEP_INC === 5 ? 10 : 5); break;
+                    case "f": //time in milliseconds
+                    case "F": AxisVisualizer.AUTOMATIC_ANIMATION_TIME = (AxisVisualizer.AUTOMATIC_ANIMATION_TIME === 500 ? 900 : 500); break;
                     case "s":
                     case "S": visualizer.setGates(); break;
                     case "+": visualizer.turnCCW(AxisVisualizer.selectedDisk); break;

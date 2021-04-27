@@ -92,6 +92,7 @@ class AxisVisualizer
             }
         ];
 
+        this.animationStats = null;
         this.history = [];
         this.reset();
     }
@@ -125,11 +126,32 @@ class AxisVisualizer
         if (typeof movement !== 'undefined') {
             this.currentMovement = movement;
         };
-        this.nextStep();
-        this.draw();
-        if (visualizer.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
+
+        if (this.animationStats === null) {
+            this.animationStats = {
+                start: new Date(),
+                totalSteps: 0
+            };
+        }
+
+        var elapsed = new Date() - this.animationStats.start;
+        var expectedSteps = Math.floor( (elapsed/AxisVisualizer.AUTOMATIC_ANIMATION_TIME) * (AxisVisualizer.MAX_STEP/AxisVisualizer.STEP_INC) );
+        var shouldRepaint = (this.animationStats.totalSteps < expectedSteps);
+        // MAX_STEP+1 is used because when we're beyond the max step, the move is changed to MOVE_UNAFFECTED, which we need to keep everything synced.
+        while (this.animationStats.totalSteps < Math.min(expectedSteps, AxisVisualizer.MAX_STEP + 1)) {
+            this.nextStep();
+            ++this.animationStats.totalSteps;
+        }
+        if (shouldRepaint) {
+            this.draw();
+        }
+
+        // see above.
+        if (this.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
             setTimeout(this.animate.bind(this), 25);
-        };
+        } else {
+            this.animationStats = null;
+        }
     }
 
     selectDisk(disk) {
@@ -292,8 +314,9 @@ AxisVisualizer.diskScale = 1; // empirical, original 50
 AxisVisualizer.centerX = 419; // abs. guessed center of disk imagery: (419, 449)
 AxisVisualizer.centerY = 449;
 
+AxisVisualizer.AUTOMATIC_ANIMATION_TIME = 500; // milliseconds
 AxisVisualizer.MAX_STEP = 100;
-AxisVisualizer.STEP_INC = 10;//5; // this affects the animation speed
+AxisVisualizer.STEP_INC = 1; // previously used to control animation speed
 AxisVisualizer.automatic = true;
 AxisVisualizer.startManualMove = 8;
 AxisVisualizer.endManualMove = 92;
