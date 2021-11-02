@@ -129,6 +129,7 @@ class AxisBackground
         ];
         this.ctx.font = cssFontString('instruction');
         rightColY += (2.4 * instructionFontSize);
+        var rightColYBeforeCommands = rightColY;
         for (var i = 0; i < commands.length; ++i) {
             this.ctx.fillText(commands[i][0] + ":", rightColX, rightColY);
 
@@ -141,6 +142,17 @@ class AxisBackground
 
             this.ctx.font = cssFontString('instruction');
         }
+
+        // speed level indicators
+        this.ctx.font = cssFontString('instructionExplanation');
+        this.ctx.fillStyle = '#2429bc';
+        var speedPositionInCommandList = 3;
+        rightColY = rightColYBeforeCommands + ((speedPositionInCommandList - 1) * 1.45 * instructionFontSize);
+        var speedText = "normal  slow  instant";
+        var speedTextX = instructionRightColX - (this.ctx.measureText(commands[speedPositionInCommandList-1][1]).width * instructionFontSize/fontSizes.instructionExplanation) - this.ctx.measureText(speedText + " ").width;
+        var speedTextY = rightColY - (this.ctx.measureText(speedText).actualBoundingBoxAscent * (instructionFontSize/fontSizes.instructionExplanation - 1.05));
+        console.log(speedTextX, speedTextY);
+        this.ctx.fillText(speedText, speedTextX, speedTextY);
 
         // open-source lock
         var OSLPromotion = [

@@ -92,8 +92,14 @@
                     case "b":
                     case "B":          visualizer.undoLastMovement(); break;
                     case "Delete":     visualizer.clearAllMarkers(); break;
-                    case "f": //time in milliseconds
-                    case "F": AxisVisualizer.AUTOMATIC_ANIMATION_TIME = (AxisVisualizer.AUTOMATIC_ANIMATION_TIME === 500 ? 900 : 500); break;
+                    case "f":
+                    case "F":
+                        switch(AxisVisualizer.AUTOMATIC_ANIMATION_TIME) {
+                            case AxisVisualizer.ANIMATION_TIMES.normal: AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.slow; break;
+                            case AxisVisualizer.ANIMATION_TIMES.slow:   AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.instant; break;
+                            default:                                    AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.normal; break;
+                        }
+                        break;
                     case "s":
                     case "S": visualizer.setGates(); break;
                     case "+": visualizer.turnCCW(AxisVisualizer.selectedDisk); break;
