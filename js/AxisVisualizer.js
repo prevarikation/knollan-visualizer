@@ -112,9 +112,9 @@ class AxisVisualizer
         this.x = 0;
         this.y = 0;
 
-	if (!this.history.length || this.history[this.history.length-1] !== AxisDisk.MOVE_UNAFFECTED) {
-		this.history.push(AxisDisk.MOVE_UNAFFECTED);
-	}
+        if (!this.history.length || this.history[this.history.length-1] !== AxisDisk.MOVE_UNAFFECTED) {
+            this.history.push(AxisDisk.MOVE_UNAFFECTED);
+        }
         this.currentMovement = AxisDisk.MOVE_UNAFFECTED;
 
         for (var disk of this.disks.disks) {
