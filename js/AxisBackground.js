@@ -171,7 +171,7 @@ class AxisBackground
         // copyright
         this.ctx.font = cssFontString('copyright');
         this.ctx.fillStyle = 'black';
-        this.ctx.fillText("\u00a9 2008-2009 Michael U. Huebler. All rights reserved.", rightColX, this.ctx.canvas.height - 17);
+        this.ctx.fillText("\u00a9 2008-2021 Michael U. Huebler. All rights reserved.", rightColX, this.ctx.canvas.height - 17);
 
         this.ctx.restore();
     }
