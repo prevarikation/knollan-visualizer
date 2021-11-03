@@ -77,10 +77,10 @@ class AxisBackground
         this.ctx.fillStyle = 'black';
         this.ctx.fillText("mh's Visualizer.", titleX, 59);
         this.ctx.fillStyle = '#5f5f5f';
-        this.ctx.fillText("HAR2009 Edition.", titleX, 105);
+        this.ctx.fillText("2021 Edition.", titleX, 105);
         this.ctx.fillStyle = 'black';
         this.ctx.font = cssFontString('adaptationNotice');
-        this.ctx.fillText("2021 HTML5 <canvas> adaptation", titleX + 2, 130);
+        this.ctx.fillText("An HTML5 <canvas> adaptation", titleX + 2, 130);
 
         // disclaimer
         this.ctx.font = cssFontString('disclaimer');
