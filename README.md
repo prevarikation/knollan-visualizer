@@ -1,5 +1,5 @@
 # knollan-visualizer
-An HTML5 &lt;canvas&gt; adaptation of [Michael Huebler's (mh's) visualizer](https://github.com/mh-/AxisVisualizer) for Knollan lock internals. Live version hosted at https://prevarikation.com/mh-visualizer.
+An HTML5 &lt;canvas&gt; adaptation of [Michael Huebler's (mh's) visualizer](https://github.com/mh-/AxisVisualizer) for Knollan lock internals. Live version hosted at https://prevarikation.com/locks/knollan-visualizer/.
 
 ## Background
 [Yehonatan Knoll](https://www.youtube.com/user/yonatan2806/featured) is the inventor of a [novel combination lock](https://patents.google.com/patent/US20030205069A1/) which uses four rotatable disks that are spun by a control piece moving in up, down, left and right directions. The lock remains closed until a true gate on each disk is aligned with a windmill-style fence, at which point the shackle can be opened.
