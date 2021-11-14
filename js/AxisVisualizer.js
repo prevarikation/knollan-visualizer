@@ -244,6 +244,21 @@ class AxisVisualizer
         }
     }
 
+    setParkedState() {
+        // we don't skip over the reset state here, as was done above.
+        var lastReset = this.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
+        this.parkedHistory = this.history.slice(lastReset);
+    }
+
+    restoreParkedState() {
+        if (this.parkedHistory) {
+            // hacky. we append the parked state to the history, add a sacrificial move, then undoLastMove()
+            // TODO: don't pollute history. unparking should be an atomic move.
+            this.history = this.history.concat(this.parkedHistory, [AxisDisk.MOVE_UP]);
+            this.undoLastMovement();
+        }
+    }
+
     nextStep() {
         if (this.step < AxisVisualizer.MAX_STEP) {
             this.step += (!AxisVisualizer.automatic ? 5 : AxisVisualizer.STEP_INC);

@@ -102,6 +102,8 @@
                     case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey); break;
                     case "b":
                     case "B":          visualizer.undoLastMovement(); break;
+                    case "P":          visualizer.setParkedState(); break;
+                    case "p":          visualizer.restoreParkedState(); break;
                     case "Delete":     visualizer.clearAllMarkers(); break;
                     case "f":
                     case "F":
