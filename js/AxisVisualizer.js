@@ -217,6 +217,22 @@ class AxisVisualizer
             for (var move of replayMoves) {
                 if (move === AxisDisk.MOVE_UNAFFECTED) {
                     this.reset();
+                } else if (AxisVisualizer.isDiskTurnMove(move)) {
+                    // individual disk rotation move.
+                    var turnInfo = AxisVisualizer.turnMoveInfo(move);
+
+                    // abundance of caution. right now the AxisDisk constants match our disk indices, but in the future, who knows
+                    // TODO: have function for internal <-> external disk identifier.
+                    switch(turnInfo.disk) {
+                        case AxisDisk.DISK_TOP:     var diskIndex = 0; break;
+                        case AxisDisk.DISK_LEFT:    var diskIndex = 1; break;
+                        case AxisDisk.DISK_BOTTOM:  var diskIndex = 2; break;
+                        case AxisDisk.DISK_RIGHT:   var diskIndex = 3; break;
+                        default: break;
+                    }
+
+                    // NOTE: calling this through the visualizer will add the move to the history, as if a UI action
+                    ( (turnInfo.isCW ? this.turnCW : this.turnCCW).bind(this) )( diskIndex );
                 } else {
                     this.history.push(move);
                     for (var disk of this.disks.disks) {
@@ -307,10 +323,29 @@ class AxisVisualizer
 
 	turnCCW(diskIndex) {
 		this.disks.disks[diskIndex].turnCCW();
+
+        // TODO: we should really have a function to translate the visualizer's internal disk numbers to their "absolute" disk identifiers.
+        switch(diskIndex) {
+            case 0: var disk = AxisDisk.DISK_TOP; break;
+            case 1: var disk = AxisDisk.DISK_LEFT; break;
+            case 2: var disk = AxisDisk.DISK_BOTTOM; break;
+            case 3: var disk = AxisDisk.DISK_RIGHT; break;
+            default: break;
+        }
+        this.history.push(AxisVisualizer.createDiskTurnMove(disk, false));
 	}
 
 	turnCW(diskIndex) {
 		this.disks.disks[diskIndex].turnCW();
+
+        switch(diskIndex) {
+            case 0: var disk = AxisDisk.DISK_TOP; break;
+            case 1: var disk = AxisDisk.DISK_LEFT; break;
+            case 2: var disk = AxisDisk.DISK_BOTTOM; break;
+            case 3: var disk = AxisDisk.DISK_RIGHT; break;
+            default: break;
+        }
+        this.history.push(AxisVisualizer.createDiskTurnMove(disk, true));
 	}
 
 	setGates() {
@@ -358,3 +393,27 @@ AxisVisualizer.startManualMove = 8;
 AxisVisualizer.endManualMove = 92;
 
 AxisVisualizer.selectedDisk = undefined;
+
+AxisVisualizer.DISK_TOP_TURN = 64;
+AxisVisualizer.DISK_LEFT_TURN = 66;
+AxisVisualizer.DISK_BOTTOM_TURN = 68;
+AxisVisualizer.DISK_RIGHT_TURN = 70;
+AxisVisualizer.isDiskTurnMove = function(move) {
+    return (AxisVisualizer.DISK_TOP_TURN <= move) && (move <= AxisVisualizer.DISK_RIGHT_TURN + 1);
+}
+AxisVisualizer.createDiskTurnMove = function(disk, isCW) {
+    switch(disk) {
+        case AxisDisk.DISK_TOP:     var base = AxisVisualizer.DISK_TOP_TURN; break;
+        case AxisDisk.DISK_LEFT:    var base = AxisVisualizer.DISK_LEFT_TURN; break;
+        case AxisDisk.DISK_BOTTOM:  var base = AxisVisualizer.DISK_BOTTOM_TURN; break;
+        case AxisDisk.DISK_RIGHT:   var base = AxisVisualizer.DISK_RIGHT_TURN; break;
+        default: break;
+    }
+    return base + (isCW ? 0 : 1);
+}
+AxisVisualizer.turnMoveInfo = function(move) {
+    return {
+        disk: [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT][ ((move ^ (move & 1)) - AxisVisualizer.DISK_TOP_TURN)/2 ],
+        isCW: (move % 2 === 0)
+    }
+}
