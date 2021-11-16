@@ -282,8 +282,18 @@ class AxisDisk
 		}
 		this.index.N %= 5;
 
-		this.index2Angle(this.index);
+		this.index2Angle();
 	}
+
+    moveToAbsolutePosition(pos) {
+        this.index.N = Math.floor((pos + 1) / 3) % 5;
+        this.index.M = (pos % 3 === 2 ? -1 : (pos % 3));
+        this.index2Angle();
+    }
+
+    getAbsolutePosition() {
+        return (3*this.index.N + this.index.M + 15) % 15;
+    }
 
 	setGateToCurrentPosition() {
 		this.gate.index.N = this.index.N;

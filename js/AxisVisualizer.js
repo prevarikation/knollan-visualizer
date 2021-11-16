@@ -217,6 +217,8 @@ class AxisVisualizer
             for (var move of replayMoves) {
                 if (move === AxisDisk.MOVE_UNAFFECTED) {
                     this.reset();
+                } else if (AxisVisualizer.isSerializedState(move)) {
+                    this.restoreParkedState(move);
                 } else if (AxisVisualizer.isDiskTurnMove(move)) {
                     // individual disk rotation move.
                     var turnInfo = AxisVisualizer.turnMoveInfo(move);
@@ -245,17 +247,22 @@ class AxisVisualizer
     }
 
     setParkedState() {
-        // we don't skip over the reset state here, as was done above.
-        var lastReset = this.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
-        this.parkedHistory = this.history.slice(lastReset);
+        this.parkedHistory = this.serializeState();
     }
 
-    restoreParkedState() {
-        if (this.parkedHistory) {
-            // hacky. we append the parked state to the history, add a sacrificial move, then undoLastMove()
-            // TODO: don't pollute history. unparking should be an atomic move.
-            this.history = this.history.concat(this.parkedHistory, [AxisDisk.MOVE_UP]);
-            this.undoLastMovement();
+    restoreParkedState(givenState) {
+        var restore = (givenState ? givenState : this.parkedHistory);
+        if (restore && restore !== this.serializeState()) {
+            var diskStates = AxisVisualizer.unserialize(restore);
+            for (var i = 0; i < diskStates.length; ++i) {
+                this.disks.disks[i].moveToAbsolutePosition(diskStates[i]);
+            }
+            this.history.push(restore);
+        }
+
+        // only draw if invoked directly (i.e., not by undo)
+        if (typeof givenState === "undefined") {
+            this.draw();
         }
     }
 
@@ -388,6 +395,14 @@ class AxisVisualizer
     deleteLastMarker() {
         this.disks.disks[AxisVisualizer.selectedDisk].deleteLastMarker();
     }
+
+    serializeState() {
+        for (var i = 0, result = 0; i < this.disks.disks.length; ++i) {
+            result *= 15;
+            result += this.disks.disks[i].getAbsolutePosition();
+        }
+        return result;
+    }
 }
 //statics
 
@@ -409,10 +424,10 @@ AxisVisualizer.endManualMove = 92;
 
 AxisVisualizer.selectedDisk = undefined;
 
-AxisVisualizer.DISK_TOP_TURN = 64;
-AxisVisualizer.DISK_LEFT_TURN = 66;
-AxisVisualizer.DISK_BOTTOM_TURN = 68;
-AxisVisualizer.DISK_RIGHT_TURN = 70;
+AxisVisualizer.DISK_TOP_TURN = 16;
+AxisVisualizer.DISK_LEFT_TURN = AxisVisualizer.DISK_TOP_TURN + 2;
+AxisVisualizer.DISK_BOTTOM_TURN = AxisVisualizer.DISK_TOP_TURN + 4;
+AxisVisualizer.DISK_RIGHT_TURN = AxisVisualizer.DISK_TOP_TURN + 6;
 AxisVisualizer.isDiskTurnMove = function(move) {
     return (AxisVisualizer.DISK_TOP_TURN <= move) && (move <= AxisVisualizer.DISK_RIGHT_TURN + 1);
 }
@@ -431,4 +446,17 @@ AxisVisualizer.turnMoveInfo = function(move) {
         disk: [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT][ ((move ^ (move & 1)) - AxisVisualizer.DISK_TOP_TURN)/2 ],
         isCW: (move % 2 === 0)
     }
+}
+
+AxisVisualizer.SERIALIZED_BASE = 32;
+AxisVisualizer.SERIALIZED_MAX = AxisVisualizer.SERIALIZED_BASE + 50624; // (15^3*14 + 15^2*14 + 15*14 + 14)
+AxisVisualizer.isSerializedState = function(state) {
+    return AxisVisualizer.SERIALIZED_BASE <= state && state <= AxisVisualizer.SERIALIZED_MAX;
+}
+AxisVisualizer.unserialize = function(state) {
+    for (var i = 0, result = []; i < 4; ++i) {
+        result.unshift(state % 15);
+        state = Math.floor(state / 15);
+    }
+    return result;
 }
