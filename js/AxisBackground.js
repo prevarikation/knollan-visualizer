@@ -95,7 +95,7 @@ class AxisBackground
 
         // instructions
         var instructionFontSize = fontSizes.instruction;
-        var rightColX = 796, rightColY = 168;
+        var rightColX = 796, rightColY = 158;
         var instructionRightColX = 1200;
 
         this.ctx.font = cssFontString('instruction');
@@ -120,6 +120,7 @@ class AxisBackground
             ["Toggle speed", "<f>"],
             ["Undo move", "<b>"],
             ["Reset the disks", "<r>"],
+            ["Store / recall disk pos.", "<P> / <p>"],
             ["Set / show the gates", "<s> / <g>"],
             ["Select disk", "<8>, <4>, <6>, <2>", "or <u>, <h>, <j>, <n>"],
             ["Turn disk", "<+> / <->"],
