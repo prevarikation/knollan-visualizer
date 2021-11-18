@@ -129,7 +129,7 @@ class AxisBackground
             ["Delete marker(s)", "<d>, <del>"]
         ];
         this.ctx.font = cssFontString('instruction');
-        rightColY += (2.4 * instructionFontSize);
+        rightColY += (2.0 * instructionFontSize);
         var rightColYBeforeCommands = rightColY;
         for (var i = 0; i < commands.length; ++i) {
             this.ctx.fillText(commands[i][0] + ":", rightColX, rightColY);
@@ -163,7 +163,7 @@ class AxisBackground
         ];
         this.ctx.font = cssFontString('OSLPromotion');
         this.ctx.fillStyle = '#2429bc';
-        rightColY = 750;
+        rightColY = 740;
         for (var i = 0; i < OSLPromotion.length; ++i) {
             this.ctx.fillText(OSLPromotion[i], rightColX, rightColY + i * Math.floor(1.2 * instructionFontSize));
         }
@@ -171,7 +171,8 @@ class AxisBackground
         // copyright
         this.ctx.font = cssFontString('copyright');
         this.ctx.fillStyle = 'black';
-        this.ctx.fillText("\u00a9 2008-2021 Michael U. Huebler. All rights reserved.", rightColX, this.ctx.canvas.height - 17);
+        this.ctx.fillText("\u00a9 2008-2009 Michael U. Huebler. All rights reserved.", rightColX, this.ctx.canvas.height - 35);
+        this.ctx.fillText("\u00a9 2021 fork by prevarikation (MIT attribution license)", rightColX, this.ctx.canvas.height - 10);
 
         this.ctx.restore();
     }

@@ -84,7 +84,7 @@ class AxisVisualizer
                     }
 
                     // based off AxisBackground.js
-                    var speedTextBackground = { fontSize: 20, originX: 975, originY: 323 };
+                    var speedTextBackground = { fontSize: 20, originX: 975, originY: 313 };
                     this.ctx.strokeStyle = '#2429bc';
                     this.ctx.strokeRect(
                         speedTextBackground.originX + boundingRect.offsetX - speedTextBackground.fontSize/4,
