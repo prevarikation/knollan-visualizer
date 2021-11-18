@@ -111,6 +111,23 @@ class AxisVisualizer
                     this.ctx.font = '20px sans-serif';
                     this.ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45 + 32);
 
+                    // we can display raw moves for exploratory reference
+                    if (this.rawMoveDisplay) {
+                        var lastResetIndex = this.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
+                        // hack. using AxisDisk constants to index into a string for translation
+                        var replayMoves = this.history.slice(lastResetIndex).map(function(move){
+                            var s = '0ULDR'.charAt(move);
+                            return (s.length ? s : '#');
+                        }).join('');
+                        var rawNicerFormat = AxisStates.GetNicerCombinationFormat2(replayMoves);
+
+                        // raw moves
+                        this.ctx.textAlign = 'left';
+                        this.ctx.textBaseline = 'bottom';
+                        this.ctx.font = '32px sans-serif';
+                        this.ctx.fillText(rawNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY - document.getElementById("knob-interface").height/2 - 45);
+                    }
+
                     this.ctx.restore();
                 }.bind(this)
             }
@@ -119,6 +136,7 @@ class AxisVisualizer
         this.movingAutomatically = false;
         this.animationStats = null;
         this.history = [];
+        this.rawMoveDisplay = false;
         this.reset();
     }
 
@@ -394,6 +412,10 @@ class AxisVisualizer
 
     deleteLastMarker() {
         this.disks.disks[AxisVisualizer.selectedDisk].deleteLastMarker();
+    }
+
+    toggleRawMoveDisplay() {
+        this.rawMoveDisplay = !this.rawMoveDisplay;
     }
 
     serializeState() {

@@ -63,7 +63,8 @@
                 e.key === "Left"  || e.key === "ArrowLeft" ||
                 e.key === "Down"  || e.key === "ArrowDown" ||
                 e.key === "Right" || e.key === "ArrowRight" ||
-                e.key === " ") {
+                e.key === " " ||
+                e.key === "/") {
                     e.preventDefault();
             }
 
@@ -88,6 +89,7 @@
                 case "C": AxisColorSelector.changeColor(); break;
                 case "d":
                 case "D": visualizer.deleteLastMarker(); break;
+                case "/": visualizer.toggleRawMoveDisplay(); break;
             }
 
             if (visualizer.currentMovement === AxisDisk.MOVE_UNAFFECTED) {

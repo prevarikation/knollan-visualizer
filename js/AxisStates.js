@@ -94,7 +94,7 @@ AxisStates.GetNicerCombinationFormat = function(Combination) {
     var LastMovement;
     var i;
     var count;
-    
+
     //Combination = "UDLRUDLRUDLRUDLRUDLRUDLRR"
 
     NicerCombinationFormat = "";
