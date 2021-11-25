@@ -126,27 +126,20 @@ AxisStates.GetNicerCombinationFormat = function(Combination) {
     }
 }
 AxisStates.GetNicerCombinationFormat2 = function(Combination) {
-    var NicerCombinationFormat;
-    var LastMovement;
-    var i;
-    
-    //Combination = "UDLRUDLRUDLRUDLRUDLRUDLRR"
-
-    NicerCombinationFormat = "";
     if ((Combination == "<invalid state>") || (Combination == "Sequence") || (Combination == "<Reset>")){
         return Combination;
     } else {
-        LastMovement = Combination.charAt (0);
-        for (i = 0; i < Combination.length; i++) {
-            //trace ("NCF: "+NicerCombinationFormat)
-            if ((Combination.charAt (i) == LastMovement) || (i == 0)) {
-                NicerCombinationFormat = NicerCombinationFormat + Combination.charAt (i);
-            } else {
-                NicerCombinationFormat = NicerCombinationFormat + " " +Combination.charAt (i);
-                LastMovement = Combination.charAt (i);
-            }
+        return AxisStates.GetRawMoveFormat(Combination);
+    }
+}
+AxisStates.GetRawMoveFormat = function(Combination) {
+    return Combination.split('').reduce(spaceDifferingMoves, '');
+
+    function spaceDifferingMoves(prev, cur) {
+        if (!prev.length) {
+            return cur;
+        } else {
+            return prev + (prev[prev.length-1] !== cur ? ' ' : '') + cur;
         }
-        //NicerCombinationFormat = NicerCombinationFormat + LastMovement;
-        return NicerCombinationFormat;
     }
 }

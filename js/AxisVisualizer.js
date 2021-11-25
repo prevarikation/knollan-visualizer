@@ -119,13 +119,26 @@ class AxisVisualizer
                             var s = '0ULDR'.charAt(move);
                             return (s.length ? s : '#');
                         }).join('');
-                        var rawNicerFormat = AxisStates.GetNicerCombinationFormat2(replayMoves);
+                        var rawNicerFormat = AxisStates.GetRawMoveFormat(replayMoves);
 
                         // raw moves
                         this.ctx.textAlign = 'left';
-                        this.ctx.textBaseline = 'bottom';
+                        this.ctx.textBaseline = 'top';
                         this.ctx.font = '32px sans-serif';
-                        this.ctx.fillText(rawNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY - document.getElementById("knob-interface").height/2 - 45);
+                        // complications below are because we are emulating linebreaks.
+                        var maxRawMoveWidth = 690; //empirical
+                        for (var i = 1; rawNicerFormat.length; ++i) {
+                            var actualMetrics = this.ctx.measureText(rawNicerFormat);
+                            var charactersInCurrentLine = Math.floor(rawNicerFormat.length * (maxRawMoveWidth/actualMetrics.width));
+
+                            var lineHeight = (actualMetrics.actualBoundingBoxDescent - actualMetrics.actualBoundingBoxAscent);
+                            this.ctx.fillText(rawNicerFormat.substring(0, charactersInCurrentLine), AxisVisualizer.centerX - 50, i * lineHeight - 10);
+
+                            rawNicerFormat = rawNicerFormat.substring(charactersInCurrentLine);
+                            while (rawNicerFormat[0] === ' ') {
+                                rawNicerFormat = rawNicerFormat.substring(1);
+                            }
+                        }
                     }
 
                     this.ctx.restore();
