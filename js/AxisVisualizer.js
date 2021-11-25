@@ -124,20 +124,17 @@ class AxisVisualizer
                         // raw moves
                         this.ctx.textAlign = 'left';
                         this.ctx.textBaseline = 'top';
-                        this.ctx.font = '32px sans-serif';
-                        var lineHeightMetrics = this.ctx.measureText('R');
-                        var lineHeight = (lineHeightMetrics.actualBoundingBoxDescent - lineHeightMetrics.actualBoundingBoxAscent);
+                        var lineHeight = 32;
+                        this.ctx.font = lineHeight + 'px monospace';
                         // complications below are because we are emulating linebreaks.
                         var maxRawMoveWidth = 690; //empirical
                         for (var totalLines = 1; rawNicerFormat.length; ++totalLines) {
-                            var actualMetrics = this.ctx.measureText(rawNicerFormat);
-                            var charactersInCurrentLine = Math.floor(rawNicerFormat.length * (maxRawMoveWidth/actualMetrics.width));
+                            var totalWidth = this.ctx.measureText(rawNicerFormat).width;
+                            var charactersInCurrentLine = Math.floor(rawNicerFormat.length * (maxRawMoveWidth/totalWidth));
 
-                            this.ctx.fillText(rawNicerFormat.substring(0, charactersInCurrentLine), AxisVisualizer.centerX - 50, totalLines*lineHeight - 10);
+                            this.ctx.fillText(rawNicerFormat.substring(0, charactersInCurrentLine), AxisVisualizer.centerX - 50, (totalLines - 3/4) * lineHeight);
 
-                            rawNicerFormat = rawNicerFormat.substring(charactersInCurrentLine);
-                            for (var firstNonSpaceChar = 0; rawNicerFormat[firstNonSpaceChar] === ' '; ++firstNonSpaceChar) {}
-                            rawNicerFormat = rawNicerFormat.substring(firstNonSpaceChar);
+                            rawNicerFormat = rawNicerFormat.substring(charactersInCurrentLine).replace(/^[ ]*/, '');
                         }
                     }
 
