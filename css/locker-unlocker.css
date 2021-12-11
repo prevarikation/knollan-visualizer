@@ -1,0 +1,41 @@
+:root {
+    --selector-cell-width: 5em;
+    --selector-cell-adjacent-width: 3em;
+    --selector-cell-padding: 0.4em;
+}
+
+.intro { max-width: 35em; padding: 0.5em; background-color: lightblue; }
+.right-wheel-position { color: #6f8bff; }
+h3:first-child { margin-top: 0; }
+h3, h4 { margin-bottom: 0; }
+#top-gate-select, #right-gate-select { border-collapse: collapse; }
+#top-gate-select tbody, #right-gate-select tbody { font-family: monospace; }
+#top-gate-select tbody td, #right-gate-select tbody td { padding: 0; border: 1px solid black; }
+
+table:not(.not-enough-information) label span { cursor: pointer; }
+input[type=radio] {
+    margin: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+input[type=radio] ~ span { display: inline-block; width: var(--selector-cell-width); padding: var(--selector-cell-padding) 0; }
+input[type=radio]:checked ~ span { background-color: lightgreen; }
+table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled) ~ span:hover { background-color: lightyellow; }
+
+#top-gate-select label { text-align: center; }
+
+#right-gate-select tbody td:first-child { text-align: center; }
+#right-gate-select tbody td:not(:first-child) label { text-align: right; }
+#right-gate-select tbody td:not(:first-child) label span { padding-right: var(--selector-cell-padding); }
+
+#right-gate-select tbody td.traverse-first label { text-align: left; }
+#right-gate-select tbody td.traverse-first { border-right: 0; }
+#right-gate-select tbody td.traverse-first ~ td { border-left: 0; }
+#right-gate-select tbody td.traverse-first label span { width: var(--selector-cell-adjacent-width); padding-left: var(--selector-cell-padding); padding-right: 0; }
+#right-gate-select tbody td.traverse-first ~ td label span { width: var(--selector-cell-adjacent-width); }
+
+input[type=radio]:disabled ~ span { cursor: default; background-color: lightgray; }
+output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
+output.short-generate { width: 8em; text-align: center; font-size: 125%; font-weight: bold; }
+#combinations select { width: 18em; padding-left: 0.2em; padding-right: 0.25em; font: 110% monospace; }
