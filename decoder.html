@@ -237,6 +237,7 @@
     }
 
 	window.addEventListener('DOMContentLoaded', function(){
+        return;
 		//document.getElementById('calculate').addEventListener('click', calculate);
         for (var radio of document.forms['diskGateSelectors'].elements['topGatePosition']) {
             radio.addEventListener('change', selectUpperDiskGate);
@@ -290,9 +291,59 @@
 <body>
 
 <h1>NOT LOCKER UNLOCKER</h1>
+<p>
+Explanations and terminology for decoding process (various tensions, etc.)
+</p>
 
+<ol>
+
+<li>
+<h2>Identify first binding disk:</h2>
+<details>
+    <summary>Dial sticking technique</summary>
+    <ol>
+        <li>Reset.</li>
+        <li>For each direction, U, L, R and D, do the following.
+            <ol type="a">
+                <li>Move the dial in the chosen direction, but hold the dial at the end of its travel.</li>
+                <li>Apply light-to-moderate tension on the shackle, enough to bind (ideally) just the first binding disk.</li>
+                <li>Release the dial, noting whether the dial sticks or slides freely back to the center.</li>
+            </ol>
+        </li>
+        <li>
+        The dial should slide freely in exactly 1 direction, and stick in the 3 other directions. The first binding disk
+        is in the <em>opposite</em> direction from the move that slides freely (i.e., if the dial moves on a D move, the
+        <strong>top</strong> disk is the first binding disk.)
+        </li>
+</details>
+<select id="first-binding-disk">
+    <option value="top" selected="selected">Top</option>
+    <option value="left">Left</option>
+    <option value="bottom">Bottom</option>
+    <option value="right">Right</option>
+</select>
+</li>
+
+<li>
+<h2>Identify correct gate for first binding disk:</h2>
+<details>
+    <summary>Incremental stepping (or LRU-stepping) technique</summary>
+    <ol>
+        <li>Reset.</li>
+        <li>Moving the dial in an TODO:LRU pattern rotates the top wheel clockwise each time, in the smallest increment.</li>
+        <li>After each move in the TODO:LRU pattern, move downward, but hold the button at the bottom and then do the following.
+            <ol type="a">
+                <li>Apply light-to-moderate tension on the shackle, enough to bind (ideally) just the first disk.</li>
+                <li>Release the dial, noting whether the dial sticks or slides freely back to the center.</li>
+                <li>If the dial slides freely, then the first disk is still binding and not in a gate.</li>
+                <li>If the dial sticks (under appropriate tension,) it means that another disk is now bound, and the fence is in a gate.</li>
+                <li>For the Master Lock Speed Dial version, the tolerances seem to allow the fence to move into the gate in two positions — the correct position, and the one immediately before. So as you go around, when there are two consecutive positions that stick, the second position should be the location of the true gate.</li>
+            </ol>
+        </li>
+    </ol>
+</details>
 <form name="diskGateSelectors">
-<h3>Top gate state table</h3>
+<h3><span>TODO</span> gate state table</h3>
 <table id="top-gate-select">
     <thead>
         <tr><th>L</th><th>R</th><th>U</th></tr>
@@ -325,12 +376,14 @@
         </tr>
     </tbody>
 </table>
+</li>
 
-<h4>Enter sequence:</h4>
+<li>
+<h2>Identify second binding disk:</h2>
+<h3>Enter sequence:</h3>
 <output id='top-gate-sequence' class='mono-output short-generate'>&nbsp;</output>
-
 <p>
-    Mark the downward move counts (cyclical) that have sticking/resistance:
+    Mark the downward move count (cyclical) that has a distinct click or the <em>most</em> outward shackle movement:
 </p>
 <ul>
 	<li><label><input class="downward-stick" type="checkbox"> 1</label></li>
@@ -339,13 +392,46 @@
 	<li><label><input class="downward-stick" type="checkbox"> 4</label></li>
 	<li><label><input class="downward-stick" type="checkbox"> 5</label></li>
 </ul>
-<p>
-	<button id="calculate" type="button">Generate possible combinations</button> <label><input type="checkbox" name="onlyFactoryCodes">Factory codes only</label>
-</p>
-</form>
 
+<h3>Enter 2<sup>nd</sup> sequence:</h3>
+<output id='top-gate-sequence' class='mono-output short-generate'>R D &nbsp;</output>
+<p>
+    Again, mark the downward move count (cyclical) that has a distinct click or the <em>most</em> outward shackle movement:
+</p>
+<ul>
+    <li><label><input class="downward-stick" type="checkbox"> 1</label></li>
+    <li><label><input class="downward-stick" type="checkbox"> 2</label></li>
+    <li><label><input class="downward-stick" type="checkbox"> 3</label></li>
+    <li><label><input class="downward-stick" type="checkbox"> 4</label></li>
+    <li><label><input class="downward-stick" type="checkbox"> 5</label></li>
+</ul>
+
+<h3>Second binding disk:
+<select id="second-binding-disk" disabled="disabled">
+    <option value="top">Top</option>
+    <option value="left">Left</option>
+    <option value="bottom">Bottom</option>
+    <option value="right" selected="selected">Right</option>
+</select>
+</h3>
+</li>
+
+
+<li>
+<h2>Identify correct gate for second binding disk:</h2>
+</li>
+
+<li>
+<h2>Iterate through matching combinations:</h2>
+<p>
+    <button id="calculate" type="button">Generate possible combinations</button> <label><input type="checkbox" name="onlyFactoryCodes">Factory codes only</label>
+</p>
 <h3>Resulting combinations <span id="totalCombinations"></span></h3>
 <output id="combinations">will appear here</output>
+</li>
+
+</ol>
+</form>
 
 </body>
 </html>
