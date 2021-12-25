@@ -4,10 +4,13 @@
     --selector-cell-padding: 0.4em;
 }
 
-.intro { max-width: 35em; padding: 0.5em; background-color: lightblue; }
+.intro { padding: 0.5em; background-color: lightblue; }
 .right-wheel-position { color: #6f8bff; }
 h3:first-child { margin-top: 0; }
 h3, h4 { margin-bottom: 0; }
+#quick-sequence-ui { margin: 1em 0; }
+#quick-sequence-ui h4 { margin: 0; }
+#right-wheel-ui { clear: both; }
 #top-gate-select, #right-gate-select { border-collapse: collapse; }
 #top-gate-select tbody, #right-gate-select tbody { font-family: monospace; }
 #top-gate-select tbody td, #right-gate-select tbody td { padding: 0; border: 1px solid black; }
@@ -39,3 +42,10 @@ input[type=radio]:disabled ~ span { cursor: default; background-color: lightgray
 output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
 output.short-generate { width: 8em; text-align: center; font-size: 125%; font-weight: bold; }
 #combinations select { width: 18em; padding-left: 0.2em; padding-right: 0.25em; font: 110% monospace; }
+
+@media screen and (min-width: 800px) {
+    .intro { max-width: 35em; }
+    #top-gate-ui { float: left; margin-bottom: 2em; }
+    #quick-sequence-ui { float: left; margin: 2em 0 0 2em; }
+    #quick-sequence-ui h4 { margin-top: revert; }
+}

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
 	<title>Blank_Reg's Locker Unlocker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="css/locker-unlocker.css" rel="stylesheet">
 	<script src="js/StateTable1.js"></script>
 	<script src="js/StateTable2.js"></script>
@@ -22,7 +23,7 @@
 </p>
 
 <form name="diskGateSelectors">
-<div style="float: left; margin-bottom: 2em;">
+<div id="top-gate-ui">
 <h3>Top gate state table</h3>
 <table id="top-gate-select">
     <thead>
@@ -58,7 +59,7 @@
 </table>
 </div>
 
-<div style="float: left; margin: 2em 0 0 2em;">
+<div id="quick-sequence-ui">
 <h4>Quick sequence to reach top gate:</h4>
 <output id='top-gate-sequence' class='mono-output short-generate'>&nbsp;</output>
 
@@ -66,7 +67,7 @@
 <output id='right-wheel-position' class='mono-output short-generate right-wheel-position'>&nbsp;</output>
 </div>
 
-<div style="clear: both;">
+<div id="right-wheel-ui">
 <h3>Right wheel state table</h3>
 <input type='radio' name='rightGatePosition' value='-1' checked='checked' style="display: none;">
 <table id="right-gate-select" class="not-enough-information">
