@@ -57,9 +57,11 @@
         visualizer = new AxisVisualizer(document.getElementById('visualizer'));
         visualizer.draw();
 
-        document.getElementById('fit-canvas').addEventListener('click', function(e){
-            document.getElementById('visualizer').classList.toggle('scale-to-screen', !document.getElementById('visualizer').classList.contains('scale-to-screen'));
-        })
+        function updateScaleToScreen() {
+            document.getElementById('visualizer').classList.toggle('scale-to-screen', document.getElementById('fit-canvas').checked);
+        }
+        document.getElementById('fit-canvas').addEventListener('click', updateScaleToScreen);
+        updateScaleToScreen();
 
         document.addEventListener('keydown', function(e) {
             if (e.key === "Up"    || e.key === "ArrowUp" ||
