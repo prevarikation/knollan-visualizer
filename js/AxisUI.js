@@ -196,10 +196,12 @@ AxisUI.instructionPages = {
         subheader: "All standard key commands still active",
         commands: [
             ["Store / recall disk pos.", "<P> / <p>"],
-            // TODO: implement partial moves!
+            // TODO: implement all these!
             /*
             ["Move ⅓", "<Alt>+<Cursor>"],
             ["Step ⅓", "<Shift>+<Alt>+<Cursor>"],
+            ["Realistic gates", ""],
+            ["Blank_Reg cutaway windows", ""],
             */
             ["Switch standard / research", "</>"]
         ]
