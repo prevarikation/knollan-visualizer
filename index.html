@@ -20,6 +20,7 @@
     <script src="js/AxisIndex.js"></script>
     <script src="js/AxisStates.js"></script>
     <script src="js/AxisColorSelector.js"></script>
+    <script src="js/AxisUI.js"></script>
     <script src="js/AxisBackground.js"></script>
     <script src="js/AxisGateTestingPiece.js"></script>
     <script src="js/AxisDisk.js"></script>
@@ -91,7 +92,7 @@
                 case "C": AxisColorSelector.changeColor(); break;
                 case "d":
                 case "D": visualizer.deleteLastMarker(); break;
-                case "/": visualizer.toggleRawMoveDisplay(); break;
+                case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : "standard"); break;
             }
 
             if (visualizer.currentMovement === AxisDisk.MOVE_UNAFFECTED) {
@@ -170,7 +171,7 @@
         <label><input id="fit-canvas" type="checkbox" checked="checked"> Constrain visualizer to window</label>
     </div>
     <div class="images">
-        <img id="background" src="img/VisualizerBackgroundV5.png" alt=""><!-- 1222x900 -->
+        <img id="background" src="img/VisualizerBackgroundV6.png" alt=""><!-- 1222x900 -->
         <img id="gate-tester" src="img/Gate%20Tester.png" alt=""><!-- 820x821 -->
         <img id="knob-interface" src="img/Knob%20Interface%20Plate%202.png" alt=""><!-- 578x577 -->
         <img id="disk" src="img/New%20Disk%202.png" alt=""><!-- 274x274 -->

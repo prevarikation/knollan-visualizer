@@ -36,18 +36,8 @@ class AxisBackground
             // Attempt to recreate the original rendered background, but
             // allow us to tweak commands and formatting.
             // ALL MEASUREMENTS EMPIRICAL.
-            var fontSizes = {
-                'title': 42,
-                'adaptationNotice': 13,
-                'moveStateReminder': 19,
-                'disclaimer': 10,
-                'instruction': 26,
-                'instructionExplanation': 20,
-                'OSLPromotion': 26,
-                'copyright': 18
-            }
             function cssFontString(type, prefix) {
-                return (typeof prefix !== 'undefined' ? prefix + ' ' : '') + (typeof fontSizes[type] !== 'undefined' ? fontSizes[type] : '16') + 'px Arial, sans-serif';
+                return (typeof prefix !== 'undefined' ? prefix + ' ' : '') + (typeof AxisVisualizer.FONT_SIZES[type] !== 'undefined' ? AxisVisualizer.FONT_SIZES[type] : '16') + 'px Arial, sans-serif';
             }
 
             // decently close new background gradient?
@@ -90,72 +80,11 @@ class AxisBackground
             var disclaimer = [
                 "The author(s) are not affiliated with the lock manufacturer(s) in any way; the lock manufacturers or the authors' employers have nothing to do with this program. All",
                 "trademarks are the property of their owners. Some of the concepts and techniques shown here are protected by intellectual property rights such as patents. The",
-                "functionality might be incomplete and / or contain errors. The authors give NO WARRANTY AT ALL and accept NO LIABILITY WHATSOEVER concerning this program."
+                "functionality may be incomplete and/or contain errors. The authors give NO WARRANTY AT ALL and accept NO LIABILITY WHATSOEVER concerning this program."
             ];
             for (var i = 0; i < disclaimer.length; ++i) {
                 this.ctx.fillText(disclaimer[i], titleX, this.ctx.canvas.height - (disclaimer.length - i) * 12 - 5);
             }
-
-            // instructions
-            var instructionFontSize = fontSizes.instruction;
-            var rightColX = 796, rightColY = 158;
-            var instructionRightColX = 1200;
-
-            this.ctx.font = cssFontString('instruction');
-            this.ctx.fillStyle = 'black';
-            this.ctx.fillText("Instructions:", rightColX, rightColY);
-            // draw underline beneath instructions
-            this.ctx.strokeStyle = 'black';
-            this.ctx.beginPath();
-            var lineY = rightColY + Math.floor(fontSizes.instruction/6);
-            this.ctx.moveTo(rightColX, lineY);
-            this.ctx.lineTo(rightColX + this.ctx.measureText("Instructions:").width, lineY);
-            this.ctx.closePath();
-            this.ctx.stroke();
-
-            rightColY += Math.floor(1.2 * instructionFontSize);
-            this.ctx.font = cssFontString('instructionExplanation');
-            this.ctx.fillText("Click here to activate, then use these keys:", rightColX, rightColY);
-
-            var commands = [
-                ["Move the knob", "<Cursor keys>"],
-                ["Step", "<Shift>+<Cursor keys>"],
-                ["Toggle speed", "<f>"],
-                ["Undo move", "<b>"],
-                ["Reset the disks", "<r>"],
-                ["Store / recall disk pos.", "<P> / <p>"],
-                ["Set / show the gates", "<s> / <g>"],
-                ["Select disk", "<8>, <4>, <6>, <2>", "or <u>, <h>, <j>, <n>"],
-                ["Turn disk", "<+> / <->"],
-                ["Change marker color", "<c>"],
-                ["Set marker", "<m>"],
-                ["Delete marker(s)", "<d>, <del>"]
-            ];
-            this.ctx.font = cssFontString('instruction');
-            rightColY += (2.0 * instructionFontSize);
-            var rightColYBeforeCommands = rightColY;
-            for (var i = 0; i < commands.length; ++i) {
-                this.ctx.fillText(commands[i][0] + ":", rightColX, rightColY);
-
-                var origFont = this.ctx.font;
-                this.ctx.font = cssFontString('instruction', 'bold');
-                for (var j = 1; j < commands[i].length; ++j) {
-                    this.ctx.fillText(commands[i][j], instructionRightColX - this.ctx.measureText(commands[i][j]).width, rightColY);
-                    rightColY += Math.floor(1.45 * instructionFontSize);
-                }
-
-                this.ctx.font = cssFontString('instruction');
-            }
-
-            // speed level indicators
-            this.ctx.font = cssFontString('instructionExplanation');
-            this.ctx.fillStyle = '#2429bc';
-            var speedPositionInCommandList = 3;
-            rightColY = rightColYBeforeCommands + ((speedPositionInCommandList - 1) * 1.45 * instructionFontSize);
-            var speedText = "normal  slow  instant";
-            var speedTextX = instructionRightColX - (this.ctx.measureText(commands[speedPositionInCommandList-1][1]).width * instructionFontSize/fontSizes.instructionExplanation) - this.ctx.measureText(speedText + " ").width;
-            var speedTextY = rightColY - (this.ctx.measureText(speedText).actualBoundingBoxAscent * (instructionFontSize/fontSizes.instructionExplanation - 1.05));
-            this.ctx.fillText(speedText, speedTextX, speedTextY);
 
             // open-source lock
             var OSLPromotion = [
@@ -166,9 +95,9 @@ class AxisBackground
             ];
             this.ctx.font = cssFontString('OSLPromotion');
             this.ctx.fillStyle = '#2429bc';
-            rightColY = 740;
+            var rightColX = 796, rightColY = 740;
             for (var i = 0; i < OSLPromotion.length; ++i) {
-                this.ctx.fillText(OSLPromotion[i], rightColX, rightColY + i * Math.floor(1.2 * instructionFontSize));
+                this.ctx.fillText(OSLPromotion[i], rightColX, rightColY + i * Math.floor(1.2 * AxisVisualizer.FONT_SIZES.instruction));
             }
 
             // copyright

@@ -68,79 +68,27 @@ class AxisVisualizer
 
         this.knobInterfacePlate = new AxisKnobInterfacePlate(canvas, document.getElementById("knob-interface"), AxisVisualizer.centerX, AxisVisualizer.centerY);
 
+        this.selectedUIPage = "standard";
+        this.dynamicUI = new AxisUI(canvas);
+        // for closure purposes
+        var visualizerRef = this;
+        // override draw() to pass in arguments when invoked without arguments
+        this.dynamicUI.superDraw = this.dynamicUI.draw;
+        this.dynamicUI.draw = function(){
+            var uiPage = visualizerRef.selectedUIPage;
+            var options = { disks: visualizerRef.disks };
+            if (uiPage === "standard") {
+                options.automaticAnimationTime = AxisVisualizer.AUTOMATIC_ANIMATION_TIME;
+            } else if (uiPage === "research") {
+                options.history = visualizerRef.history;
+            }
+            this.superDraw(uiPage, options);
+        };
+
         this.dynamic = [
             this.disks,
             this.knobInterfacePlate,
-            { // speed indicator box
-                draw: function() {
-                    this.ctx.save();
-
-                    // all measurements empirical
-                    var boundingRect = null;
-                    switch(AxisVisualizer.AUTOMATIC_ANIMATION_TIME) {
-                        case AxisVisualizer.ANIMATION_TIMES.slow:       boundingRect = { offsetX: 73, width: 47}; break;
-                        case AxisVisualizer.ANIMATION_TIMES.instant:    boundingRect = { offsetX: 124, width: 66}; break;
-                        default:                                        boundingRect = { offsetX: 0, width: 70}; break;
-                    }
-
-                    // based off AxisBackground.js
-                    var speedTextBackground = { fontSize: 20, originX: 975, originY: 313 };
-                    this.ctx.strokeStyle = '#2429bc';
-                    this.ctx.strokeRect(
-                        speedTextBackground.originX + boundingRect.offsetX - speedTextBackground.fontSize/4,
-                        speedTextBackground.originY - speedTextBackground.fontSize,
-                        boundingRect.width,
-                        speedTextBackground.fontSize * 5/4);
-
-                    this.ctx.restore();
-                }.bind(this)
-            },
-            { // combination text
-                draw: function() {
-                    var combination = AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, this.disks.disks.map(o => o.index)) );
-                    var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
-                    var condensedNicerFormat = AxisStates.GetNicerCombinationFormat(combination);
-                    this.ctx.save();
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'top';
-
-                    // extended
-                    this.ctx.font = '32px sans-serif';
-                    this.ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45);
-                    // condensed
-                    this.ctx.font = '20px sans-serif';
-                    this.ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45 + 32);
-
-                    // we can display raw moves for exploratory reference
-                    if (this.rawMoveDisplay) {
-                        var lastResetIndex = this.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
-                        // hack. using AxisDisk constants to index into a string for translation
-                        var replayMoves = this.history.slice(lastResetIndex).map(function(move){
-                            var s = '0ULDR'.charAt(move);
-                            return (s.length ? s : '#');
-                        }).join('');
-                        var rawNicerFormat = AxisStates.GetRawMoveFormat(replayMoves);
-
-                        // raw moves
-                        this.ctx.textAlign = 'left';
-                        this.ctx.textBaseline = 'top';
-                        var lineHeight = 32;
-                        this.ctx.font = lineHeight + 'px monospace';
-                        // complications below are because we are emulating linebreaks.
-                        var maxRawMoveWidth = 690; //empirical
-                        for (var totalLines = 1; rawNicerFormat.length; ++totalLines) {
-                            var totalWidth = this.ctx.measureText(rawNicerFormat).width;
-                            var charactersInCurrentLine = Math.floor(rawNicerFormat.length * (maxRawMoveWidth/totalWidth));
-
-                            this.ctx.fillText(rawNicerFormat.substring(0, charactersInCurrentLine), AxisVisualizer.centerX - 50, (totalLines - 3/4) * lineHeight);
-
-                            rawNicerFormat = rawNicerFormat.substring(charactersInCurrentLine).replace(/^[ ]*/, '');
-                        }
-                    }
-
-                    this.ctx.restore();
-                }.bind(this)
-            }
+            this.dynamicUI
         ];
 
         this.movingAutomatically = false;
@@ -445,6 +393,16 @@ AxisVisualizer.scale = 0.78; // empirical, original was 0.69
 AxisVisualizer.diskScale = 1; // empirical, original 50
 AxisVisualizer.centerX = 419; // abs. guessed center of disk imagery: (419, 449)
 AxisVisualizer.centerY = 449;
+AxisVisualizer.FONT_SIZES = {
+    'title': 42,
+    'adaptationNotice': 13,
+    'moveStateReminder': 19,
+    'disclaimer': 10,
+    'instruction': 26,
+    'instructionExplanation': 20,
+    'OSLPromotion': 26,
+    'copyright': 18
+};
 
 AxisVisualizer.ANIMATION_TIMES = { 'slow': 900, 'normal': 500, 'instant': 1 }; // milliseconds. let instant > 0 because we use SetTimeout() later on.
 AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.normal;
