@@ -481,9 +481,3 @@ AxisDisk.controlCurves =
 	 new Array(100).fill(24)
 
     ];
-
-	function format(curve) {
-		var pad = 4;
-		return curve.map(i => padToN(i.toString(), pad)).join(',').split(/(.{100})/).filter(s => s.length).join("\n");
-		function padToN(s, n) { return new Array(n - s.length + 1).join(' ') + s; }
-	}
