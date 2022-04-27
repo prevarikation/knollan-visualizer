@@ -328,9 +328,12 @@ class AxisDisk
         this.markers = [];
 	}
 
-	deleteLastMarker() {
-		if (this.markers.length > 0) {
-            this.markers.pop();
+	deleteMarker() {
+		for (var i = this.markers.length-1; i >= 0; --i) {
+			if (this.markers[i].index.N === this.index.N && this.markers[i].index.M === this.index.M) {
+				this.markers.splice(i, 1);
+				break;
+			}
 		}
 	}
 }

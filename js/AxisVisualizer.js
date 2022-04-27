@@ -339,8 +339,8 @@ class AxisVisualizer
         }
     }
 
-    deleteLastMarker() {
-        this.disks.disks[AxisVisualizer.selectedDisk].deleteLastMarker();
+    deleteMarker() {
+        this.disks.disks[AxisVisualizer.selectedDisk].deleteMarker();
     }
 
     toggleRawMoveDisplay() {
