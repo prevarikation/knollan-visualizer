@@ -100,13 +100,13 @@
             if (visualizer.currentMovement === AxisDisk.MOVE_UNAFFECTED) {
                 switch(e.key) {
                     case "Up":
-                    case "ArrowUp":    visualizer.startMovement(AxisDisk.MOVE_UP, !e.shiftKey); break;
+                    case "ArrowUp":    visualizer.startMovement(AxisDisk.MOVE_UP, !e.shiftKey, e.altKey); break;
                     case "Left":
-                    case "ArrowLeft":  visualizer.startMovement(AxisDisk.MOVE_LEFT, !e.shiftKey); break;
+                    case "ArrowLeft":  visualizer.startMovement(AxisDisk.MOVE_LEFT, !e.shiftKey, e.altKey); break;
                     case "Down":
-                    case "ArrowDown":  visualizer.startMovement(AxisDisk.MOVE_DOWN, !e.shiftKey); break;
+                    case "ArrowDown":  visualizer.startMovement(AxisDisk.MOVE_DOWN, !e.shiftKey, e.altKey); break;
                     case "Right":
-                    case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey); break;
+                    case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey, e.altKey); break;
                     case "b":
                     case "B":          visualizer.undoLastMovement(); break;
                     case "P":          visualizer.setParkedState(); break;
@@ -129,8 +129,7 @@
                 if (!visualizer.automatic && (visualizer.step > AxisVisualizer.startManualMove || visualizer.step < AxisVisualizer.endManualMove)) {
                     if (e.key === " ") {
                         // automatically finish move
-                        visualizer.startMovement(visualizer.currentMovement, true);
-                        //visualizer.automatic = true; // TODO: what else?
+                        visualizer.startMovement(visualizer.currentMovement, true, visualizer.isPartialMove);
                     } else {
                         if (visualizer.currentMovement === AxisDisk.MOVE_UP) {
                             if (e.key === "Up" || e.key === "ArrowUp") { visualizer.nextStep(); }

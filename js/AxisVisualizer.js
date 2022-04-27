@@ -164,8 +164,8 @@ class AxisVisualizer
         }
     }
 
-    startMovement(direction, automatic) {
-        if (automatic) {
+    startMovement(direction, isAutomaticMove, isPartialMove) {
+        if (isAutomaticMove) {
             if (this.movingAutomatically) {
                 return;
             } else {
@@ -174,7 +174,8 @@ class AxisVisualizer
         }
 
         this.currentMovement = direction;
-        AxisVisualizer.automatic = automatic;
+        this.isPartialMove = isPartialMove;
+        AxisVisualizer.automatic = isAutomaticMove;
 
         if (AxisVisualizer.automatic) {
             this.animate(this.currentMovement);
@@ -243,13 +244,15 @@ class AxisVisualizer
     }
 
     nextStep() {
+        var fullMovement = (this.isPartialMove ? AxisDisk.makePartialMove(this.currentMovement) : this.currentMovement);
+
         if (this.step < AxisVisualizer.MAX_STEP) {
             this.step += (!AxisVisualizer.automatic ? 5 : AxisVisualizer.STEP_INC);
             // moving manually, then automatically (in fast mode) can possibly exceed 100.
             this.step = Math.min(this.step, 100);
 
             for (var disk of this.disks.disks) {
-                disk.rotateToIncrementalAngle( disk.controlCurveAngle(this.currentMovement, this.step) );
+                disk.rotateToIncrementalAngle( disk.controlCurveAngle(fullMovement, this.step) );
             }
 
             switch(this.currentMovement) {
@@ -271,27 +274,35 @@ class AxisVisualizer
 					break;
             }
 
+            if (this.isPartialMove) {
+                this.x *= AxisDisk.PARTIAL_MOVE_RATIO;
+                this.y *= AxisDisk.PARTIAL_MOVE_RATIO;
+            }
+
             this.knobInterfacePlate.moveToAbsoluteIndex(this.x, this.y);
         } else {
             this.step = this.x = this.y = 0;
             this.knobInterfacePlate.moveToAbsoluteIndex(this.x, this.y);
 
-            this.history.push(this.currentMovement);
+            this.history.push(fullMovement);
             for (var disk of this.disks.disks) {
-                disk.move(this.currentMovement);
+                disk.move(fullMovement);
             }
 
             this.currentMovement = AxisDisk.MOVE_UNAFFECTED;
+            this.isPartialMove = false;
         }
     }
 
 	previousStep() {
+        var fullMovement = (this.isPartialMove ? AxisDisk.makePartialMove(this.currentMovement) : this.currentMovement);
+
 		if (this.step > 0) {
             this.step -= (!AxisVisualizer.automatic ? 5 : AxisVisualizer.STEP_INC);
             this.step = Math.max(this.step, 0);
 
             for (var disk of this.disks.disks) {
-                disk.rotateToIncrementalAngle( disk.controlCurveAngle(this.currentMovement, this.step) );
+                disk.rotateToIncrementalAngle( disk.controlCurveAngle(fullMovement, this.step) );
             }
 			switch (this.currentMovement)
 			{
@@ -312,6 +323,11 @@ class AxisVisualizer
 					if (this.x > AxisVisualizer.MAX_STEP/2) {this.x = AxisVisualizer.MAX_STEP - this.x;}
 					break;
 			}
+
+            if (this.isPartialMove) {
+                this.x *= AxisDisk.PARTIAL_MOVE_RATIO;
+                this.y *= AxisDisk.PARTIAL_MOVE_RATIO;
+            }
 
 			this.knobInterfacePlate.moveToAbsoluteIndex(this.x, this.y);
 		} else {
