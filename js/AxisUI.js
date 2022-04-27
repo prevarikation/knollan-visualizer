@@ -203,6 +203,7 @@ AxisUI.instructionPages = {
             ["Set gate of sel. disk", "<Shift>+<s>"],
             // TODO: implement these!
             /*
+            ["Show antedecedent moves", ""],
             ["Blank_Reg cutaway windows", ""],
             ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
             */
