@@ -26,7 +26,7 @@ SOFTWARE.
 class AxisDisk
 {
     constructor(canvas, image, diskStartAngle, diskUniqueNumber, centerX, centerY) {
-		AxisDisk.scale = AxisVisualizer.diskScale * AxisVisualizer.scale;
+		AxisDisk.scale = AxisVisualizer.scale;
 		AxisDisk.radius = image.width/2 * AxisDisk.scale;
 		AxisDisk.centerX = centerX-1; //empirical tweaks for better visual coherency
 		AxisDisk.centerY = centerY-1;

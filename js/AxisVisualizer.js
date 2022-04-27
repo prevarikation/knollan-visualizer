@@ -357,7 +357,6 @@ class AxisVisualizer
 // background image: 1222x900
 // disk display "working area": 776w x 900h
 AxisVisualizer.scale = 0.78; // empirical, original was 0.69
-AxisVisualizer.diskScale = 1; // empirical, original 50
 AxisVisualizer.centerX = 419; // abs. guessed center of disk imagery: (419, 449)
 AxisVisualizer.centerY = 449;
 AxisVisualizer.FONT_SIZES = {
