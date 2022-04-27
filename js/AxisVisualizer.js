@@ -354,6 +354,27 @@ class AxisVisualizer
         }
         return result;
     }
+
+    touchableElementAt(coords) {
+        for (var disk of this.disks.disks) {
+            if (Math.sqrt(Math.pow(disk.x - coords.x, 2) + Math.pow(disk.y - coords.y, 2)) < AxisDisk.radius) {
+                return { type: 'disk', disk: disk.internalDiskNumber};
+            }
+        }
+
+        // TODO: REWRITE ANYTHING BELOW THIS (PROOF OF CONCEPT)
+        //check if instruction page
+        if (796 <= coords.x && coords.x <= 1200 && 158 <= coords.y && coords.y < 740) {
+            return { type: 'instructionPage' };
+        }
+        if (coords.x <= AxisVisualizer.centerX && coords.y <= 100) {
+            return { type: 'reset' };
+        }
+        //check within instruction page?
+        //check if marker color?
+
+        return null;
+	}
 }
 //statics
 

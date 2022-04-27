@@ -144,6 +144,37 @@
 
             visualizer.draw();
         });
+
+        // TODO: proof of concept for mobile support, needs a lot of work
+        document.getElementById('visualizer').addEventListener('touchstart', function(e){
+            var ratio = e.target.width / e.target.clientWidth;
+            var normalizedTouchLoc = {
+                x: e.targetTouches[0].clientX * ratio,
+                y: e.targetTouches[0].clientY * ratio,
+            }
+            var el = visualizer.touchableElementAt(normalizedTouchLoc);
+            if (el) {
+                var simulatedKey = "";
+                var altKey = false;
+
+                if (el.type === "disk") {
+                    altKey = (visualizer.selectedUIPage === "research");
+                    switch(el.disk) {
+                        case AxisDisk.DISK_TOP:    simulatedKey = "ArrowUp"; break;
+                        case AxisDisk.DISK_LEFT:   simulatedKey = "ArrowLeft"; break;
+                        case AxisDisk.DISK_BOTTOM: simulatedKey = "ArrowDown"; break;
+                        case AxisDisk.DISK_RIGHT:  simulatedKey = "ArrowRight"; break;
+                        default: break;
+                    }
+                } else if (el.type === "instructionPage") {
+                    simulatedKey = "/";
+                } else if (el.type === "reset") {
+                    simulatedKey = "r";
+                }
+
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: simulatedKey, altKey: altKey }));
+            }
+        });
     });
 	</script>
     <style>
