@@ -74,26 +74,18 @@
             }
 
             switch(e.key) {
-                case "g":
-                case "G": visualizer.toggleGatesVisibility(); break;
+                case "g": visualizer.toggleGatesVisibility(); break;
                 case "8":
-                case "u":
-                case "U": visualizer.selectDisk(AxisDisk.DISK_TOP); break;
+                case "u": visualizer.selectDisk(AxisDisk.DISK_TOP); break;
                 case "4":
-                case "h":
-                case "H": visualizer.selectDisk(AxisDisk.DISK_LEFT); break;
+                case "h": visualizer.selectDisk(AxisDisk.DISK_LEFT); break;
                 case "2":
-                case "n":
-                case "N": visualizer.selectDisk(AxisDisk.DISK_BOTTOM); break;
+                case "n": visualizer.selectDisk(AxisDisk.DISK_BOTTOM); break;
                 case "6":
-                case "j":
-                case "J": visualizer.selectDisk(AxisDisk.DISK_RIGHT); break;
-                case "m":
-                case "M": visualizer.setMarker(); break;
-                case "c":
-                case "C": AxisColorSelector.changeColor(); break;
-                case "d":
-                case "D": visualizer.deleteMarker(); break;
+                case "j": visualizer.selectDisk(AxisDisk.DISK_RIGHT); break;
+                case "m": visualizer.setMarker(); break;
+                case "c": AxisColorSelector.changeColor(); break;
+                case "d": visualizer.deleteMarker(); break;
                 case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : "standard"); break;
             }
 
@@ -107,13 +99,11 @@
                     case "ArrowDown":  visualizer.startMovement(AxisDisk.MOVE_DOWN, !e.shiftKey, e.altKey); break;
                     case "Right":
                     case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey, e.altKey); break;
-                    case "b":
-                    case "B":          visualizer.undoLastMovement(); break;
+                    case "b":          visualizer.undoLastMovement(); break;
                     case "P":          visualizer.setParkedState(); break;
                     case "p":          visualizer.restoreParkedState(); break;
                     case "Delete":     visualizer.clearAllMarkers(); break;
                     case "f":
-                    case "F":
                         switch(AxisVisualizer.AUTOMATIC_ANIMATION_TIME) {
                             case AxisVisualizer.ANIMATION_TIMES.normal: AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.slow; break;
                             case AxisVisualizer.ANIMATION_TIMES.slow:   AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.instant; break;
@@ -148,7 +138,7 @@
                 }
             }
 
-            if (e.key === "r" || e.key === "R") {
+            if (e.key === "r") {
                 visualizer.reset();
             }
 
