@@ -387,7 +387,7 @@ AxisVisualizer.DISK_BOTTOM_TURN = AxisVisualizer.DISK_TOP_TURN + 4;
 AxisVisualizer.DISK_RIGHT_TURN = AxisVisualizer.DISK_TOP_TURN + 6;
 AxisVisualizer.isDiskTurnMove = function(move) {
     return (AxisVisualizer.DISK_TOP_TURN <= move) && (move <= AxisVisualizer.DISK_RIGHT_TURN + 1);
-}
+};
 AxisVisualizer.createDiskTurnMove = function(disk, isCW) {
     switch(disk) {
         case AxisDisk.DISK_TOP:     var base = AxisVisualizer.DISK_TOP_TURN; break;
@@ -397,28 +397,28 @@ AxisVisualizer.createDiskTurnMove = function(disk, isCW) {
         default: break;
     }
     return base + (isCW ? 0 : 1);
-}
+};
 AxisVisualizer.turnMoveInfo = function(move) {
     return {
         disk: [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT][ ((move ^ (move & 1)) - AxisVisualizer.DISK_TOP_TURN)/2 ],
         isCW: (move % 2 === 0)
     }
-}
+};
 
 AxisVisualizer.SERIALIZED_BASE = 32;
 AxisVisualizer.SERIALIZED_MAX = AxisVisualizer.SERIALIZED_BASE + 50624; // (15^3*14 + 15^2*14 + 15*14 + 14)
 AxisVisualizer.isSerializedState = function(state) {
     return AxisVisualizer.SERIALIZED_BASE <= state && state <= AxisVisualizer.SERIALIZED_MAX;
-}
+};
 AxisVisualizer.unserialize = function(state) {
     for (var i = 0, result = []; i < 4; ++i) {
         result.unshift(state % 15);
         state = Math.floor(state / 15);
     }
     return result;
-}
+};
 
-AxisVisualizer.internalDiskIndexToDiskType(index) {
+AxisVisualizer.internalDiskIndexToDiskType = function(index) {
     switch(index) {
         case 0: return AxisDisk.DISK_TOP; break;
         case 1: return AxisDisk.DISK_LEFT; break;
@@ -426,8 +426,8 @@ AxisVisualizer.internalDiskIndexToDiskType(index) {
         case 3: return AxisDisk.DISK_RIGHT; break;
         default: return undefined;
     }
-}
-AxisVisualizer.diskTypeToInternalDiskIndex(type) {
+};
+AxisVisualizer.diskTypeToInternalDiskIndex = function(type) {
     switch(type) {
         case AxisDisk.DISK_TOP:     return 0; break;
         case AxisDisk.DISK_LEFT:    return 1; break;
@@ -435,4 +435,4 @@ AxisVisualizer.diskTypeToInternalDiskIndex(type) {
         case AxisDisk.DISK_RIGHT:   return 3; break;
         default:                    return undefined; break;
     }
-}
+};
