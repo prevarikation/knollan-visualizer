@@ -198,10 +198,13 @@ AxisUI.instructionPages = {
             ["Store / recall disk pos.", "<P> / <p>"],
             ["½ Move", "<Alt>+<Cursor>"],
             ["½ Step", "<Shift>+<Alt>+<Cursor>"],
+            // shift+s because set ALL gates is on different page, and the s/S
+            // distinction may be confusing for a command that has no undo
+            ["Set gate of sel. disk", "<Shift>+<s>"],
             // TODO: implement these!
             /*
-            ["Realistic gates", ""],
             ["Blank_Reg cutaway windows", ""],
+            ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
             */
             ["Switch standard / research", "</>"]
         ]

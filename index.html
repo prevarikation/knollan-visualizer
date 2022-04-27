@@ -120,8 +120,8 @@
                             default:                                    AxisVisualizer.AUTOMATIC_ANIMATION_TIME = AxisVisualizer.ANIMATION_TIMES.normal; break;
                         }
                         break;
-                    case "s":
-                    case "S": visualizer.setGates(); break;
+                    case "s": visualizer.setGates(); break;
+                    case "S": visualizer.setCurrentDiskGate(); break;
                     case "+": visualizer.turnCCW(AxisVisualizer.selectedDisk); break;
                     case "-": visualizer.turnCW( AxisVisualizer.selectedDisk); break;
                 }

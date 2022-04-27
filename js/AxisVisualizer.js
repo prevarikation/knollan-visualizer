@@ -319,6 +319,10 @@ class AxisVisualizer
         }
 	}
 
+    setCurrentDiskGate() {
+        this.disks.disks[AxisVisualizer.selectedDisk].setGateToCurrentPosition();
+    }
+
 	toggleGatesVisibility() {
         for (var disk of this.disks.disks) {
             disk.toggleGateVisibility();
