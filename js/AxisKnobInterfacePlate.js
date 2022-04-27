@@ -34,8 +34,8 @@ class AxisKnobInterfacePlate
 
 		this.CenterX = newCenterX;
 		this.CenterY = newCenterY;
-        var newWidth = image.width * 0.78;// AxisVisualizer.scale;
-        var newHeight = image.height * 0.78;// AxisVisualizer.scale;
+        var newWidth = image.width * AxisVisualizer.scale;
+        var newHeight = image.height * AxisVisualizer.scale;
 		this._x = this.CenterX - newWidth/2;
 		this._y = this.CenterY - newWidth/2;
 

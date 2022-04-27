@@ -27,7 +27,7 @@ class AxisColorSelector
 {
     constructor(canvas) {
         this.ctx = canvas.getContext('2d');
-        this.width = AxisVisualizer.scale * AxisColorSelector.width;
+        this.width = AxisColorSelector.width;
 		this.visible = true;
 	}
 
@@ -52,6 +52,6 @@ class AxisColorSelector
 	}
 }
 //statics
-AxisColorSelector.width = 30; // scaled later
+AxisColorSelector.width = 23.4;
 AxisColorSelector.COLOR_SELECTION = ['#f008', '#0f08', '#00f8', '#ff08', '#0ff8', '#f0f8'];
 AxisColorSelector.currentColorIndex = 0;
