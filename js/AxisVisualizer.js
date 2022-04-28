@@ -351,6 +351,12 @@ class AxisVisualizer
         }
 	}
 
+    toggleCutawayType() {
+        for (var disk of this.disks.disks) {
+            disk.toggleCutawayType();
+        }
+    }
+
     toggleRawMoveDisplay() {
         this.rawMoveDisplay = !this.rawMoveDisplay;
     }

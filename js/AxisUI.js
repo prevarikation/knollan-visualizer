@@ -204,7 +204,8 @@ AxisUI.instructionPages = {
             // distinction may be confusing for a command that has no undo
             ["Set gate of sel. disk", "<Shift>+<s>"],
             ["Show / hide raw moves", "<!>"],
-            ["Blank_Reg cutaway coloring", "<@>", "(temp. colors-- contact B_R!)"],
+            ["Blank_Reg cutaway windows", "<@>", "(temp. colors-- contact B_R!)"],
+            ["Toggle cutaway type (B_R / p)", "<#>"],
             // TODO: implement these!
             /*
             ["Show antedecedent moves", ""],

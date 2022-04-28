@@ -44,6 +44,7 @@ class AxisDisk
         };
 		this.markers = [];
         this.colorSelector = new AxisColorSelector(canvas);
+		this.cutawayType = "blank_reg";
 		this.cutawayColoringVisible = false;
 		this.startAngle = diskStartAngle;
 		this.internalDiskNumber = diskUniqueNumber;
@@ -148,8 +149,8 @@ class AxisDisk
 			// straighten out canvas
 			ctx.rotate(-this._rotation * Math.PI/180);
 			// color-coded disks peek into windows from different corners for each disk,
-			// rotating by an initial start angle means we only need to worry about the
-			// top disk (start angle 0) being bottom-right corner
+			// rotating by an initial start angle means all windows display appropriately
+			// after the window for the top disk (start angle 0) is adjusted correctly.
 			ctx.rotate(this.startAngle * Math.PI/180);
 
 			// clear out space in the inner wheel as "cutaway"
@@ -168,14 +169,43 @@ class AxisDisk
 			ctx.arc(0, 0, cutoutWindowRadius, 0, 2*Math.PI);
 			ctx.stroke();
 
-			var colorCodedDiskRadius = 2*28;
-
+			// prevarikation cutouts are center@bottom right,
+			// blank_reg is closer to upper-right side
+			//
 			// NOTE: left and right disks will appear to have misleading disk placement
 			// w/r/t cutout window, but it's because cutouts are viewed from the back
-			var offsetToMatchPrevarikationCutaway = 24 * -5; //to get gate as BWR (LTR) in window
+			var colorCodedDiskCenterPos = {
+				x: (this.cutawayType === 'blank_reg' ? 5/4*cutoutWindowRadius : cutoutWindowRadius),
+				y: (this.cutawayType === 'blank_reg' ? 0 : cutoutWindowRadius)
+			}
+			var colorCodedDiskRadius = 2*28; // no definite reason for this scale
+
+			if (this.cutawayType === 'blank_reg') {
+				// blank_reg's windows are partially occluded due to plastic
+				ctx.fillStyle = '#8ba7b4'; // gray, from video
+				ctx.beginPath();
+				ctx.moveTo(0, 0);
+				ctx.arc(0, 0, colorCodedDiskRadius, 9/8*Math.PI, -1/8*Math.PI);
+				ctx.fill();
+
+				// center post is visible
+				ctx.fillStyle = 'white';
+				ctx.beginPath();
+				ctx.moveTo(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y);
+				ctx.arc(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y, 1/3 * colorCodedDiskRadius, 0, 2*Math.PI);
+				ctx.fill();
+			}
+
+			var cutawayOffset = undefined;
+			switch(this.cutawayType) {
+				case 'prevarikation': cutawayOffset = 24 * -5; break;// gate is BWR in window
+				case 'blank_reg':     cutawayOffset = 24 * -3; break; // gate is WGB in window
+				default: break;
+			}
+
 			var rotationAngle = (72 * this.index.N + 24 * this.index.M) % 360;
 			var gateAngle = (72 * this.gate.index.N + 24 * this.gate.index.M) % 360;
-			var compositeAngle = ((offsetToMatchPrevarikationCutaway + rotationAngle - gateAngle + this.singleStepAngle) % 360) * Math.PI/180;
+			var compositeAngle = ((cutawayOffset + rotationAngle - gateAngle + this.singleStepAngle) % 360) * Math.PI/180;
 
 			var sliceAngle = 2*Math.PI / 15;
 			var colors = ['red', 'orange', 'yellow', 'green', '#88f'];
@@ -195,10 +225,11 @@ class AxisDisk
 				}
 
 				ctx.beginPath();
-				ctx.moveTo(cutoutWindowRadius, cutoutWindowRadius);
-				ctx.arc(cutoutWindowRadius, cutoutWindowRadius, colorCodedDiskRadius, compositeAngle + i*sliceAngle, compositeAngle + (i+1)*sliceAngle);
+				ctx.moveTo(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y);
+				ctx.arc(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y, colorCodedDiskRadius, compositeAngle + i*sliceAngle, compositeAngle + (i+1)*sliceAngle);
 				ctx.fill();
 			}
+
 		}
 
         ctx.restore();
@@ -399,6 +430,10 @@ class AxisDisk
 
 	toggleCutawayColoringVisibility() {
 		this.cutawayColoringVisible = !this.cutawayColoringVisible;
+	}
+
+	toggleCutawayType() {
+		this.cutawayType = (this.cutawayType === "blank_reg" ? "prevarikation" : "blank_reg");
 	}
 }
 //statics
