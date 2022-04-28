@@ -106,24 +106,7 @@ class AxisUI
         ctx.save();
 
         // TODO: better way to do these?
-        if (page === "standard") {
-            // speed indicator box
-            var boundingRect = null;
-            switch(options.automaticAnimationTime) {
-                case AxisVisualizer.ANIMATION_TIMES.slow:       boundingRect = { offsetX: 73, width: 47}; break;
-                case AxisVisualizer.ANIMATION_TIMES.instant:    boundingRect = { offsetX: 124, width: 66}; break;
-                default:                                        boundingRect = { offsetX: 0, width: 70}; break;
-            }
-
-            // values based off AxisBackground.js
-            var speedTextBackground = { fontSize: AxisVisualizer.FONT_SIZES.instructionExplanation, originX: 975, originY: 313 };
-            ctx.strokeStyle = '#2429bc';
-            ctx.strokeRect(
-                speedTextBackground.originX + boundingRect.offsetX - speedTextBackground.fontSize/4,
-                speedTextBackground.originY - speedTextBackground.fontSize,
-                boundingRect.width,
-                speedTextBackground.fontSize * 5/4);
-        } else if (page === "research") {
+        if (options.rawMoveDisplay) {
             // we can display raw moves for exploratory reference
             var lastResetIndex = options.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
             // HACK: using AxisDisk constants to index into a string for translation
@@ -147,6 +130,25 @@ class AxisUI
 
                 rawNicerFormat = rawNicerFormat.substring(charactersInCurrentLine).replace(/^[ ]*/, '');
             }
+        }
+
+        if (page === "standard") {
+            // speed indicator box
+            var boundingRect = null;
+            switch(options.automaticAnimationTime) {
+                case AxisVisualizer.ANIMATION_TIMES.slow:       boundingRect = { offsetX: 73, width: 47}; break;
+                case AxisVisualizer.ANIMATION_TIMES.instant:    boundingRect = { offsetX: 124, width: 66}; break;
+                default:                                        boundingRect = { offsetX: 0, width: 70}; break;
+            }
+
+            // values based off AxisBackground.js
+            var speedTextBackground = { fontSize: AxisVisualizer.FONT_SIZES.instructionExplanation, originX: 975, originY: 313 };
+            ctx.strokeStyle = '#2429bc';
+            ctx.strokeRect(
+                speedTextBackground.originX + boundingRect.offsetX - speedTextBackground.fontSize/4,
+                speedTextBackground.originY - speedTextBackground.fontSize,
+                boundingRect.width,
+                speedTextBackground.fontSize * 5/4);
         }
 
         ctx.restore();
@@ -188,7 +190,7 @@ AxisUI.instructionPages = {
             ["Change marker color", "<c>"],
             ["Set marker", "<m>"],
             ["Delete marker(s)", "<d>, <del>"],
-            ["Switch standard / research", "</>"]
+            ["Research menu", "</>"]
         ],
     },
     research: {
@@ -201,13 +203,14 @@ AxisUI.instructionPages = {
             // shift+s because set ALL gates is on different page, and the s/S
             // distinction may be confusing for a command that has no undo
             ["Set gate of sel. disk", "<Shift>+<s>"],
+            ["Show / hide raw moves", "<!>"],
             ["Blank_Reg cutaway coloring", "<@>", "(temp. colors-- contact B_R!)"],
             // TODO: implement these!
             /*
             ["Show antedecedent moves", ""],
             ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
             */
-            ["Switch standard / research", "</>"]
+            ["Standard menu", "</>"]
         ]
     }
 };

@@ -77,10 +77,12 @@ class AxisVisualizer
         this.dynamicUI.draw = function(){
             var uiPage = visualizerRef.selectedUIPage;
             var options = { disks: visualizerRef.disks };
+            if (visualizerRef.rawMoveDisplay) {
+                options.rawMoveDisplay = true;
+                options.history = visualizerRef.history;
+            }
             if (uiPage === "standard") {
                 options.automaticAnimationTime = AxisVisualizer.AUTOMATIC_ANIMATION_TIME;
-            } else if (uiPage === "research") {
-                options.history = visualizerRef.history;
             }
             this.superDraw(uiPage, options);
         };
