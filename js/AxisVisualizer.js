@@ -343,6 +343,12 @@ class AxisVisualizer
         this.disks.disks[AxisVisualizer.selectedDisk].deleteMarker();
     }
 
+    toggleCutawayColoringVisibility() {
+        for (var disk of this.disks.disks) {
+            disk.toggleCutawayColoringVisibility();
+        }
+	}
+
     toggleRawMoveDisplay() {
         this.rawMoveDisplay = !this.rawMoveDisplay;
     }

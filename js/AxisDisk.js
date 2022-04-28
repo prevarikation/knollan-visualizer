@@ -44,6 +44,7 @@ class AxisDisk
         };
 		this.markers = [];
         this.colorSelector = new AxisColorSelector(canvas);
+		this.cutawayColoringVisible = false;
 		this.startAngle = diskStartAngle;
 		this.internalDiskNumber = diskUniqueNumber;
 		this.reset();
@@ -140,6 +141,65 @@ class AxisDisk
             ctx.arc(0, 0, AxisDisk.radius, (-78 - markerAngle)*Math.PI/180, (-78 - (markerAngle + 24))*Math.PI/180, true);
             ctx.stroke();
         }
+
+		// TODO: where does this belong?
+		// TODO: contact Blank_Reg to finalize colors and adjustments based on his cutaways :D
+		if (this.cutawayColoringVisible) {
+			// straighten out canvas
+			ctx.rotate(-this._rotation * Math.PI/180);
+			// color-coded disks peek into windows from different corners for each disk,
+			// rotating by an initial start angle means we only need to worry about the
+			// top disk (start angle 0) being bottom-right corner
+			ctx.rotate(this.startAngle * Math.PI/180);
+
+			// clear out space in the inner wheel as "cutaway"
+			var cutoutWindowRadius = 28; //28 fits within inner wheel
+			ctx.globalCompositeOperation = 'destination-out';
+			ctx.beginPath();
+			ctx.arc(0, 0, cutoutWindowRadius, 0, 2*Math.PI);
+			ctx.fill();
+
+			// only draw in areas the canvas doesn't have data already (i.e., cutaway)
+			ctx.globalCompositeOperation = 'destination-over';
+
+			// encircle opening (why yellow?)
+			ctx.strokeStyle = "yellow";
+			ctx.beginPath();
+			ctx.arc(0, 0, cutoutWindowRadius, 0, 2*Math.PI);
+			ctx.stroke();
+
+			var colorCodedDiskRadius = 2*28;
+
+			// NOTE: left and right disks will appear to have misleading disk placement
+			// w/r/t cutout window, but it's because cutouts are viewed from the back
+			var offsetToMatchPrevarikationCutaway = 24 * -5; //to get gate as BWR (LTR) in window
+			var rotationAngle = (72 * this.index.N + 24 * this.index.M) % 360;
+			var gateAngle = (72 * this.gate.index.N + 24 * this.gate.index.M) % 360;
+			var compositeAngle = ((offsetToMatchPrevarikationCutaway + rotationAngle - gateAngle + this.singleStepAngle) % 360) * Math.PI/180;
+
+			var sliceAngle = 2*Math.PI / 15;
+			var colors = ['red', 'orange', 'yellow', 'green', '#88f'];
+			for (var i = 0; i < 15; ++i) {
+				switch(i % 3) {
+					case 0: ctx.fillStyle = colors[i/3]; break;
+					case 1: ctx.fillStyle = 'black'; break;
+					case 2: ctx.fillStyle = 'white'; break;
+				}
+
+				// indicate gates, sorta
+				if (i === 13 || i === 14) {
+					var gradient = ctx.createRadialGradient(0, 0, 0, cutoutWindowRadius, cutoutWindowRadius, colorCodedDiskRadius);
+					gradient.addColorStop(0, ctx.fillStyle);
+					gradient.addColorStop((i === 13 ? 1 : 0.4), '#0000');
+					ctx.fillStyle = gradient;
+				}
+
+				ctx.beginPath();
+				ctx.moveTo(cutoutWindowRadius, cutoutWindowRadius);
+				ctx.arc(cutoutWindowRadius, cutoutWindowRadius, colorCodedDiskRadius, compositeAngle + i*sliceAngle, compositeAngle + (i+1)*sliceAngle);
+				ctx.fill();
+			}
+		}
 
         ctx.restore();
     }
@@ -335,6 +395,10 @@ class AxisDisk
 				break;
 			}
 		}
+	}
+
+	toggleCutawayColoringVisibility() {
+		this.cutawayColoringVisible = !this.cutawayColoringVisible;
 	}
 }
 //statics
