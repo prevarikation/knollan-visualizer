@@ -68,7 +68,7 @@ class AxisUI
             rightColY += (2.0 * instructionFontSize);
             var rightColYBeforeCommands = rightColY;
             for (var i = 0; i < page.commands.length; ++i) {
-                ctx.fillText(page.commands[i][0] + ":", rightColX, rightColY);
+                ctx.fillText(page.commands[i][0] + (page.commands[i][1] ? ":" : ""), rightColX, rightColY);
 
                 var origFont = ctx.font;
                 ctx.font = cssFontString('instruction', 'bold');
@@ -204,8 +204,10 @@ AxisUI.instructionPages = {
             // distinction may be confusing for a command that has no undo
             ["Set gate of sel. disk", "<Shift>+<s>"],
             ["Show / hide raw moves", "<!>"],
-            ["Blank_Reg cutaway windows", "<@>", "(temp. colors-- contact B_R!)"],
+            ["Blank_Reg cutaway windows", "<@>"],
             ["Toggle cutaway type (B_R / p)", "<#>"],
+            ["Set gate(s) as if cutaway coloring", ""],
+            ["was at reset position", " ", "<W> / <w>"],
             // TODO: implement these!
             /*
             ["Show antedecedent moves", ""],

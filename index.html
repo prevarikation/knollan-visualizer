@@ -89,6 +89,8 @@
                 case "!": visualizer.toggleRawMoveDisplay(); break;
                 case "@": visualizer.toggleCutawayColoringVisibility(); break;
                 case "#": visualizer.toggleCutawayType(); break;
+                case "W": visualizer.setGateWithCurrentCutawayPositionOnReset(); break;
+                case "w": visualizer.setGatesWithCurrentCutawayPositionOnReset(); break;
                 case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : "standard"); break;
             }
 

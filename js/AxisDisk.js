@@ -389,8 +389,7 @@ class AxisDisk
 	}
 
     moveToAbsolutePosition(pos) {
-        this.index.N = Math.floor((pos + 1) / 3) % 5;
-        this.index.M = (pos % 3 === 2 ? -1 : (pos % 3));
+		this.setAbsolutePosition(pos)
         this.index2Angle();
     }
 
@@ -398,10 +397,14 @@ class AxisDisk
         return (3*this.index.N + this.index.M + 15) % 15;
     }
 
+	setAbsolutePosition(pos) {
+        this.index.N = Math.floor((pos + 1) / 3) % 5;
+        this.index.M = (pos % 3 === 2 ? -1 : (pos % 3));
+	}
+
 	setGateToCurrentPosition() {
 		this.gate.index.N = this.index.N;
 		this.gate.index.M = this.index.M;
-        this.gate.visible = true;
 	}
 
 	toggleGateVisibility() {
@@ -434,6 +437,17 @@ class AxisDisk
 
 	toggleCutawayType() {
 		this.cutawayType = (this.cutawayType === "blank_reg" ? "prevarikation" : "blank_reg");
+	}
+
+	setGateWithCurrentCutawayPositionOnReset() {
+		// since the cutaway rotates in the opposite direction, we're just
+		// setting the gate as if we rotated the *opposite* way.
+		var currentPos = this.getAbsolutePosition();
+		// hacky, we move to the new position because we can't set gate directly
+		this.setAbsolutePosition( (-currentPos + 15) % 15 );
+		this.setGateToCurrentPosition();
+		this.setAbsolutePosition(currentPos);
+
 	}
 }
 //statics

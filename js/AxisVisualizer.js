@@ -357,6 +357,16 @@ class AxisVisualizer
         }
     }
 
+    setGatesWithCurrentCutawayPositionOnReset() {
+        for (var disk of this.disks.disks) {
+            disk.setGateWithCurrentCutawayPositionOnReset();
+        }
+    }
+
+    setGateWithCurrentCutawayPositionOnReset() {
+        this.disks.disks[AxisVisualizer.selectedDisk].setGateWithCurrentCutawayPositionOnReset();
+    }
+
     toggleRawMoveDisplay() {
         this.rawMoveDisplay = !this.rawMoveDisplay;
     }
