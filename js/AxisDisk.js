@@ -217,10 +217,13 @@ class AxisDisk
 				}
 
 				// indicate gates, sorta
-				if (i === 13 || i === 14) {
+				if ( (this.cutawayType === 'blank_reg' && (i === 10 || i === 11)) ||
+				     (this.cutawayType === 'prevarikation' && (i === 13 || i === 14))) {
 					var gradient = ctx.createRadialGradient(0, 0, 0, cutoutWindowRadius, cutoutWindowRadius, colorCodedDiskRadius);
 					gradient.addColorStop(0, ctx.fillStyle);
-					gradient.addColorStop((i === 13 ? 1 : 0.4), '#0000');
+					gradient.addColorStop(
+						((this.cutawayType === 'blank_reg' && i === 10) || (this.cutawayType === 'prevarikation' && i === 13) ? 1 : 0.4),
+						'#0000');
 					ctx.fillStyle = gradient;
 				}
 
