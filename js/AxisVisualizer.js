@@ -97,6 +97,7 @@ class AxisVisualizer
         this.animationStats = null;
         this.history = [];
         this.rawMoveDisplay = false;
+        this.lockedGatePositions = false;
         this.reset();
     }
 
@@ -316,13 +317,17 @@ class AxisVisualizer
 	}
 
 	setGates() {
-        for (var disk of this.disks.disks) {
-            disk.setGateToCurrentPosition();
+        if (!this.lockedGatePositions) {
+            for (var disk of this.disks.disks) {
+                disk.setGateToCurrentPosition();
+            }
         }
 	}
 
     setCurrentDiskGate() {
-        this.disks.disks[AxisVisualizer.selectedDisk].setGateToCurrentPosition();
+        if (!this.lockedGatePositions) {
+            this.disks.disks[AxisVisualizer.selectedDisk].setGateToCurrentPosition();
+        }
     }
 
 	toggleGatesVisibility() {
@@ -358,17 +363,25 @@ class AxisVisualizer
     }
 
     setGatesWithCurrentCutawayPositionOnReset() {
-        for (var disk of this.disks.disks) {
-            disk.setGateWithCurrentCutawayPositionOnReset();
+        if (!this.lockedGatePositions) {
+            for (var disk of this.disks.disks) {
+                disk.setGateWithCurrentCutawayPositionOnReset();
+            }
         }
     }
 
     setGateWithCurrentCutawayPositionOnReset() {
-        this.disks.disks[AxisVisualizer.selectedDisk].setGateWithCurrentCutawayPositionOnReset();
+        if (!this.lockedGatePositions) {
+            this.disks.disks[AxisVisualizer.selectedDisk].setGateWithCurrentCutawayPositionOnReset();
+        }
     }
 
     toggleRawMoveDisplay() {
         this.rawMoveDisplay = !this.rawMoveDisplay;
+    }
+
+    toggleLockedGatePositions() {
+        this.lockedGatePositions = !this.lockedGatePositions;
     }
 
     serializeState() {

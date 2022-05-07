@@ -206,10 +206,12 @@ AxisUI.instructionPages = {
             ["Show / hide raw moves", "<!>"],
             ["Blank_Reg cutaway windows", "<@>"],
             ["Toggle cutaway type (B_R / p)", "<#>"],
+            ["Lock / unlock gate positions", "<$>"],
             ["Set gate(s) as if cutaway coloring", ""],
             ["was at reset position", " ", "<W> / <w>"],
             // TODO: implement these!
             /*
+            ["Show current combination", ""],
             ["Show antedecedent moves", ""],
             ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
             */
