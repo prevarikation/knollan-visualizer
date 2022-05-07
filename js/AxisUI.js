@@ -208,7 +208,7 @@ AxisUI.instructionPages = {
             ["Toggle cutaway type (B_R / p)", "<#>"],
             ["Lock / unlock gate positions", "<$>"],
             ["Set gate(s) as if cutaway coloring", ""],
-            ["was at reset position", " ", "<W> / <w>"],
+            ["was at reset position", "<W> / <w>"],
             // TODO: implement these!
             /*
             ["Show current combination", ""],
