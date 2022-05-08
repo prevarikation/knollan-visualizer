@@ -44,7 +44,7 @@ class AxisDisk
         };
 		this.markers = [];
         this.colorSelector = new AxisColorSelector(canvas);
-		this.cutawayType = "blank_reg";
+		this.cutawayType = AxisDisk.CUTAWAY_BLANK_REG;
 		this.cutawayColoringVisible = false;
 		this.startAngle = diskStartAngle;
 		this.internalDiskNumber = diskUniqueNumber;
@@ -175,12 +175,12 @@ class AxisDisk
 			// NOTE: left and right disks will appear to have misleading disk placement
 			// w/r/t cutout window, but it's because cutouts are viewed from the back
 			var colorCodedDiskCenterPos = {
-				x: (this.cutawayType === 'blank_reg' ? 5/4*cutoutWindowRadius : cutoutWindowRadius),
-				y: (this.cutawayType === 'blank_reg' ? 0 : cutoutWindowRadius)
+				x: (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG ? 5/4*cutoutWindowRadius : cutoutWindowRadius),
+				y: (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG ? 0 : cutoutWindowRadius)
 			}
 			var colorCodedDiskRadius = 2*28; // no definite reason for this scale
 
-			if (this.cutawayType === 'blank_reg') {
+			if (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG) {
 				// blank_reg's windows are partially occluded due to plastic
 				ctx.fillStyle = '#8ba7b4'; // gray, from video
 				ctx.beginPath();
@@ -198,8 +198,8 @@ class AxisDisk
 
 			var cutawayOffset = undefined;
 			switch(this.cutawayType) {
-				case 'prevarikation': cutawayOffset = 24 * -5; break;// gate is BWR in window
-				case 'blank_reg':     cutawayOffset = 24 * -3; break; // gate is WGB in window
+				case AxisDisk.CUTAWAY_PREVARIKATION: cutawayOffset = 24 * -5; break;// gate is BWR in window
+				case AxisDisk.CUTAWAY_BLANK_REG:     cutawayOffset = 24 * -3; break; // gate is WGB in window
 				default: break;
 			}
 
@@ -217,12 +217,12 @@ class AxisDisk
 				}
 
 				// indicate gates, sorta
-				if ( (this.cutawayType === 'blank_reg' && (i === 10 || i === 11)) ||
-				     (this.cutawayType === 'prevarikation' && (i === 13 || i === 14))) {
+				if ( (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG && (i === 10 || i === 11)) ||
+				     (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION && (i === 13 || i === 14))) {
 					var gradient = ctx.createRadialGradient(0, 0, 0, cutoutWindowRadius, cutoutWindowRadius, colorCodedDiskRadius);
 					gradient.addColorStop(0, ctx.fillStyle);
 					gradient.addColorStop(
-						((this.cutawayType === 'blank_reg' && i === 10) || (this.cutawayType === 'prevarikation' && i === 13) ? 1 : 0.4),
+						((this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG && i === 10) || (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION && i === 13) ? 1 : 0.4),
 						'#0000');
 					ctx.fillStyle = gradient;
 				}
@@ -439,7 +439,7 @@ class AxisDisk
 	}
 
 	toggleCutawayType() {
-		this.cutawayType = (this.cutawayType === "blank_reg" ? "prevarikation" : "blank_reg");
+		this.cutawayType = (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG ? AxisDisk.CUTAWAY_PREVARIKATION : AxisDisk.CUTAWAY_BLANK_REG);
 	}
 
 	setGateWithCurrentCutawayPositionOnReset() {
@@ -476,6 +476,9 @@ AxisDisk.DISK_TOP = 0;
 AxisDisk.DISK_LEFT = 1;
 AxisDisk.DISK_BOTTOM = 2;
 AxisDisk.DISK_RIGHT = 3;
+
+AxisDisk.CUTAWAY_BLANK_REG = 0;
+AxisDisk.CUTAWAY_PREVARIKATION = 1;
 
 AxisDisk.centerX = undefined;
 AxisDisk.centerY = undefined;
