@@ -132,6 +132,21 @@ class AxisUI
             }
         }
 
+        if (options.showCurrentCombination) {
+            var combination = AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, options.disks.disks.map(o => o.gate.index)) );
+            var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
+            ctx.save();
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            var textHeight = 20;
+            ctx.font = textHeight + 'px sans-serif';
+            ctx.fillStyle = '#2429bc';
+            var knobHeight = document.getElementById("knob-interface").height/2;
+            ctx.fillText("Combination:", AxisVisualizer.centerX + 2*knobHeight/3, AxisVisualizer.centerY - knobHeight);
+            ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX + 2*knobHeight/3, AxisVisualizer.centerY - knobHeight + textHeight);
+            ctx.restore();
+        }
+
         if (page === "standard") {
             // speed indicator box
             var boundingRect = null;
@@ -209,9 +224,9 @@ AxisUI.instructionPages = {
             ["Lock / unlock gate positions", "<$>"],
             ["Set gate(s) as if cutaway coloring", ""],
             ["was at reset position", "<W> / <w>"],
+            ["Show current combination", "<q>"],
             // TODO: implement these!
             /*
-            ["Show current combination", ""],
             ["Show antedecedent moves", ""],
             ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
             */

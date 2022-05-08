@@ -81,6 +81,9 @@ class AxisVisualizer
                 options.rawMoveDisplay = true;
                 options.history = visualizerRef.history;
             }
+            if (visualizerRef.showCurrentCombination) {
+                options.showCurrentCombination = true;
+            }
             if (uiPage === "standard") {
                 options.automaticAnimationTime = AxisVisualizer.AUTOMATIC_ANIMATION_TIME;
             }
@@ -96,6 +99,7 @@ class AxisVisualizer
         this.movingAutomatically = false;
         this.animationStats = null;
         this.history = [];
+        this.showCurrentCombination = false;
         this.rawMoveDisplay = false;
         this.lockedGatePositions = false;
         this.reset();
@@ -382,6 +386,10 @@ class AxisVisualizer
 
     toggleLockedGatePositions() {
         this.lockedGatePositions = !this.lockedGatePositions;
+    }
+
+    toggleCurrentCombinationDisplay() {
+        this.showCurrentCombination = !this.showCurrentCombination;
     }
 
     serializeState() {
