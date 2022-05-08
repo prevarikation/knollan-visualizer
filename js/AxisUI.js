@@ -109,7 +109,6 @@ class AxisUI
         if (options.rawMoveDisplay) {
             // we can display raw moves for exploratory reference
             var lastResetIndex = options.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
-            // HACK: using AxisDisk constants to index into a string for translation
             var replayMoves = options.history.slice(lastResetIndex).map(AxisVisualizer.textRepresentationOfMove).join('');
             var rawNicerFormat = AxisStates.GetRawMoveFormat(replayMoves);
 
