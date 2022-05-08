@@ -487,6 +487,16 @@ AxisVisualizer.unserialize = function(state) {
     return result;
 };
 
+AxisVisualizer.textRepresentationOfMove = function(move) {
+    if (AxisVisualizer.isDiskTurnMove(move)) {
+        return (move % 2 === 0 ? "\u2938" : "\u2939") + 'ULDR'.charAt(Math.floor((move % AxisVisualizer.DISK_TOP_TURN) / 2));
+    } else if (AxisVisualizer.isSerializedState(move)) {
+        return 'p';
+    } else {
+        return '0ULDR#uldr'.charAt(move) || '#';
+    }
+}
+
 AxisVisualizer.internalDiskIndexToDiskType = function(index) {
     switch(index) {
         case 0: return AxisDisk.DISK_TOP; break;

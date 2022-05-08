@@ -139,7 +139,8 @@ AxisStates.GetRawMoveFormat = function(Combination) {
         if (!prev.length) {
             return cur;
         } else {
-            return prev + (prev[prev.length-1] !== cur ? ' ' : '') + cur;
+            // allow upper range unicode characters prefix ASCII-coded moves
+            return prev + (prev[prev.length-1] !== cur && prev.charCodeAt(prev.length-1) <= 255  ? ' ' : '') + cur;
         }
     }
 }
