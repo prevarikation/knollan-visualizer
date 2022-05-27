@@ -76,13 +76,14 @@ class AxisVisualizer
         this.dynamicUI.superDraw = this.dynamicUI.draw;
         this.dynamicUI.draw = function(){
             var uiPage = visualizerRef.selectedUIPage;
-            var options = { disks: visualizerRef.disks };
-            if (visualizerRef.rawMoveDisplay) {
-                options.rawMoveDisplay = true;
+            var options = {
+                disks: visualizerRef.disks,
+                showShortenedMoves: visualizerRef.showShortenedMoves,
+                rawMoveDisplay: visualizerRef.rawMoveDisplay,
+                showCurrentCombination: visualizerRef.showCurrentCombination
+            };
+            if (options.rawMoveDisplay) {
                 options.history = visualizerRef.history;
-            }
-            if (visualizerRef.showCurrentCombination) {
-                options.showCurrentCombination = true;
             }
             if (uiPage === "standard") {
                 options.automaticAnimationTime = AxisVisualizer.AUTOMATIC_ANIMATION_TIME;
@@ -99,6 +100,7 @@ class AxisVisualizer
         this.movingAutomatically = false;
         this.animationStats = null;
         this.history = [];
+        this.showShortenedMoves = true;
         this.showCurrentCombination = false;
         this.rawMoveDisplay = false;
         this.lockedGatePositions = false;
@@ -386,6 +388,10 @@ class AxisVisualizer
 
     toggleLockedGatePositions() {
         this.lockedGatePositions = !this.lockedGatePositions;
+    }
+
+    toggleShortenedMoveDisplay() {
+        this.showShortenedMoves = !this.showShortenedMoves;
     }
 
     toggleCurrentCombinationDisplay() {

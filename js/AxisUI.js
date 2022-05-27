@@ -164,21 +164,22 @@ class AxisUI
 
         ctx.restore();
 
-        //always show combination text
-        var combination = AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, options.disks.disks.map(o => o.index)) );
-        var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
-        var condensedNicerFormat = AxisStates.GetNicerCombinationFormat(combination);
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
+        if (options.showShortenedMoves) {
+            var combination = AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, options.disks.disks.map(o => o.index)) );
+            var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
+            var condensedNicerFormat = AxisStates.GetNicerCombinationFormat(combination);
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
 
-        // extended
-        ctx.font = '32px sans-serif';
-        ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45);
-        // condensed
-        ctx.font = '20px sans-serif';
-        ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45 + 32);
-        ctx.restore();
+            // extended
+            ctx.font = '32px sans-serif';
+            ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45);
+            // condensed
+            ctx.font = '20px sans-serif';
+            ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45 + 32);
+            ctx.restore();
+        }
 
         ctx.drawImage(this.ctx[page].canvas, 0, 0);
     }
@@ -214,6 +215,7 @@ AxisUI.instructionPages = {
             // shift+s because set ALL gates is on different page, and the s/S
             // distinction may be confusing for a command that has no undo
             ["Set gate of sel. disk", "<Shift>+<s>"],
+            ["Show / hide shortened moves", "<~>"],
             ["Show / hide raw moves", "<!>"],
             ["Blank_Reg cutaway windows", "<@>"],
             ["Toggle cutaway type (B_R / p)", "<#>"],
