@@ -25,14 +25,29 @@ SOFTWARE.
 
 class AxisGateTestingPiece
 {
-    constructor(referenceCanvas, image, newCenterX, newCenterY) {
+    constructor(referenceCanvas, newCenterX, newCenterY) {
         this.referenceCtx = referenceCanvas.getContext('2d');
         this.ctx = referenceCanvas.cloneNode(false).getContext('2d');
 
-		this._x = newCenterX - (AxisVisualizer.scale * image.width)/2;
-		this._y = newCenterY - (AxisVisualizer.scale * image.height)/2;
+        newCenterX -= 1; // TODO: shouldn't be necessary, empirical tweak
+        var standardSize = 318;
+        var triangleWidth = 24;
 
-        this.ctx.drawImage(image, this._x, this._y, AxisVisualizer.scale * image.width, AxisVisualizer.scale * image.height);
+        this.ctx.translate(newCenterX, newCenterY);
+        for (var i = 0; i < 4; ++i) {
+            this.ctx.strokeStyle = "black";
+            this.ctx.lineWidth = 2.5;
+            this.ctx.moveTo(-triangleWidth/2, -standardSize);
+            this.ctx.lineTo(triangleWidth/2, -standardSize);
+            this.ctx.lineTo(0, -standardSize + Math.sin(60 * Math.PI/180)*triangleWidth);
+            this.ctx.closePath();
+            this.ctx.stroke();
+
+            this.ctx.fillStyle = "blue";
+            this.ctx.fill();
+
+            this.ctx.rotate(Math.PI/2);
+        }
     }
 
     draw() {

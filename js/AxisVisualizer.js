@@ -38,7 +38,7 @@ class AxisVisualizer
         this.staticLayer = canvas.cloneNode(false);
         var statics = [
             new AxisBackground(this.staticLayer, document.getElementById("background")),
-            new AxisGateTestingPiece(this.staticLayer, document.getElementById("gate-tester"), AxisVisualizer.centerX, AxisVisualizer.centerY)
+            new AxisGateTestingPiece(this.staticLayer, AxisVisualizer.centerX, AxisVisualizer.centerY)
         ];
         for (var a of statics) {
             a.draw();
