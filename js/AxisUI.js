@@ -137,7 +137,7 @@ class AxisUI
             var textHeight = 20;
             ctx.font = textHeight + 'px sans-serif';
             ctx.fillStyle = '#2429bc';
-            var knobHeight = document.getElementById("knob-interface").height/2;
+            var knobHeight = AxisKnobInterfacePlate.REFERENCE_HEIGHT/2;
             ctx.fillText("Combination:", AxisVisualizer.centerX + 2*knobHeight/3, AxisVisualizer.centerY - knobHeight);
             ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX + 2*knobHeight/3, AxisVisualizer.centerY - knobHeight + textHeight);
             ctx.restore();
@@ -174,10 +174,10 @@ class AxisUI
 
             // extended
             ctx.font = '32px sans-serif';
-            ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45);
+            ctx.fillText(extendedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + AxisKnobInterfacePlate.REFERENCE_HEIGHT/2 + 45);
             // condensed
             ctx.font = '20px sans-serif';
-            ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + document.getElementById("knob-interface").height/2 + 45 + 32);
+            ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + AxisKnobInterfacePlate.REFERENCE_HEIGHT/2 + 45 + 32);
             ctx.restore();
         }
 

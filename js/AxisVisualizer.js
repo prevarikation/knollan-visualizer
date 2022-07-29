@@ -66,7 +66,7 @@ class AxisVisualizer
         };
         this.selectDisk(AxisDisk.DISK_TOP);
 
-        this.knobInterfacePlate = new AxisKnobInterfacePlate(canvas, document.getElementById("knob-interface"), AxisVisualizer.centerX, AxisVisualizer.centerY);
+        this.knobInterfacePlate = new AxisKnobInterfacePlate(canvas, AxisVisualizer.centerX, AxisVisualizer.centerY);
 
         this.selectedUIPage = "standard";
         this.dynamicUI = new AxisUI(canvas);

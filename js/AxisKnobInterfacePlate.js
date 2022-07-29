@@ -25,21 +25,55 @@ SOFTWARE.
 
 class AxisKnobInterfacePlate
 {
-    constructor(referenceCanvas, image, newCenterX, newCenterY) {
-		AxisKnobInterfacePlate.MAX_ABSOLUTE_MOVEMENT *= AxisVisualizer.scale;
-
+    constructor(referenceCanvas, newCenterX, newCenterY) {
         this.referenceCtx = referenceCanvas.getContext('2d');
         this.ctx = referenceCanvas.cloneNode(false).getContext('2d');
-        this.image = image;
 
-		this.CenterX = newCenterX;
-		this.CenterY = newCenterY;
-        var newWidth = image.width * AxisVisualizer.scale;
-        var newHeight = image.height * AxisVisualizer.scale;
-		this._x = this.CenterX - newWidth/2;
-		this._y = this.CenterY - newWidth/2;
+		newCenterX -= 1; // TODO: shouldn't be necessary, empirical tweak
+		this.ctx.translate(newCenterX, newCenterY);
 
-        this.ctx.drawImage(this.image, this._x, this._y, newWidth, newHeight);
+		// draw interface plate outside boundary
+		var boundaryStandardOffset = 224;
+		var boundaryNonBeveledWidth = 290;
+
+		this.ctx.strokeStyle = "#f00a";
+		this.ctx.lineWidth = 2;
+
+		this.ctx.moveTo(-boundaryNonBeveledWidth/2, -boundaryStandardOffset);
+		for (var i = 0; i < 4; ++i) {
+			this.ctx.lineTo(boundaryNonBeveledWidth/2, -boundaryStandardOffset);
+			this.ctx.rotate(Math.PI/2);
+			this.ctx.lineTo(-boundaryNonBeveledWidth/2, -boundaryStandardOffset);
+		}
+		this.ctx.closePath();
+		this.ctx.stroke();
+
+		// draw interface plate pegs
+		var pegStandardOffsetY = 202;
+		var pegStandardOffsetX = 122;
+		var pegShorterOffsetY = 62;
+		var pegRadius = 9;
+
+		this.ctx.strokeStyle = "#0f0000";
+		this.ctx.lineWidth = 3;
+		this.ctx.fillStyle = "red";
+
+		for (var i = 0; i < 4; ++i) {
+			for (var j of [-1, 1]) {
+				this.ctx.beginPath();
+				this.ctx.arc(-pegStandardOffsetX, j * pegStandardOffsetY, pegRadius, 0, 2*Math.PI);
+				this.ctx.stroke();
+				this.ctx.fill();
+			}
+
+			this.ctx.beginPath();
+			this.ctx.arc(0, -pegShorterOffsetY, pegRadius, 0, 2*Math.PI);
+			this.ctx.stroke();
+			this.ctx.fill();
+
+			this.ctx.rotate(Math.PI/2);
+		}
+
 		this.reset();
     }
 
@@ -65,5 +99,6 @@ class AxisKnobInterfacePlate
 	}
 }
 //statics
-AxisKnobInterfacePlate.MAX_ABSOLUTE_MOVEMENT = 110; //empirical. would be nice to have a real value.
+AxisKnobInterfacePlate.REFERENCE_HEIGHT = 577; // TODO: remove this, only used elsewhere in the UI code.
+AxisKnobInterfacePlate.MAX_ABSOLUTE_MOVEMENT = 85.8; //empirical. would be nice to have a real value.
 AxisKnobInterfacePlate.MAX_INDEX = 50;
