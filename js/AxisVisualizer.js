@@ -168,19 +168,15 @@ class AxisVisualizer
         this.knobInterfacePlate.reset();
     }
 
-    animate(movement) {
-        if (typeof movement !== 'undefined') {
-            this.currentMovement = movement;
-        };
-
+    animate(timestamp) {
         if (this.animationStats === null) {
             this.animationStats = {
-                start: new Date(),
+                start: timestamp,
                 totalSteps: 0
             };
         }
 
-        var elapsed = new Date() - this.animationStats.start;
+        var elapsed = timestamp - this.animationStats.start;
         var expectedSteps = Math.floor( (elapsed/AxisVisualizer.AUTOMATIC_ANIMATION_TIME) * AxisVisualizer.MAX_STEP );
         var shouldRepaint = (this.animationStats.totalSteps < expectedSteps);
         while (this.animationStats.totalSteps < expectedSteps) {
@@ -195,7 +191,7 @@ class AxisVisualizer
         }
 
         if (this.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
-            setTimeout(this.animate.bind(this), 25);
+            window.requestAnimationFrame(this.animate.bind(this));
         } else {
             this.movingAutomatically = false;
             this.animationStats = null;
@@ -223,7 +219,7 @@ class AxisVisualizer
         AxisVisualizer.automatic = isAutomaticMove;
 
         if (AxisVisualizer.automatic) {
-            this.animate(this.currentMovement);
+            window.requestAnimationFrame(this.animate.bind(this));
         } else {
             this.nextStep();
         }
