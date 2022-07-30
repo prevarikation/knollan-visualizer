@@ -129,7 +129,7 @@ class AxisUI
         }
 
         if (options.showCurrentCombination) {
-            var combination = AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, options.disks.disks.map(o => o.gate.index)) );
+            var combination = options.currentCombination;
             var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
             ctx.save();
             ctx.textAlign = 'left';
@@ -165,7 +165,7 @@ class AxisUI
         ctx.restore();
 
         if (options.showShortenedMoves) {
-            var combination = AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, options.disks.disks.map(o => o.index)) );
+            var combination = options.shortenedMoves;
             var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
             var condensedNicerFormat = AxisStates.GetNicerCombinationFormat(combination);
             ctx.save();

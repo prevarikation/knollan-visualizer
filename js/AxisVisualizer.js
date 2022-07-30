@@ -57,11 +57,17 @@ class AxisVisualizer
                 new AxisDisk(diskLayer, document.getElementById("disk"), 270, AxisDisk.DISK_RIGHT, AxisVisualizer.centerX, AxisVisualizer.centerY)
             ],
             draw: function(){
-                this.layer.getContext('2d').clearRect(0, 0, this.layer.width, this.layer.height);
+                // TODO: change drawing subsystem, but for now just copy what's actually relevant
+                var estimatedWidth = AxisVisualizer.activeDiskAreaWidth;
+                this.layer.getContext('2d').clearRect(AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, AxisVisualizer.centerX + estimatedWidth/2, AxisVisualizer.centerY + estimatedWidth/2);
                 for (var a of this.disks) {
                     a.draw();
                 }
-                canvas.getContext('2d').drawImage(this.layer, 0, 0);
+                canvas.getContext('2d').drawImage(
+                    this.layer,
+                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, AxisVisualizer.centerX + estimatedWidth/2, AxisVisualizer.centerY + estimatedWidth/2,
+                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, AxisVisualizer.centerX + estimatedWidth/2, AxisVisualizer.centerY + estimatedWidth/2
+                );
             }
         };
         this.selectDisk(AxisDisk.DISK_TOP);
@@ -76,11 +82,30 @@ class AxisVisualizer
         this.dynamicUI.superDraw = this.dynamicUI.draw;
         this.dynamicUI.draw = function(){
             var uiPage = visualizerRef.selectedUIPage;
+            var options = this.generateOptions();
+
+            this.superDraw(uiPage, options);
+
+            visualizerRef.prevOptions = {
+                page: uiPage,
+                options: JSON.stringify(options)
+            };
+        };
+        this.dynamicUI.willRedraw = function(){
+            var currentOptions = this.generateOptions();
+            return currentOptions.showCurrentCombination || // current combination is in "active area" for disks
+                   !visualizerRef.prevOptions ||
+                   (visualizerRef.prevOptions.page !== visualizerRef.selectedUIPage) ||
+                   (visualizerRef.prevOptions.options !== JSON.stringify(currentOptions));
+        };
+        this.dynamicUI.generateOptions = function() {
+            var uiPage = visualizerRef.selectedUIPage;
             var options = {
-                disks: visualizerRef.disks,
                 showShortenedMoves: visualizerRef.showShortenedMoves,
+                shortenedMoves: AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.index)) ),
                 rawMoveDisplay: visualizerRef.rawMoveDisplay,
-                showCurrentCombination: visualizerRef.showCurrentCombination
+                showCurrentCombination: visualizerRef.showCurrentCombination,
+                currentCombination: AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index)) )
             };
             if (options.rawMoveDisplay) {
                 options.history = visualizerRef.history;
@@ -88,7 +113,7 @@ class AxisVisualizer
             if (uiPage === "standard") {
                 options.automaticAnimationTime = AxisVisualizer.AUTOMATIC_ANIMATION_TIME;
             }
-            this.superDraw(uiPage, options);
+            return options;
         };
 
         this.dynamic = [
@@ -108,10 +133,21 @@ class AxisVisualizer
     }
 
     draw() {
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        this.ctx.drawImage(this.staticLayer, 0, 0);
+        if (this.dynamicUI.willRedraw()) {
+            this.ctx.drawImage(this.staticLayer, 0, 0);
+        } else {
+            var estimatedWidth = AxisVisualizer.activeDiskAreaWidth;
+            this.ctx.drawImage(
+                this.staticLayer,
+                AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth,
+                AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth
+            );
+        }
+
         for (var layer of this.dynamic) {
-            layer.draw();
+            if (layer !== this.dynamicUI || this.dynamicUI.willRedraw()) {
+                layer.draw();
+            }
         }
         this.outputCanvas.getContext('2d').drawImage(this.ctx.canvas, 0, 0);
     }
@@ -435,6 +471,7 @@ class AxisVisualizer
 AxisVisualizer.scale = 0.78; // empirical, original was 0.69
 AxisVisualizer.centerX = 419; // abs. guessed center of disk imagery: (419, 449)
 AxisVisualizer.centerY = 449;
+AxisVisualizer.activeDiskAreaWidth = 640;
 AxisVisualizer.FONT_SIZES = {
     'title': 42,
     'adaptationNotice': 13,

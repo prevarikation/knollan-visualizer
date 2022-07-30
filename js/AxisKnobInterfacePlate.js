@@ -27,10 +27,16 @@ class AxisKnobInterfacePlate
 {
     constructor(referenceCanvas, newCenterX, newCenterY) {
         this.referenceCtx = referenceCanvas.getContext('2d');
-        this.ctx = referenceCanvas.cloneNode(false).getContext('2d');
+		this.requestedCenterX = newCenterX-1; // TODO: subtraction shouldn't be necessary, empirical tweak
+		this.requestedCenterY = newCenterY;
 
-		newCenterX -= 1; // TODO: shouldn't be necessary, empirical tweak
-		this.ctx.translate(newCenterX, newCenterY);
+		// smaller canvas to hold static knob interface plate image
+		var canvas = document.createElement("canvas");
+		canvas.width = (224+2)*2;
+		canvas.height = canvas.width;
+		this.ctx = canvas.getContext('2d');
+
+		this.ctx.translate(canvas.width/2, canvas.height/2);
 
 		// draw interface plate outside boundary
 		var boundaryStandardOffset = 224;
@@ -95,7 +101,7 @@ class AxisKnobInterfacePlate
 
 	draw() {
         // instead of repainting the (static) original image, we just paint it translated on the reference canvas.
-        this.referenceCtx.drawImage(this.ctx.canvas, this.x, this.y);
+        this.referenceCtx.drawImage(this.ctx.canvas, this.requestedCenterX - this.ctx.canvas.width/2 + this.x, this.requestedCenterY - this.ctx.canvas.height/2 + this.y);
 	}
 }
 //statics
