@@ -59,14 +59,14 @@ class AxisVisualizer
             draw: function(){
                 // TODO: change drawing subsystem, but for now just copy what's actually relevant
                 var estimatedWidth = AxisVisualizer.activeDiskAreaWidth;
-                this.layer.getContext('2d').clearRect(AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, AxisVisualizer.centerX + estimatedWidth/2, AxisVisualizer.centerY + estimatedWidth/2);
+                this.layer.getContext('2d').clearRect(AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth);
                 for (var a of this.disks) {
                     a.draw();
                 }
                 canvas.getContext('2d').drawImage(
                     this.layer,
-                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, AxisVisualizer.centerX + estimatedWidth/2, AxisVisualizer.centerY + estimatedWidth/2,
-                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, AxisVisualizer.centerX + estimatedWidth/2, AxisVisualizer.centerY + estimatedWidth/2
+                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth,
+                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth
                 );
             }
         };
