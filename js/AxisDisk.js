@@ -26,16 +26,9 @@ SOFTWARE.
 class AxisDisk
 {
     constructor(canvas, image, diskStartAngle, diskUniqueNumber, centerX, centerY) {
-		AxisDisk.scale = AxisVisualizer.scale;
-		AxisDisk.radius = image.width/2 * AxisDisk.scale;
-		AxisDisk.centerX = centerX-1; //empirical tweaks for better visual coherency
-		AxisDisk.centerY = centerY-1;
-        if (!AxisDisk.distanceInitialized) {
-            AxisDisk.distanceX *= AxisVisualizer.scale;
-            AxisDisk.distanceY *= AxisVisualizer.scale;
-            AxisDisk.fontSizePx *= AxisVisualizer.scale;
-            AxisDisk.distanceInitialized = true;
-        }
+		AxisDisk.radius = image.width/2 * AxisDisk.SCALE;
+		AxisDisk.centerX = canvas.width/2; //empirical tweaks for better visual coherency
+		AxisDisk.centerY = canvas.height/2;
 
         this.index = new AxisIndex();
         this.gate = {
@@ -119,7 +112,7 @@ class AxisDisk
         // because we rotate everything here, gates and markers can be drawn without dealing without offset/single step
 		this._rotation = -(this.startAngle + this.offsetAngle + this.singleStepAngle);
         ctx.rotate(this._rotation * Math.PI/180);
-        ctx.drawImage(this.image, -AxisDisk.radius, -AxisDisk.radius, AxisDisk.scale * this.image.width, AxisDisk.scale * this.image.height);
+        ctx.drawImage(this.image, -AxisDisk.radius, -AxisDisk.radius, AxisDisk.SCALE * this.image.width, AxisDisk.SCALE * this.image.height);
 
         // draw gate
         // TODO: fix something. we had to negate this line (relative to below,) when it shouldn't have been necessary.
@@ -480,15 +473,16 @@ AxisDisk.DISK_RIGHT = 3;
 AxisDisk.CUTAWAY_BLANK_REG = 0;
 AxisDisk.CUTAWAY_PREVARIKATION = 1;
 
+AxisDisk.ACTIVE_DISK_AREA_WIDTH = 640;
+AxisDisk.SCALE = 0.78;
 AxisDisk.centerX = undefined;
 AxisDisk.centerY = undefined;
-// empirical -- the distance from working center to tip of any gate tester. scaled later on.
-// calculated as appx. (gate tester image size - 2*tester triangle width)/2 == 371
-AxisDisk.distanceX = 378;
-AxisDisk.distanceY = 378;
-AxisDisk.distanceInitialized = false;
-AxisDisk.fontSizePx = 24; // empirical, also scaled later
-AxisDisk.scale = undefined;
+// empirical -- the distance from working center to tip of any gate tester. scaled down.
+// calculated as appx. (gate tester image size - 2*tester triangle width)/2 == 371,
+// adjusted by * 0.78.
+AxisDisk.distanceX = 295;
+AxisDisk.distanceY = 295;
+AxisDisk.fontSizePx = 19; // empirical
 AxisDisk.radius = undefined;
 
 AxisDisk.controlCurves =

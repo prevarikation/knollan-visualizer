@@ -47,26 +47,27 @@ class AxisVisualizer
         // TODO: fix thiiiiis. needs to be classes etc.
         AxisStates();
 
-        var diskLayer = canvas.cloneNode(false);
+        var diskLayer = document.createElement("canvas");
+        diskLayer.width = AxisDisk.ACTIVE_DISK_AREA_WIDTH;
+        diskLayer.height = diskLayer.width;
         this.disks = {
             layer: diskLayer,
             disks: [
-                new AxisDisk(diskLayer, document.getElementById("disk"), 0, AxisDisk.DISK_TOP, AxisVisualizer.centerX, AxisVisualizer.centerY),
-                new AxisDisk(diskLayer, document.getElementById("disk"), 90, AxisDisk.DISK_LEFT, AxisVisualizer.centerX, AxisVisualizer.centerY),
-                new AxisDisk(diskLayer, document.getElementById("disk"), 180, AxisDisk.DISK_BOTTOM, AxisVisualizer.centerX, AxisVisualizer.centerY),
-                new AxisDisk(diskLayer, document.getElementById("disk"), 270, AxisDisk.DISK_RIGHT, AxisVisualizer.centerX, AxisVisualizer.centerY)
+                new AxisDisk(diskLayer, document.getElementById("disk"), 0, AxisDisk.DISK_TOP),
+                new AxisDisk(diskLayer, document.getElementById("disk"), 90, AxisDisk.DISK_LEFT),
+                new AxisDisk(diskLayer, document.getElementById("disk"), 180, AxisDisk.DISK_BOTTOM),
+                new AxisDisk(diskLayer, document.getElementById("disk"), 270, AxisDisk.DISK_RIGHT)
             ],
             draw: function(){
-                // TODO: change drawing subsystem, but for now just copy what's actually relevant
-                var estimatedWidth = AxisVisualizer.activeDiskAreaWidth;
-                this.layer.getContext('2d').clearRect(AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth);
+                this.layer.getContext('2d').clearRect(0, 0, this.layer.width, this.layer.height);
                 for (var a of this.disks) {
                     a.draw();
                 }
                 canvas.getContext('2d').drawImage(
                     this.layer,
-                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth,
-                    AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth
+                    0, 0, this.layer.width, this.layer.height,
+                    // subtract 1 for better visual coherency
+                    AxisVisualizer.centerX-1 - this.layer.width/2, AxisVisualizer.centerY-1 - this.layer.height/2, this.layer.width, this.layer.height
                 );
             }
         };
@@ -136,7 +137,7 @@ class AxisVisualizer
         if (this.dynamicUI.willRedraw()) {
             this.ctx.drawImage(this.staticLayer, 0, 0);
         } else {
-            var estimatedWidth = AxisVisualizer.activeDiskAreaWidth;
+            var estimatedWidth = AxisDisk.ACTIVE_DISK_AREA_WIDTH;
             this.ctx.drawImage(
                 this.staticLayer,
                 AxisVisualizer.centerX - estimatedWidth/2, AxisVisualizer.centerY - estimatedWidth/2, estimatedWidth, estimatedWidth,
@@ -464,10 +465,9 @@ class AxisVisualizer
 // we're measuring everything against the background image now.
 // background image: 1222x900
 // disk display "working area": 776w x 900h
-AxisVisualizer.scale = 0.78; // empirical, original was 0.69
+// for future reference: there was a global scale of 0.78, refactored out
 AxisVisualizer.centerX = 419; // abs. guessed center of disk imagery: (419, 449)
 AxisVisualizer.centerY = 449;
-AxisVisualizer.activeDiskAreaWidth = 640;
 AxisVisualizer.FONT_SIZES = {
     'title': 42,
     'adaptationNotice': 13,
