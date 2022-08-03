@@ -156,10 +156,8 @@ class AxisDisk
 			// only draw in areas the canvas doesn't have data already (i.e., cutaway)
 			ctx.globalCompositeOperation = 'destination-over';
 
-			// encircle opening (why yellow?)
+			// encircle opening, using arc path from above (why yellow?)
 			ctx.strokeStyle = "yellow";
-			ctx.beginPath();
-			ctx.arc(0, 0, cutoutWindowRadius, 0, 2*Math.PI);
 			ctx.stroke();
 
 			// prevarikation cutouts are center@bottom right,
@@ -191,38 +189,45 @@ class AxisDisk
 
 			var cutawayOffset = undefined;
 			switch(this.cutawayType) {
-				case AxisDisk.CUTAWAY_PREVARIKATION: cutawayOffset = 24 * -5; break;// gate is BWR in window
-				case AxisDisk.CUTAWAY_BLANK_REG:     cutawayOffset = 24 * -3; break; // gate is WGB in window
+				case AxisDisk.CUTAWAY_PREVARIKATION: cutawayOffset = 4; break;// gate is BWR in window
+				case AxisDisk.CUTAWAY_BLANK_REG:     cutawayOffset = 6; break;// gate is GBW in window
 				default: break;
 			}
 
 			var rotationAngle = (72 * this.index.N + 24 * this.index.M) % 360;
 			var gateAngle = (72 * this.gate.index.N + 24 * this.gate.index.M) % 360;
-			var compositeAngle = ((cutawayOffset + rotationAngle - gateAngle + this.singleStepAngle) % 360) * Math.PI/180;
+			var compositeAngle = ((24 * cutawayOffset + rotationAngle - gateAngle + this.singleStepAngle) % 360) * Math.PI/180;
 
 			var sliceAngle = 2*Math.PI / 15;
-			var colors = ['red', 'orange', 'yellow', 'green', '#88f'];
-			for (var i = 0; i < 15; ++i) {
-				switch(i % 3) {
-					case 0: ctx.fillStyle = colors[i/3]; break;
+			var colors = ['green', '#88f', 'red', 'orange', 'yellow'];
+			// we do some calculation to attempt to draw only those slices that are seen.
+			var maxSlicesInWindow = 4;
+			// the magic numbers here are empirical. do not touch!!
+			// -1 is because we actually want to start at idx -1, for graphical safety.
+			// since prevarikation cutaway doesn't start with the green in the window, we need to adjust accordingly.
+			var startIdx = -Math.round(((rotationAngle - gateAngle + this.singleStepAngle) % 360) / 24) - 1 + (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION ? 4 : 0);
+			for (var i = startIdx; i < startIdx + maxSlicesInWindow; ++i) {
+				var normalizedIdx = (i + 15) % 15;
+				switch(normalizedIdx % 3) {
+					case 0: ctx.fillStyle = colors[normalizedIdx/3]; break;
 					case 1: ctx.fillStyle = 'black'; break;
 					case 2: ctx.fillStyle = 'white'; break;
 				}
 
 				// indicate gates, sorta
-				if ( (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG && (i === 10 || i === 11)) ||
-				     (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION && (i === 13 || i === 14))) {
+				if ( (this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG && (normalizedIdx === 1 || normalizedIdx === 2)) ||
+				     (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION && (normalizedIdx === 4 || normalizedIdx === 5))) {
 					var gradient = ctx.createRadialGradient(0, 0, 0, cutoutWindowRadius, cutoutWindowRadius, colorCodedDiskRadius);
 					gradient.addColorStop(0, ctx.fillStyle);
 					gradient.addColorStop(
-						((this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG && i === 10) || (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION && i === 13) ? 1 : 0.4),
+						((this.cutawayType === AxisDisk.CUTAWAY_BLANK_REG && normalizedIdx === 1) || (this.cutawayType === AxisDisk.CUTAWAY_PREVARIKATION && normalizedIdx === 4) ? 1 : 0.4),
 						'#0000');
 					ctx.fillStyle = gradient;
 				}
 
 				ctx.beginPath();
 				ctx.moveTo(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y);
-				ctx.arc(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y, colorCodedDiskRadius, compositeAngle + i*sliceAngle, compositeAngle + (i+1)*sliceAngle);
+				ctx.arc(colorCodedDiskCenterPos.x, colorCodedDiskCenterPos.y, colorCodedDiskRadius, compositeAngle + normalizedIdx*sliceAngle, compositeAngle + (normalizedIdx+1)*sliceAngle);
 				ctx.fill();
 			}
 
