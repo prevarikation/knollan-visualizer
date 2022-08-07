@@ -277,40 +277,40 @@ class AxisDisk
 		var normalizedMovement;
 		var angle;
 
-		var isPartialMove = AxisDisk.isPartialMove(movement);
-		movement = AxisDisk.normalizedMoveDirection(movement);
+		var isPartialMove = AxisMoves.isPartialMove(movement);
+		movement = AxisMoves.normalizedMoveDirection(movement);
 
 		switch (this.internalDiskNumber) {
 			case AxisDisk.DISK_TOP:
 				switch (movement) {
-					case AxisDisk.MOVE_LEFT:  normalizedMovement = AxisDisk.MOVE_LEFT; break;
-					case AxisDisk.MOVE_UP:    normalizedMovement = AxisDisk.MOVE_UP; break;
-					case AxisDisk.MOVE_RIGHT: normalizedMovement = AxisDisk.MOVE_RIGHT; break;
-					case AxisDisk.MOVE_DOWN:  normalizedMovement = AxisDisk.MOVE_UNAFFECTED; break;
+					case AxisMoves.MOVE_LEFT:  normalizedMovement = AxisMoves.MOVE_LEFT; break;
+					case AxisMoves.MOVE_UP:    normalizedMovement = AxisMoves.MOVE_UP; break;
+					case AxisMoves.MOVE_RIGHT: normalizedMovement = AxisMoves.MOVE_RIGHT; break;
+					case AxisMoves.MOVE_DOWN:  normalizedMovement = AxisMoves.MOVE_UNAFFECTED; break;
 				}
 				break;
 			case AxisDisk.DISK_LEFT:
 				switch (movement) {
-					case AxisDisk.MOVE_LEFT:  normalizedMovement = AxisDisk.MOVE_UP; break;
-					case AxisDisk.MOVE_UP:    normalizedMovement = AxisDisk.MOVE_RIGHT; break;
-					case AxisDisk.MOVE_RIGHT: normalizedMovement = AxisDisk.MOVE_UNAFFECTED; break;
-					case AxisDisk.MOVE_DOWN:  normalizedMovement = AxisDisk.MOVE_LEFT; break;
+					case AxisMoves.MOVE_LEFT:  normalizedMovement = AxisMoves.MOVE_UP; break;
+					case AxisMoves.MOVE_UP:    normalizedMovement = AxisMoves.MOVE_RIGHT; break;
+					case AxisMoves.MOVE_RIGHT: normalizedMovement = AxisMoves.MOVE_UNAFFECTED; break;
+					case AxisMoves.MOVE_DOWN:  normalizedMovement = AxisMoves.MOVE_LEFT; break;
 				}
 				break;
 			case AxisDisk.DISK_RIGHT:
 				switch (movement) {
-					case AxisDisk.MOVE_LEFT:  normalizedMovement = AxisDisk.MOVE_UNAFFECTED; break;
-					case AxisDisk.MOVE_UP:    normalizedMovement = AxisDisk.MOVE_LEFT; break;
-					case AxisDisk.MOVE_RIGHT: normalizedMovement = AxisDisk.MOVE_UP; break;
-					case AxisDisk.MOVE_DOWN:  normalizedMovement = AxisDisk.MOVE_RIGHT; break;
+					case AxisMoves.MOVE_LEFT:  normalizedMovement = AxisMoves.MOVE_UNAFFECTED; break;
+					case AxisMoves.MOVE_UP:    normalizedMovement = AxisMoves.MOVE_LEFT; break;
+					case AxisMoves.MOVE_RIGHT: normalizedMovement = AxisMoves.MOVE_UP; break;
+					case AxisMoves.MOVE_DOWN:  normalizedMovement = AxisMoves.MOVE_RIGHT; break;
 				}
 				break;
 			case AxisDisk.DISK_BOTTOM:
 				switch (movement) {
-					case AxisDisk.MOVE_LEFT:  normalizedMovement = AxisDisk.MOVE_RIGHT; break;
-					case AxisDisk.MOVE_UP:    normalizedMovement = AxisDisk.MOVE_UNAFFECTED; break;
-					case AxisDisk.MOVE_RIGHT: normalizedMovement = AxisDisk.MOVE_LEFT; break;
-					case AxisDisk.MOVE_DOWN:  normalizedMovement = AxisDisk.MOVE_UP; break;
+					case AxisMoves.MOVE_LEFT:  normalizedMovement = AxisMoves.MOVE_RIGHT; break;
+					case AxisMoves.MOVE_UP:    normalizedMovement = AxisMoves.MOVE_UNAFFECTED; break;
+					case AxisMoves.MOVE_RIGHT: normalizedMovement = AxisMoves.MOVE_LEFT; break;
+					case AxisMoves.MOVE_DOWN:  normalizedMovement = AxisMoves.MOVE_UP; break;
 				}
 				break;
 		}
@@ -318,39 +318,39 @@ class AxisDisk
 		switch (this.index.M) {
 			case 0:
 				switch (normalizedMovement) {
-					case AxisDisk.MOVE_UP:
+					case AxisMoves.MOVE_UP:
 						controlCurveNumber = 0;
 						break;
-					case AxisDisk.MOVE_LEFT:
+					case AxisMoves.MOVE_LEFT:
 						controlCurveNumber = 3;
 						break;
-					case AxisDisk.MOVE_RIGHT:
+					case AxisMoves.MOVE_RIGHT:
 						controlCurveNumber = 6;
 						break;
 				}
 				break;
 			case 1:
 				switch (normalizedMovement) {
-					case AxisDisk.MOVE_UP:
+					case AxisMoves.MOVE_UP:
 						controlCurveNumber = 1;
 						break;
-					case AxisDisk.MOVE_LEFT:
+					case AxisMoves.MOVE_LEFT:
 						controlCurveNumber = 4;
 						break;
-					case AxisDisk.MOVE_RIGHT:
+					case AxisMoves.MOVE_RIGHT:
 						controlCurveNumber = 7;
 						break;
 				}
 				break;
 			case -1:
 				switch (normalizedMovement) {
-					case AxisDisk.MOVE_UP:
+					case AxisMoves.MOVE_UP:
 						controlCurveNumber = 2;
 						break;
-					case AxisDisk.MOVE_LEFT:
+					case AxisMoves.MOVE_LEFT:
 						controlCurveNumber = 5;
 						break;
-					case AxisDisk.MOVE_RIGHT:
+					case AxisMoves.MOVE_RIGHT:
 						controlCurveNumber = 8;
 						break;
 				}
@@ -361,7 +361,7 @@ class AxisDisk
 			controlCurveNumber += 9;
 		}
 
-		if (normalizedMovement == AxisDisk.MOVE_UNAFFECTED) {
+		if (normalizedMovement == AxisMoves.MOVE_UNAFFECTED) {
 			angle = 0;
 		} else {
             if (step === 100) {
@@ -452,32 +452,6 @@ class AxisDisk
 	}
 }
 //statics
-AxisDisk.PARTIAL_MOVE_RATIO = 1/2;
-AxisDisk.PARTIAL_MOVES_OFFSET = 5;
-AxisDisk.MOVE_UNAFFECTED = 0;
-AxisDisk.MOVE_UP = 1;
-AxisDisk.MOVE_LEFT = 2;
-AxisDisk.MOVE_DOWN = 3;
-AxisDisk.MOVE_RIGHT = 4;
-AxisDisk.PARTIAL_MOVE_UP = AxisDisk.MOVE_UP + AxisDisk.PARTIAL_MOVES_OFFSET;
-AxisDisk.PARTIAL_MOVE_LEFT = AxisDisk.MOVE_LEFT + AxisDisk.PARTIAL_MOVES_OFFSET;
-AxisDisk.PARTIAL_MOVE_DOWN = AxisDisk.MOVE_DOWN + AxisDisk.PARTIAL_MOVES_OFFSET;
-AxisDisk.PARTIAL_MOVE_RIGHT = AxisDisk.MOVE_RIGHT + AxisDisk.PARTIAL_MOVES_OFFSET;
-
-AxisDisk.isPartialMove = function(move) {
-	return move >= AxisDisk.PARTIAL_MOVE_UP && move <= AxisDisk.PARTIAL_MOVE_RIGHT;
-}
-AxisDisk.normalizedMoveDirection = function(move){ return move % AxisDisk.PARTIAL_MOVES_OFFSET; }
-AxisDisk.makePartialMove = function(move) { return move + (move !== AxisDisk.MOVE_UNAFFECTED ? AxisDisk.PARTIAL_MOVES_OFFSET : 0); }
-
-AxisDisk.DISK_TOP = 0;
-AxisDisk.DISK_LEFT = 1;
-AxisDisk.DISK_BOTTOM = 2;
-AxisDisk.DISK_RIGHT = 3;
-
-AxisDisk.CUTAWAY_BLANK_REG = 0;
-AxisDisk.CUTAWAY_PREVARIKATION = 1;
-
 AxisDisk.ACTIVE_DISK_AREA_WIDTH = 640;
 AxisDisk.SCALE = 0.78;
 AxisDisk.centerX = undefined;
@@ -489,6 +463,16 @@ AxisDisk.distanceX = 295;
 AxisDisk.distanceY = 295;
 AxisDisk.fontSizePx = 19; // empirical
 AxisDisk.radius = undefined;
+
+AxisDisk.DISK_TOP = 0;
+AxisDisk.DISK_LEFT = 1;
+AxisDisk.DISK_BOTTOM = 2;
+AxisDisk.DISK_RIGHT = 3;
+
+AxisDisk.PARTIAL_MOVE_RATIO = 1/2;
+
+AxisDisk.CUTAWAY_BLANK_REG = 0;
+AxisDisk.CUTAWAY_PREVARIKATION = 1;
 
 AxisDisk.controlCurves =
     [ // 100 steps (50 moving into the disk and 50 moving out of the disk)

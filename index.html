@@ -19,6 +19,7 @@
     <script src="js/StateTable2.js"></script>
     <script src="js/AxisIndex.js"></script>
     <script src="js/AxisStates.js"></script>
+    <script src="js/AxisMoves.js"></script>
     <script src="js/AxisColorSelector.js"></script>
     <script src="js/AxisUI.js"></script>
     <script src="js/AxisBackground.js"></script>
@@ -97,16 +98,16 @@
                 case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : "standard"); break;
             }
 
-            if (visualizer.currentMovement === AxisDisk.MOVE_UNAFFECTED) {
+            if (visualizer.currentMovement === AxisMoves.MOVE_UNAFFECTED) {
                 switch(e.key) {
                     case "Up":
-                    case "ArrowUp":    visualizer.startMovement(AxisDisk.MOVE_UP, !e.shiftKey, e.altKey); break;
+                    case "ArrowUp":    visualizer.startMovement(AxisMoves.MOVE_UP, !e.shiftKey, e.altKey); break;
                     case "Left":
-                    case "ArrowLeft":  visualizer.startMovement(AxisDisk.MOVE_LEFT, !e.shiftKey, e.altKey); break;
+                    case "ArrowLeft":  visualizer.startMovement(AxisMoves.MOVE_LEFT, !e.shiftKey, e.altKey); break;
                     case "Down":
-                    case "ArrowDown":  visualizer.startMovement(AxisDisk.MOVE_DOWN, !e.shiftKey, e.altKey); break;
+                    case "ArrowDown":  visualizer.startMovement(AxisMoves.MOVE_DOWN, !e.shiftKey, e.altKey); break;
                     case "Right":
-                    case "ArrowRight": visualizer.startMovement(AxisDisk.MOVE_RIGHT, !e.shiftKey, e.altKey); break;
+                    case "ArrowRight": visualizer.startMovement(AxisMoves.MOVE_RIGHT, !e.shiftKey, e.altKey); break;
                     case "b":          visualizer.undoLastMovement(); break;
                     case "P":          visualizer.setParkedState(); break;
                     case "p":          visualizer.restoreParkedState(); break;
@@ -129,16 +130,16 @@
                         // automatically finish move
                         visualizer.startMovement(visualizer.currentMovement, true, visualizer.isPartialMove);
                     } else {
-                        if (visualizer.currentMovement === AxisDisk.MOVE_UP) {
+                        if (visualizer.currentMovement === AxisMoves.MOVE_UP) {
                             if (e.key === "Up" || e.key === "ArrowUp") { visualizer.nextStep(); }
                             if (e.key === "Down" || e.key === "ArrowDown") { visualizer.previousStep(); }
-                        } else if (visualizer.currentMovement === AxisDisk.MOVE_LEFT) {
+                        } else if (visualizer.currentMovement === AxisMoves.MOVE_LEFT) {
                             if (e.key === "Left" || e.key === "ArrowLeft") { visualizer.nextStep(); }
                             if (e.key === "Right" || e.key === "ArrowRight") { visualizer.previousStep(); }
-                        } else if (visualizer.currentMovement === AxisDisk.MOVE_DOWN) {
+                        } else if (visualizer.currentMovement === AxisMoves.MOVE_DOWN) {
                             if (e.key === "Down" || e.key === "ArrowDown") { visualizer.nextStep(); }
                             if (e.key === "Up" || e.key === "ArrowUp") { visualizer.previousStep(); }
-                        } else if (visualizer.currentMovement === AxisDisk.MOVE_RIGHT) {
+                        } else if (visualizer.currentMovement === AxisMoves.MOVE_RIGHT) {
                             if (e.key === "Right" || e.key === "ArrowRight") { visualizer.nextStep(); }
                             if (e.key === "Left" || e.key === "ArrowLeft") { visualizer.previousStep(); }
                         }

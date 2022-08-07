@@ -108,8 +108,8 @@ class AxisUI
         // TODO: better way to do these?
         if (options.rawMoveDisplay) {
             // we can display raw moves for exploratory reference
-            var lastResetIndex = options.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED);
-            var replayMoves = options.history.slice(lastResetIndex).map(AxisVisualizer.textRepresentationOfMove).join('');
+            var lastResetIndex = options.history.lastIndexOf(AxisMoves.MOVE_UNAFFECTED);
+            var replayMoves = options.history.slice(lastResetIndex).map(AxisMoves.textRepresentationOfMove).join('');
             var rawNicerFormat = AxisStates.GetRawMoveFormat(replayMoves);
 
             ctx.textAlign = 'left';

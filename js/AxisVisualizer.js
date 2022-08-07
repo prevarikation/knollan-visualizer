@@ -158,10 +158,10 @@ class AxisVisualizer
         this.x = 0;
         this.y = 0;
 
-        if (!this.history.length || this.history[this.history.length-1] !== AxisDisk.MOVE_UNAFFECTED) {
-            this.history.push(AxisDisk.MOVE_UNAFFECTED);
+        if (!this.history.length || this.history[this.history.length-1] !== AxisMoves.MOVE_UNAFFECTED) {
+            this.history.push(AxisMoves.MOVE_UNAFFECTED);
         }
-        this.currentMovement = AxisDisk.MOVE_UNAFFECTED;
+        this.currentMovement = AxisMoves.MOVE_UNAFFECTED;
 
         for (var disk of this.disks.disks) {
             disk.reset();
@@ -182,7 +182,7 @@ class AxisVisualizer
         var shouldRepaint = (this.animationStats.totalSteps < expectedSteps);
         while (this.animationStats.totalSteps < expectedSteps) {
             // when beyond the max step, move is changed to MOVE_UNAFFECTED and attemping to step forward will cause an error.
-            if (this.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
+            if (this.currentMovement !== AxisMoves.MOVE_UNAFFECTED) {
                 this.nextStep();
             }
             ++this.animationStats.totalSteps;
@@ -191,7 +191,7 @@ class AxisVisualizer
             this.draw();
         }
 
-        if (this.currentMovement !== AxisDisk.MOVE_UNAFFECTED) {
+        if (this.currentMovement !== AxisMoves.MOVE_UNAFFECTED) {
             window.requestAnimationFrame(this.animate.bind(this));
         } else {
             this.movingAutomatically = false;
@@ -229,17 +229,17 @@ class AxisVisualizer
     undoLastMovement() {
         /* going back to last reset and replaying moves seems like the easiest way to get correct disk positions. */
         if (this.history.length > 1) {
-            var lastReset = this.history.lastIndexOf(AxisDisk.MOVE_UNAFFECTED, (this.history[this.history.length-1] === AxisDisk.MOVE_UNAFFECTED ? this.history.length-2 : Infinity));
+            var lastReset = this.history.lastIndexOf(AxisMoves.MOVE_UNAFFECTED, (this.history[this.history.length-1] === AxisMoves.MOVE_UNAFFECTED ? this.history.length-2 : Infinity));
             var replayMoves = this.history.splice(lastReset);
             replayMoves.pop();
             for (var move of replayMoves) {
-                if (move === AxisDisk.MOVE_UNAFFECTED) {
+                if (move === AxisMoves.MOVE_UNAFFECTED) {
                     this.reset();
-                } else if (AxisVisualizer.isSerializedState(move)) {
+                } else if (AxisMoves.isSerializedState(move)) {
                     this.restoreParkedState(move);
-                } else if (AxisVisualizer.isDiskTurnMove(move)) {
+                } else if (AxisMoves.isDiskTurnMove(move)) {
                     // individual disk rotation move.
-                    var turnInfo = AxisVisualizer.turnMoveInfo(move);
+                    var turnInfo = AxisMoves.turnMoveInfo(move);
 
                     // abundance of caution. right now the AxisDisk constants match our disk indices, but in the future, who knows
                     var diskIndex = AxisVisualizer.diskTypeToInternalDiskIndex(turnInfo.disk);
@@ -264,7 +264,7 @@ class AxisVisualizer
     restoreParkedState(givenState) {
         var restore = (givenState ? givenState : this.parkedHistory);
         if (restore && restore !== this.serializeState()) {
-            var diskStates = AxisVisualizer.unserialize(restore);
+            var diskStates = AxisMoves.unserialize(restore);
             for (var i = 0; i < diskStates.length; ++i) {
                 this.disks.disks[i].moveToAbsolutePosition(diskStates[i]);
             }
@@ -273,7 +273,7 @@ class AxisVisualizer
     }
 
     nextStep() {
-        var fullMovement = (this.isPartialMove ? AxisDisk.makePartialMove(this.currentMovement) : this.currentMovement);
+        var fullMovement = (this.isPartialMove ? AxisMoves.createPartialMove(this.currentMovement) : this.currentMovement);
 
         if (this.step < AxisVisualizer.MAX_STEP) {
             this.step += (!AxisVisualizer.automatic ? AxisVisualizer.MANUAL_STEP_INC : 1);
@@ -290,13 +290,13 @@ class AxisVisualizer
                 disk.move(fullMovement);
             }
 
-            this.currentMovement = AxisDisk.MOVE_UNAFFECTED;
+            this.currentMovement = AxisMoves.MOVE_UNAFFECTED;
             this.isPartialMove = false;
         }
     }
 
 	previousStep() {
-        var fullMovement = (this.isPartialMove ? AxisDisk.makePartialMove(this.currentMovement) : this.currentMovement);
+        var fullMovement = (this.isPartialMove ? AxisMoves.createPartialMove(this.currentMovement) : this.currentMovement);
 
 		if (this.step > 0) {
             this.step -= (!AxisVisualizer.automatic ? AxisVisualizer.MANUAL_STEP_INC : 1);
@@ -304,7 +304,7 @@ class AxisVisualizer
 
             this.rotateDisksAndMoveKnobDuringStep(fullMovement);
 		} else {
-            this.currentMovement = AxisDisk.MOVE_UNAFFECTED;
+            this.currentMovement = AxisMoves.MOVE_UNAFFECTED;
         }
 	}
 
@@ -315,19 +315,19 @@ class AxisVisualizer
 
         switch (this.currentMovement)
         {
-            case AxisDisk.MOVE_UP:
+            case AxisMoves.MOVE_UP:
                 this.y = -this.step;
                 if (this.y < -AxisVisualizer.MAX_STEP/2) {this.y = -AxisVisualizer.MAX_STEP - this.y;}
                 break;
-            case AxisDisk.MOVE_DOWN:
+            case AxisMoves.MOVE_DOWN:
                 this.y = this.step;
                 if (this.y > AxisVisualizer.MAX_STEP/2) {this.y = AxisVisualizer.MAX_STEP - this.y;}
                 break;
-            case AxisDisk.MOVE_LEFT:
+            case AxisMoves.MOVE_LEFT:
                 this.x = -this.step;
                 if (this.x < -AxisVisualizer.MAX_STEP/2) {this.x = -AxisVisualizer.MAX_STEP - this.x;}
                 break;
-            case AxisDisk.MOVE_RIGHT:
+            case AxisMoves.MOVE_RIGHT:
                 this.x = this.step;
                 if (this.x > AxisVisualizer.MAX_STEP/2) {this.x = AxisVisualizer.MAX_STEP - this.x;}
                 break;
@@ -345,14 +345,14 @@ class AxisVisualizer
 		this.disks.disks[diskIndex].turnCCW();
 
         var disk = AxisVisualizer.internalDiskIndexToDiskType(diskIndex);
-        this.history.push(AxisVisualizer.createDiskTurnMove(disk, false));
+        this.history.push(AxisMoves.createDiskTurnMove(disk, false));
 	}
 
 	turnCW(diskIndex) {
 		this.disks.disks[diskIndex].turnCW();
 
         var disk = AxisVisualizer.internalDiskIndexToDiskType(diskIndex);
-        this.history.push(AxisVisualizer.createDiskTurnMove(disk, true));
+        this.history.push(AxisMoves.createDiskTurnMove(disk, true));
 	}
 
 	setGates() {
@@ -488,53 +488,6 @@ AxisVisualizer.startManualMove = 8;
 AxisVisualizer.endManualMove = 92;
 
 AxisVisualizer.selectedDisk = undefined;
-
-AxisVisualizer.DISK_TOP_TURN = 16;
-AxisVisualizer.DISK_LEFT_TURN = AxisVisualizer.DISK_TOP_TURN + 2;
-AxisVisualizer.DISK_BOTTOM_TURN = AxisVisualizer.DISK_TOP_TURN + 4;
-AxisVisualizer.DISK_RIGHT_TURN = AxisVisualizer.DISK_TOP_TURN + 6;
-AxisVisualizer.isDiskTurnMove = function(move) {
-    return (AxisVisualizer.DISK_TOP_TURN <= move) && (move <= AxisVisualizer.DISK_RIGHT_TURN + 1);
-};
-AxisVisualizer.createDiskTurnMove = function(disk, isCW) {
-    switch(disk) {
-        case AxisDisk.DISK_TOP:     var base = AxisVisualizer.DISK_TOP_TURN; break;
-        case AxisDisk.DISK_LEFT:    var base = AxisVisualizer.DISK_LEFT_TURN; break;
-        case AxisDisk.DISK_BOTTOM:  var base = AxisVisualizer.DISK_BOTTOM_TURN; break;
-        case AxisDisk.DISK_RIGHT:   var base = AxisVisualizer.DISK_RIGHT_TURN; break;
-        default: break;
-    }
-    return base + (isCW ? 0 : 1);
-};
-AxisVisualizer.turnMoveInfo = function(move) {
-    return {
-        disk: [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT][ ((move ^ (move & 1)) - AxisVisualizer.DISK_TOP_TURN)/2 ],
-        isCW: (move % 2 === 0)
-    }
-};
-
-AxisVisualizer.SERIALIZED_BASE = 32;
-AxisVisualizer.SERIALIZED_MAX = AxisVisualizer.SERIALIZED_BASE + 50624; // (15^3*14 + 15^2*14 + 15*14 + 14)
-AxisVisualizer.isSerializedState = function(state) {
-    return AxisVisualizer.SERIALIZED_BASE <= state && state <= AxisVisualizer.SERIALIZED_MAX;
-};
-AxisVisualizer.unserialize = function(state) {
-    for (var i = 0, result = []; i < 4; ++i) {
-        result.unshift(state % 15);
-        state = Math.floor(state / 15);
-    }
-    return result;
-};
-
-AxisVisualizer.textRepresentationOfMove = function(move) {
-    if (AxisVisualizer.isDiskTurnMove(move)) {
-        return (move % 2 === 0 ? "\u2938" : "\u2939") + 'ULDR'.charAt(Math.floor((move % AxisVisualizer.DISK_TOP_TURN) / 2));
-    } else if (AxisVisualizer.isSerializedState(move)) {
-        return 'p';
-    } else {
-        return '0ULDR#uldr'.charAt(move) || '#';
-    }
-}
 
 AxisVisualizer.internalDiskIndexToDiskType = function(index) {
     switch(index) {
