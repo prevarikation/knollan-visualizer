@@ -178,7 +178,12 @@ class AxisVisualizer
         }
 
         var elapsed = timestamp - this.animationStats.start;
-        var expectedSteps = Math.floor( (elapsed/AxisVisualizer.AUTOMATIC_ANIMATION_TIME) * AxisVisualizer.MAX_STEP );
+        if (AxisVisualizer.AUTOMATIC_ANIMATION_TIME === AxisVisualizer.ANIMATION_TIMES.instant) {
+            // stop visual flicker on speedy machines
+            var expectedSteps = AxisVisualizer.MAX_STEP + 1;
+        } else {
+            var expectedSteps = Math.floor( (elapsed/AxisVisualizer.AUTOMATIC_ANIMATION_TIME) * AxisVisualizer.MAX_STEP );
+        }
         var shouldRepaint = (this.animationStats.totalSteps < expectedSteps);
         while (this.animationStats.totalSteps < expectedSteps) {
             // when beyond the max step, move is changed to MOVE_UNAFFECTED and attemping to step forward will cause an error.
