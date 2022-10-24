@@ -93,6 +93,7 @@
                 case "@": visualizer.toggleCutawayColoringVisibility(); break;
                 case "#": visualizer.toggleCutawayType(); break;
                 case "$": visualizer.toggleLockedGatePositions(); break;
+                case "*": recurseUntilFourMoveCombo(); break;
                 case "W": visualizer.setGateWithCurrentCutawayPositionOnReset(); break;
                 case "w": visualizer.setGatesWithCurrentCutawayPositionOnReset(); break;
                 case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : "standard"); break;
@@ -185,6 +186,14 @@
             }
         });
     });
+
+    function recurseUntilFourMoveCombo() {
+        var combo = AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, [0,1,2,3].map(n => visualizer.disks.disks[n].index)));
+        if (combo.length !== 4) {
+            visualizer.startMovement([AxisMoves.MOVE_DOWN, AxisMoves.MOVE_LEFT, AxisMoves.MOVE_RIGHT, AxisMoves.MOVE_UP][Math.floor(4 * Math.random())], true, false);
+            setTimeout(recurseUntilFourMoveCombo, AxisVisualizer.AUTOMATIC_ANIMATION_TIME + 30);
+        }
+    }
 	</script>
     <style>
     html, body, #content { height: 100%; margin: 0; }
