@@ -6,7 +6,7 @@ An HTML5 &lt;canvas&gt; adaptation of [Michael Huebler's (mh's) visualizer](http
 ## Background
 [Yehonatan Knoll](https://www.youtube.com/user/yonatan2806/featured) is the inventor of a [novel combination lock](https://patents.google.com/patent/US20030205069A1/) which uses four rotatable disks that are spun by a control piece moving in up, down, left and right directions. The lock remains closed until a true gate on each disk is aligned with a windmill-style fence, at which point the shackle can be opened.
 
-Manufactured locks are available directly as [Knollan](http://knollan.net/)s, or more commonly, produced under the Master Lock brand name – [Master Lock Speed Dial/1500i/ONE](https://www.masterlock.com/products/product/1500iD).
+Manufactured locks were available directly as [Knollan](http://knollan.net/)s, or more commonly, produced under the Master Lock brand name – [Master Lock Speed Dial/1500iD/ONE](https://www.masterlock.com/products/product/1500iD). As of October 2022, all lock manufacturers seem to have discontinued production of Knollan-style locks.
 
 In 2008, [Michael Huebler](http://www.huebler.org/mh/) (mh) extensively researched this locking mechanism [(papers available through TOOOL)](https://toool.nl/Publications) and created a visualizer for the internals, written in Flash ActionScript. mh has released the visualizer's [source code,](https://github.com/mh-/AxisVisualizer) in part because Flash is now unsupported. **This repository is an HTML5 &lt;canvas> adaptation of mh's visualizer, with additional features for lock research.**
 
