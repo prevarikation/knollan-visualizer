@@ -250,6 +250,16 @@ class AxisDisk
 		this.singleStepAngle = 0;
 	}
 
+	approximateIndexAtCurrentAngle() {
+		var roundedAngle = 12 * Math.round(((this.offsetAngle + this.singleStepAngle + 360) % 360) / 12);
+		var m = Math.floor((roundedAngle % 72) / 24);
+		if (m === 2) {
+			m = -1;
+		}
+		var n = Math.floor((roundedAngle + 24) / 72) % 5;
+		return new AxisIndex(n, m);
+	}
+
 	turnCCW() {
 		this.index.M++;
 		if (this.index.M > 1) {

@@ -87,16 +87,18 @@
                 case "m": visualizer.setMarker(); break;
                 case "c": AxisColorSelector.changeColor(); break;
                 case "d": visualizer.deleteMarker(); break;
-                case "q": visualizer.toggleCurrentCombinationDisplay(); break;
-                case "~": visualizer.toggleShortenedMoveDisplay(); break;
-                case "!": visualizer.toggleRawMoveDisplay(); break;
-                case "@": visualizer.toggleCutawayColoringVisibility(); break;
-                case "#": visualizer.toggleCutawayType(); break;
-                case "$": visualizer.toggleLockedGatePositions(); break;
+                case "L": visualizer.toggleBooleanOption('lockedGatePositions'); break;
+                case "q": visualizer.toggleBooleanOption('showCurrentCombination'); break;
+                case "~": visualizer.toggleBooleanOption('showShortenedMoves'); break;
+                case "!": visualizer.toggleBooleanOption('rawMoveDisplay'); break;
+                case "@": visualizer.toggleBooleanOption('showAntedecedentMoves'); break;
+                case "#": visualizer.toggleCutawayColoringVisibility(); break;
+                case "$": visualizer.toggleCutawayType(); break;
                 case "*": recurseUntilFourMoveCombo(); break;
-                case "W": visualizer.setGateWithCurrentCutawayPositionOnReset(); break;
-                case "w": visualizer.setGatesWithCurrentCutawayPositionOnReset(); break;
-                case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : "standard"); break;
+                case "(": visualizer.toggleBooleanOption('showPartialMoves'); break;
+                case "E": visualizer.setGateWithCurrentCutawayPositionOnReset(); break;
+                case "e": visualizer.setGatesWithCurrentCutawayPositionOnReset(); break;
+                case "/": visualizer.selectedUIPage = (visualizer.selectedUIPage === "standard" ? "research" : (visualizer.selectedUIPage === "research" ? "research2" : "standard")); break;
             }
 
             if (visualizer.currentMovement === AxisMoves.MOVE_UNAFFECTED) {
@@ -192,6 +194,37 @@
         if (combo.length !== 4) {
             visualizer.startMovement([AxisMoves.MOVE_DOWN, AxisMoves.MOVE_LEFT, AxisMoves.MOVE_RIGHT, AxisMoves.MOVE_UP][Math.floor(4 * Math.random())], true, false);
             setTimeout(recurseUntilFourMoveCombo, AxisVisualizer.AUTOMATIC_ANIMATION_TIME + 30);
+        }
+    }
+
+    function dialFourMoveCombos() {
+        var moves = [];
+        var movements = [AxisMoves.MOVE_DOWN, AxisMoves.MOVE_LEFT, AxisMoves.MOVE_RIGHT, AxisMoves.MOVE_UP];
+        for (var i = 0; i < movements.length; ++i) {
+            for (var j = 0; j < movements.length; ++j) {
+                for (var k = 0; k < movements.length; ++k) {
+                    for (var l = 0; l < movements.length; ++l) {
+                        moves.push(AxisMoves.MOVE_UNAFFECTED, movements[i], movements[j], movements[k], movements[l]);
+                    }
+                }
+            }
+        }
+        dialMoves(moves);
+    }
+
+    function dialMoves(moves) {
+        recursivelyDial(0);
+
+        function recursivelyDial(i) {
+            if (i >= moves.length) {
+                return;
+            }
+            if (moves[i] === AxisMoves.MOVE_UNAFFECTED) {
+                visualizer.reset();
+            } else {
+                visualizer.startMovement(moves[i], true, false);
+            }
+            setTimeout(function(){ recursivelyDial(i+1); }, AxisVisualizer.AUTOMATIC_ANIMATION_TIME + 30);
         }
     }
 	</script>

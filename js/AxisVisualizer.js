@@ -94,7 +94,7 @@ class AxisVisualizer
         };
         this.dynamicUI.willRedraw = function(){
             var currentOptions = this.generateOptions();
-            return currentOptions.showCurrentCombination || // current combination is in "active area" for disks
+            return currentOptions.currentCombination || // current combination is in "active area" for disks
                    !visualizerRef.prevOptions ||
                    (visualizerRef.prevOptions.page !== visualizerRef.selectedUIPage) ||
                    (visualizerRef.prevOptions.options !== JSON.stringify(currentOptions));
@@ -102,14 +102,24 @@ class AxisVisualizer
         this.dynamicUI.generateOptions = function() {
             var uiPage = visualizerRef.selectedUIPage;
             var options = {
-                showShortenedMoves: visualizerRef.showShortenedMoves,
-                shortenedMoves: AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.index)) ),
-                rawMoveDisplay: visualizerRef.rawMoveDisplay,
-                showCurrentCombination: visualizerRef.showCurrentCombination,
-                currentCombination: AxisStates.GetCombination( AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index)) )
+                shortenedMoves: (visualizerRef.showShortenedMoves ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.index))) : null),
+                rawMoves: null,
+                antedecedentMoves: null,
+                currentCombination: (visualizerRef.showCurrentCombination ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index))) : null)
             };
-            if (options.rawMoveDisplay) {
-                options.history = visualizerRef.history;
+            if (visualizerRef.rawMoveDisplay) {
+                var lastResetIndex = visualizerRef.history.lastIndexOf(AxisMoves.MOVE_UNAFFECTED);
+                var replayMoves = visualizerRef.history.slice(lastResetIndex).map(AxisMoves.textRepresentationOfMove).join('');
+                options.rawMoves = AxisStates.GetRawMoveFormat(replayMoves);
+            }
+            if (visualizerRef.showAntedecedentMoves) {
+                var currentState = visualizerRef.disks.disks.map(o => o.index);
+				var antedecedentStates = AxisStates.GetAntedecedentStates(currentState);
+				if (antedecedentStates) {
+					options.antedecedentMoves = antedecedentStates.map(state => AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, state))).join(', ');
+				} else {
+					options.antedecedentMoves = "<none>";
+				}
             }
             if (uiPage === "standard") {
                 options.automaticAnimationTime = AxisVisualizer.AUTOMATIC_ANIMATION_TIME;
@@ -126,9 +136,12 @@ class AxisVisualizer
         this.movingAutomatically = false;
         this.animationStats = null;
         this.history = [];
+        this._statesVisited = {};
         this.showShortenedMoves = true;
         this.showCurrentCombination = false;
         this.rawMoveDisplay = false;
+        this.showAntedecedentMoves = false;
+        this.showPartialMoves = false;
         this.lockedGatePositions = false;
         this.reset();
     }
@@ -161,6 +174,7 @@ class AxisVisualizer
         if (!this.history.length || this.history[this.history.length-1] !== AxisMoves.MOVE_UNAFFECTED) {
             this.history.push(AxisMoves.MOVE_UNAFFECTED);
         }
+        //this._statesVisited = {};
         this.currentMovement = AxisMoves.MOVE_UNAFFECTED;
 
         for (var disk of this.disks.disks) {
@@ -291,6 +305,11 @@ class AxisVisualizer
             this.knobInterfacePlate.moveToAbsoluteIndex(this.x, this.y);
 
             this.history.push(fullMovement);
+            // TODO: figure out a different display
+            if (this.showPartialMoves) {
+                console.log(Object.keys(this._statesVisited));
+            }
+            this._statesVisited = {};
             for (var disk of this.disks.disks) {
                 disk.move(fullMovement);
             }
@@ -314,8 +333,19 @@ class AxisVisualizer
 	}
 
     rotateDisksAndMoveKnobDuringStep(fullMovement) {
+        var indices = [];
         for (var disk of this.disks.disks) {
             disk.rotateToIncrementalAngle( disk.controlCurveAngle(fullMovement, this.step) );
+            if (this.showPartialMoves) {
+                indices.push(disk.approximateIndexAtCurrentAngle());
+            }
+        }
+
+        if (this.showPartialMoves) {
+            var combo = AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, indices));
+            if (combo !== AxisStates.INVALID_STATE_TEXT && typeof this._statesVisited[combo] === 'undefined') {
+                this._statesVisited[combo] = true;
+            }
         }
 
         switch (this.currentMovement)
@@ -420,20 +450,8 @@ class AxisVisualizer
         }
     }
 
-    toggleRawMoveDisplay() {
-        this.rawMoveDisplay = !this.rawMoveDisplay;
-    }
-
-    toggleLockedGatePositions() {
-        this.lockedGatePositions = !this.lockedGatePositions;
-    }
-
-    toggleShortenedMoveDisplay() {
-        this.showShortenedMoves = !this.showShortenedMoves;
-    }
-
-    toggleCurrentCombinationDisplay() {
-        this.showCurrentCombination = !this.showCurrentCombination;
+    toggleBooleanOption(option) {
+        this[option] = !this[option];
     }
 
     serializeState() {

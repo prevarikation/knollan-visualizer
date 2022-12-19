@@ -105,32 +105,25 @@ class AxisUI
         var ctx = this.referenceCtx;
         ctx.save();
 
-        // TODO: better way to do these?
-        if (options.rawMoveDisplay) {
-            // we can display raw moves for exploratory reference
-            var lastResetIndex = options.history.lastIndexOf(AxisMoves.MOVE_UNAFFECTED);
-            var replayMoves = options.history.slice(lastResetIndex).map(AxisMoves.textRepresentationOfMove).join('');
-            var rawNicerFormat = AxisStates.GetRawMoveFormat(replayMoves);
-
+        if (options.rawMoves) {
             ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
             var lineHeight = 32;
             ctx.font = lineHeight + 'px monospace';
             // complications below are because we are emulating linebreaks.
             var maxRawMoveWidth = 690; //empirical
-            for (var totalLines = 1; rawNicerFormat.length; ++totalLines) {
-                var totalWidth = ctx.measureText(rawNicerFormat).width;
-                var charactersInCurrentLine = Math.floor(rawNicerFormat.length * (maxRawMoveWidth/totalWidth));
+            for (var totalLines = 1; options.rawMoves.length; ++totalLines) {
+                var totalWidth = ctx.measureText(options.rawMoves).width;
+                var charactersInCurrentLine = Math.floor(options.rawMoves.length * (maxRawMoveWidth/totalWidth));
 
-                ctx.fillText(rawNicerFormat.substring(0, charactersInCurrentLine), AxisVisualizer.centerX - 50, (totalLines - 3/4) * lineHeight);
+                ctx.fillText(options.rawMoves.substring(0, charactersInCurrentLine), AxisVisualizer.centerX - 50, (totalLines - 3/4) * lineHeight);
 
-                rawNicerFormat = rawNicerFormat.substring(charactersInCurrentLine).replace(/^[ ]*/, '');
+                options.rawMoves = options.rawMoves.substring(charactersInCurrentLine).replace(/^[ ]*/, '');
             }
         }
 
-        if (options.showCurrentCombination) {
-            var combination = options.currentCombination;
-            var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
+        if (options.currentCombination) {
+            var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(options.currentCombination);
             ctx.save();
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
@@ -164,7 +157,7 @@ class AxisUI
 
         ctx.restore();
 
-        if (options.showShortenedMoves) {
+        if (options.shortenedMoves) {
             var combination = options.shortenedMoves;
             var extendedNicerFormat  = AxisStates.GetNicerCombinationFormat2(combination);
             var condensedNicerFormat = AxisStates.GetNicerCombinationFormat(combination);
@@ -180,6 +173,16 @@ class AxisUI
             ctx.fillText(condensedNicerFormat, AxisVisualizer.centerX, AxisVisualizer.centerY + AxisKnobInterfacePlate.REFERENCE_HEIGHT/2 + 45 + 32);
             ctx.restore();
         }
+
+        if (options.antedecedentMoves) {
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.font = '18px sans-serif';
+            ctx.fillStyle = '#2429bc';
+            ctx.fillText(options.antedecedentMoves, AxisVisualizer.centerX, AxisVisualizer.centerY + AxisKnobInterfacePlate.REFERENCE_HEIGHT/2 + 45 + 32 + 20);
+            ctx.restore();
+        }        
 
         ctx.drawImage(this.ctx[page].canvas, 0, 0);
     }
@@ -207,27 +210,45 @@ AxisUI.instructionPages = {
     },
     research: {
         header: "Research:",
-        subheader: "All standard key commands still active",
+        subheader: "All key commands still active",
         commands: [
-            ["Store / recall disk pos.", "<P> / <p>"],
+            /*
+            // TODO: implement this!
+            ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
+            */
             ["½ Move", "<Alt>+<Cursor>"],
             ["½ Step", "<Shift>+<Alt>+<Cursor>"],
+            ["", ""],
+            ["Store / recall disk pos.", "<P> / <p>"],
+            ["Lock / unlock gate positions", "<L>"],
             // shift+s because set ALL gates is on different page, and the s/S
             // distinction may be confusing for a command that has no undo
             ["Set gate of sel. disk", "<Shift>+<s>"],
-            ["Show / hide shortened moves", "<~>"],
-            ["Show / hide raw moves", "<!>"],
-            ["Blank_Reg cutaway windows", "<@>"],
-            ["Toggle cutaway type (B_R / p)", "<#>"],
-            ["Lock / unlock gate positions", "<$>"],
-            ["Set gate(s) as if cutaway coloring", ""],
-            ["was at reset position", "<W> / <w>"],
+            ["", ""],
             ["Show current combination", "<q>"],
-            // TODO: implement these!
-            /*
-            ["Show antedecedent moves", ""],
-            ["Mobile usage (moves, tap to cycle instructions for partial moves)", ""]
-            */
+            ["Show raw moves", "<!>"],
+            ["Show shortened moves", "<~>"],
+            ["Show antedecedent moves", "<@>"],
+            ["", ""],
+            ["Research menu 2", "</>"]
+        ]
+    },
+    research2: {
+        header: "Research 2:",
+        subheader: "All key commands still active",
+        commands: [
+            ["Blank_Reg cutaway windows", "<#>"],
+            ["Toggle cutaway type (B_R / p)", "<$>"],
+            ["Set gate(s) as if cutaway coloring", ""],
+            ["was at reset position", "<E> / <e>"],
+            ["", ""],
+            ["Log combination states visited", ""],
+            ["during current move", "<(>"],
+            ["", ""],
+            ["Move randomly until combo is", ""],
+            ["equivalent to 4-move combo", "<*>"],
+            ["", ""],
+            ["", ""],
             ["Standard menu", "</>"]
         ]
     }

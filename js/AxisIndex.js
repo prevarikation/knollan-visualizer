@@ -29,4 +29,8 @@ class AxisIndex
 		this.N = (typeof N !== 'undefined' ? N : 0);
 		this.M = (typeof M !== 'undefined' ? M : 0);
 	}
+
+	clone() {
+		return new AxisIndex(this.N, this.M);
+	}
 }
