@@ -25,29 +25,14 @@ SOFTWARE.
 
 // TODO: clean up, make class
 function AxisStates() {
-    var i, j, len, temp;
     var pos = 0;
-
-    for (var i = 0; i <= 2984; ++i) {
-        pos += AxisStates.distanceCodingTable[StateTable1.stateTable1[i] % 16];
-        temp = Math.floor(StateTable1.stateTable1[i] / 16);
-        len = temp % 16;
+    for (var i = 0; i < StateTable.table.length; ++i) {
+        pos += AxisStates.distanceCodingTable[StateTable.table[i] % 16];
+        var temp = Math.floor(StateTable.table[i] / 16);
+        var len = temp % 16;
         temp = Math.floor(temp / 16);
         AxisStates.CombinationTable[pos] = "";
-        for (j = 0; j <= len - 1; j++)
-        {
-            AxisStates.CombinationTable[pos] += AxisStates.movementCodingTable[temp % 4];
-            temp = Math.floor(temp / 4);
-        }
-    }
-    for (i = 0; i <= 4514; i++)
-    {
-        pos += AxisStates.distanceCodingTable[StateTable2.stateTable2[i] % 16];
-        temp = Math.floor(StateTable2.stateTable2[i] / 16);
-        len = temp % 16;
-        temp = Math.floor(temp / 16);
-        AxisStates.CombinationTable[pos] = "";
-        for (j = 0; j <= len - 1; j++)
+        for (var j = 0; j < len; j++)
         {
             AxisStates.CombinationTable[pos] += AxisStates.movementCodingTable[temp % 4];
             temp = Math.floor(temp / 4);
