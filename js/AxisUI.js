@@ -180,13 +180,13 @@ class AxisUI
             ctx.restore();
         }
 
-        if (options.antedecedentMoves) {
+        if (options.antecedentMoves) {
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             ctx.font = '18px sans-serif';
             ctx.fillStyle = '#2429bc';
-            ctx.fillText(options.antedecedentMoves, AxisVisualizer.centerX, AxisVisualizer.centerY + AxisKnobInterfacePlate.REFERENCE_HEIGHT/2 + 45 + 32 + 20);
+            ctx.fillText(options.antecedentMoves, AxisVisualizer.centerX, AxisVisualizer.centerY + AxisKnobInterfacePlate.REFERENCE_HEIGHT/2 + 45 + 32 + 20);
             ctx.restore();
         }        
 
@@ -234,7 +234,7 @@ AxisUI.instructionPages = {
             ["Show current combination", "<q>"],
             ["Show raw moves", "<!>"],
             ["Show shortened moves", "<~>"],
-            ["Show antedecedent moves", "<@>"],
+            ["Show antecedent moves", "<@>"],
             ["", ""],
             ["Research menu 2", "</>"]
         ]

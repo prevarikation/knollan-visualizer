@@ -104,7 +104,7 @@ class AxisVisualizer
             var options = {
                 shortenedMoves: (visualizerRef.showShortenedMoves ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.index))) : null),
                 rawMoves: null,
-                antedecedentMoves: null,
+                antecedentMoves: null,
                 currentCombination: (visualizerRef.showCurrentCombination ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index))) : null)
             };
             if (visualizerRef.rawMoveDisplay) {
@@ -112,13 +112,13 @@ class AxisVisualizer
                 var replayMoves = visualizerRef.history.slice(lastResetIndex).map(AxisMoves.textRepresentationOfMove).join('');
                 options.rawMoves = AxisStates.GetRawMoveFormat(replayMoves);
             }
-            if (visualizerRef.showAntedecedentMoves) {
+            if (visualizerRef.showAntecedentMoves) {
                 var currentState = visualizerRef.disks.disks.map(o => o.index);
-				var antedecedentStates = AxisStates.GetAntedecedentStates(currentState);
-				if (antedecedentStates) {
-					options.antedecedentMoves = antedecedentStates.map(state => AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, state))).join(', ');
+				var antecedentStates = AxisStates.GetAntecedentStates(currentState);
+				if (antecedentStates) {
+					options.antecedentMoves = antecedentStates.map(state => AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, state))).join(', ');
 				} else {
-					options.antedecedentMoves = "<none>";
+					options.antecedentMoves = "<none>";
 				}
             }
             if (uiPage === "standard") {
@@ -140,7 +140,7 @@ class AxisVisualizer
         this.showShortenedMoves = true;
         this.showCurrentCombination = false;
         this.rawMoveDisplay = false;
-        this.showAntedecedentMoves = false;
+        this.showAntecedentMoves = false;
         this.showPartialMoves = false;
         this.lockedGatePositions = false;
         this.reset();

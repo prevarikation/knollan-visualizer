@@ -132,7 +132,7 @@ AxisStates.GetRawMoveFormat = function(Combination) {
     }
 }
 
-AxisStates.GetAntedecedentStates = function(state) {
+AxisStates.GetAntecedentStates = function(state) {
     var combination = AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, state));
     if (combination !== AxisStates.INVALID_STATE_TEXT && combination !== AxisStates.RESET_STATE_TEXT) {
         // Find last move direction.
@@ -184,9 +184,9 @@ AxisStates.GetAntedecedentStates = function(state) {
             }
         }
 
-        // Calculate trivial antedecedent state.
+        // Calculate trivial antecedent state.
         var diskOppositeLastMove = diskOppositeMove(lastMove);
-        var trivialAntedecedent = state.map(function(o, i) {
+        var trivialAntecedent = state.map(function(o, i) {
             var index = o.clone();
             if (i !== diskOppositeLastMove) {
                 index = previousIndexMatchingM(index, index.M);
@@ -209,7 +209,7 @@ AxisStates.GetAntedecedentStates = function(state) {
             freeDiskIndices.push(index.clone());
         }
 
-        // Free disk antedecedents will derive from a state with the other two relevant wheels
+        // Free disk antecedents will derive from a state with the other two relevant wheels
         // adjusted backward to reflect the correct N,M values.
         var antedecentState = state.map(o => o.clone());
         var targetDisks = targetDisksForMoveDirections(lastMove, secondToLastMove);
@@ -217,14 +217,14 @@ AxisStates.GetAntedecedentStates = function(state) {
         antedecentState[targetDisks[0]] = previousIndexMatchingM(antedecentState[targetDisks[0]], targetMs[0]);
         antedecentState[targetDisks[1]] = previousIndexMatchingM(antedecentState[targetDisks[1]], targetMs[1]);
 
-        // Build result array from trivial and free disk antedecedents.
-        var antedecedents = [trivialAntedecedent];
+        // Build result array from trivial and free disk antecedents.
+        var antecedents = [trivialAntecedent];
         for (var i = 0; i < freeDiskIndices.length; ++i) {
-            var antedecedent = antedecentState.map(o => o.clone());
-            antedecedent[diskOppositeSecondToLastMove] = freeDiskIndices[i];
-            antedecedents.push(antedecedent);
+            var antecedent = antedecentState.map(o => o.clone());
+            antecedent[diskOppositeSecondToLastMove] = freeDiskIndices[i];
+            antecedents.push(antecedent);
         }
-        return antedecedents;
+        return antecedents;
     } else {
         return null;
     }
