@@ -24,7 +24,7 @@ SOFTWARE.
 /* Modified for HTML5 <canvas> by prevarikation, March 2021. */
 
 function StateTable(){}
-// stored as: [each move as nibble][...][2 bytes for combo length][2 bytes for distance coding]
+// stored as: [each move as nibble][...][nibble for combo length][nibble for distance coding]
 StateTable.table = [
 15751811,
 3148145,
