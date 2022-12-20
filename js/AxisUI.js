@@ -68,6 +68,9 @@ class AxisUI
             rightColY += (2.0 * instructionFontSize);
             var rightColYBeforeCommands = rightColY;
             for (var i = 0; i < page.commands.length; ++i) {
+                // for interpreting touch events
+                page.commands[i].bounds = [[rightColX, rightColY - instructionFontSize], [instructionRightColX, undefined]];
+
                 ctx.fillText(page.commands[i][0] + (page.commands[i][1] ? ":" : ""), rightColX, rightColY);
 
                 var origFont = ctx.font;
@@ -76,6 +79,9 @@ class AxisUI
                     ctx.fillText(page.commands[i][j], instructionRightColX - ctx.measureText(page.commands[i][j]).width, rightColY);
                     rightColY += Math.floor(1.45 * instructionFontSize);
                 }
+
+                // now we know how far the bounding box extends vertically
+                page.commands[i].bounds[1][1] = rightColY - instructionFontSize;
 
                 ctx.font = cssFontString('instruction');
             }

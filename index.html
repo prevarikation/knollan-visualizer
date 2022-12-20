@@ -177,8 +177,18 @@
                         case AxisDisk.DISK_RIGHT:  simulatedKey = "ArrowRight"; break;
                         default: break;
                     }
-                } else if (el.type === "instructionPage") {
-                    simulatedKey = "/";
+                } else if (el.type === "instructionPage" && el.key) {
+                    simulatedKey = el.key;
+
+                    // we're currently logging to console with this command, which isn't useful on mobile
+                    if (simulatedKey === "(") {
+                        return;
+                    }
+
+                    // handle "8" differently, to cycle through selected disks.
+                    if (simulatedKey === "8") {
+                        simulatedKey = ["4", "2", "6", "8"][AxisVisualizer.selectedDisk];
+                    }
                 } else if (el.type === "reset") {
                     simulatedKey = "r";
                 }

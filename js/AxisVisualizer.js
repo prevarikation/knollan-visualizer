@@ -473,15 +473,17 @@ class AxisVisualizer
         }
 
         // TODO: REWRITE ANYTHING BELOW THIS (PROOF OF CONCEPT)
-        //check if instruction page
-        if (796 <= coords.x && coords.x <= 1200 && 158 <= coords.y && coords.y < 740) {
-            return { type: 'instructionPage' };
-        }
         if (coords.x <= AxisVisualizer.centerX && coords.y <= 100) {
             return { type: 'reset' };
         }
-        //check within instruction page?
-        //check if marker color?
+
+        for (const command of AxisUI.instructionPages[this.selectedUIPage].commands) {
+            if (command.bounds[0][0] <= coords.x && coords.x <= command.bounds[1][0] && command.bounds[0][1] <= coords.y && coords.y < command.bounds[1][1]) {
+                // iff the first <key> given is a single character, we'll return that, otherwise assume the command is too complex for a single tap
+                var firstGivenKey = command[1].match(/<(.*?)>/);
+                return { type: 'instructionPage', key: (firstGivenKey && firstGivenKey[1].length === 1 ? firstGivenKey[1] : null) };
+            }
+        }
 
         return null;
 	}
