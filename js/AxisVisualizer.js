@@ -463,8 +463,11 @@ class AxisVisualizer
     }
 
     touchableElementAt(coords) {
+        // disk layer uses canvas of different size, we need to translate accordingly.
         for (var disk of this.disks.disks) {
-            if (Math.sqrt(Math.pow(disk.x - coords.x, 2) + Math.pow(disk.y - coords.y, 2)) < AxisDisk.radius) {
+            var effectiveX = disk.x + (AxisVisualizer.centerX-1 - AxisDisk.ACTIVE_DISK_AREA_WIDTH/2);
+            var effectiveY = disk.y + (AxisVisualizer.centerY-1 - AxisDisk.ACTIVE_DISK_AREA_WIDTH/2);
+            if (Math.sqrt(Math.pow(effectiveX - coords.x, 2) + Math.pow(effectiveY - coords.y, 2)) < AxisDisk.radius) {
                 return { type: 'disk', disk: disk.internalDiskNumber};
             }
         }
