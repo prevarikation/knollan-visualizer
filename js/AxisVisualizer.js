@@ -114,7 +114,7 @@ class AxisVisualizer
             }
             if (visualizerRef.showAntecedentMoves) {
                 var currentState = visualizerRef.disks.disks.map(o => o.index);
-				var antecedentStates = AxisStates.GetAntecedentStates(currentState);
+				var antecedentStates = AxisStates.GetAntecedentStates.apply(null, currentState);
 				if (antecedentStates) {
 					options.antecedentMoves = antecedentStates.map(state => AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, state))).join(', ');
 				} else {

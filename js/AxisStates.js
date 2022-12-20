@@ -37,12 +37,16 @@ function AxisStates() {
             AxisStates.CombinationTable[pos] += AxisStates.movementCodingTable[temp % 4];
             temp = Math.floor(temp / 4);
         }
+        AxisStates.AntecedentTable[pos] = StateTable.antecedentTable[i];
     }
-    AxisStates.CombinationTable[3616] = AxisStates.RESET_STATE_TEXT;
+    var resetState = AxisStates.State2StateNumber(new AxisIndex(0,0), new AxisIndex(0,0), new AxisIndex(0,0), new AxisIndex(0,0));
+    AxisStates.CombinationTable[resetState] = AxisStates.RESET_STATE_TEXT;
+    AxisStates.AntecedentTable[resetState] = null;
 }
 AxisStates.RESET_STATE_TEXT = "<Reset>";
 AxisStates.INVALID_STATE_TEXT = "<invalid state>";
 AxisStates.CombinationTable = [];
+AxisStates.AntecedentTable = [];
 AxisStates.movementCodingTable = ["U", "L", "D", "R"];
 AxisStates.distanceCodingTable = [1, 3, 4, 17, 31, 33, 46, 49, 62, 227, 257];
 
@@ -132,7 +136,16 @@ AxisStates.GetRawMoveFormat = function(Combination) {
     }
 }
 
-AxisStates.GetAntecedentStates = function(state) {
+AxisStates.GetAntecedentStates = function(TopIndex, LeftIndex, BottomIndex, RightIndex) {
+    var foundStates = AxisStates.AntecedentTable[ AxisStates.State2StateNumber(TopIndex, LeftIndex, BottomIndex, RightIndex) ];
+    return (!foundStates ? null : foundStates.map(function(stateNumber) {
+        var a = new AxisIndex(0,0), b = a.clone(), c = a.clone(), d = a.clone();
+        AxisStates.StateNumber2State(stateNumber, a, b, c, d);
+        return [a,b,c,d];
+    }));
+
+    //// HOW THIS WAS CALCULATED TO POPULATE THE LOOKUP TABLE ////
+    /*
     var combination = AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, state));
     if (combination !== AxisStates.INVALID_STATE_TEXT && combination !== AxisStates.RESET_STATE_TEXT) {
         // Find last move direction.
@@ -293,4 +306,5 @@ AxisStates.GetAntecedentStates = function(state) {
         } while (index.M !== m);
         return index;
     }
+    */
 }
