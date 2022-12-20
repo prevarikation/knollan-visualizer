@@ -221,11 +221,14 @@
         dialMoves(moves);
     }
 
-    function dialMoves(moves) {
+    function dialMoves(moves, callback) {
         recursivelyDial(0);
 
         function recursivelyDial(i) {
             if (i >= moves.length) {
+                if (callback) {
+                    callback();
+                }
                 return;
             }
             if (moves[i] === AxisMoves.MOVE_UNAFFECTED) {
@@ -233,7 +236,7 @@
             } else {
                 visualizer.startMovement(moves[i], true, false);
             }
-            setTimeout(function(){ recursivelyDial(i+1); }, AxisVisualizer.AUTOMATIC_ANIMATION_TIME + 30);
+            setTimeout(function(){ recursivelyDial(i+1); }, AxisVisualizer.AUTOMATIC_ANIMATION_TIME + 100);
         }
     }
 	</script>
