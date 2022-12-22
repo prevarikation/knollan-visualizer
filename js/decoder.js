@@ -1,7 +1,7 @@
 'use strict';
 /* This code is really bad. How *not* to write front-end JS: mix UI
 ** and logic code, spooky action at a distance. <3 prevarikate. */
-var states;
+var states = new AxisStates();
 
 function filterByEndIndices() {
     var st = { top: {}, left: {}, bottom: {}, right: {} };
@@ -25,22 +25,80 @@ function filterByEndIndices() {
     }
     return found;
 }
+
+var possibilities = filterByEndIndices(
+    gateIs('top', { N: 3, M: -1 }),
+    gateIsBetween('left', {N: 1, M: 1}, {N: 3, M:1}),
+    gateIsBetween('bottom', {N: 1, M: 0}, {N: 3, M:0}),
+    gateIsBetween('right', {N: 2, M: -1}, {N: 4, M: -1})
+);
+possibilities.sort(sortEndIndicesByCombinationLength);
+
+// all ranges are boundary-inclusive.
 function gateIsBetween(which, first, second) {
     var lower = indexPairToInteger(first);
     var upper = indexPairToInteger(second);
     return function(st) {
         var value = indexPairToInteger(st[which]);
-        /* if lower is greater than upper, we invert criteria, for wraparound. */
+        // if lower is greater than upper, we invert criteria, for wraparound.
         return (lower <= upper ? (value >= lower && value <= upper) : (value <= lower || value >= upper));
     };
 }
+
 function gateIs(which, exact) {
     return gateIsBetween(which, exact, exact);
 }
+
 function indexPairToInteger(indexPair) {
     return 3*indexPair.N + indexPair.M;
 }
+
 function sortEndIndicesByCombinationLength(a, b) { return a.combination.length - b.combination.length; }
+
+function relatedByDownMoves(stateA, stateB) {
+    if (stateA.top.N !== stateB.top.N || stateA.top.M !== stateB.top.M) {
+        return false;
+    } else if (bottomDisksHash(stateA) !== bottomDisksHash(stateB)) {
+        return false;
+    }
+
+    for (var dir of ["left", "bottom", "right"]) {
+        if (stateA[dir].M !== stateB[dir].M) {
+            //return false;`
+        }
+    }
+    return true;
+
+    function moveDown(st) {
+        return 5*((st.left.N - st.bottom.N + 5) % 5) + ((st.bottom.N - st.right.N + 5) % 5);
+    }
+}
+
+function moveDown(state) {
+    var newState = { top: Object.assign({}, state.top) };
+    newState.left   = { M: 1,  N: (state.left.N +     (state.left.M < 1 ? 0 : 1)) % 5 };
+    newState.bottom = { M: 0,  N: (state.bottom.N + (state.bottom.M < 0 ? 0 : 1)) % 5 };
+    newState.right  = { M: -1, N: (state.right.N + 1) % 5 };
+    return newState;
+}
+
+function calculate() {
+    if (typeof states === 'undefined') {
+        states = new AxisStates();
+    }
+
+    var lru = parseInt(document.getElementById('lru').value, 10);
+    if (lru >= 0 && lru <= 15) {
+        lru = (lru % 15) + 1;
+        var topDiskLocation = { n: Math.floor(lru/3) % 5, m: (lru % 3) - 1 };
+        document.getElementById('lru-gate-location').value = "[" + topDiskLocation.n + ", " + topDiskLocation.m + "]";
+
+        var matchingCombinations = filterByEndIndices(gateIs('top', { N: topDiskLocation.n, M: topDiskLocation.m }));
+        document.getElementById('combinations').value = matchingCombinations.length;
+    } else {
+        //error
+    }
+}
 
 function selectRightDiskGate(e) {
     if (document.forms['diskGateSelectors'].elements['rightGatePosition'].value === -1) {
@@ -68,9 +126,9 @@ function selectRightDiskGate(e) {
 
     if (possibilities.length) {
         document.getElementById("combinations").innerHTML =
-            "<ul>" +
-            possibilities.map(o => "<li>0 " + separateConsecutiveDistinct(o.combination) + "</li>").join("") +
-            "</ul>";
+            "<select size='" + possibilities.length + "'>" +
+            possibilities.map(o => "<option>0 " + separateConsecutiveDistinct(o.combination) + "</option>").join("") +
+            "</select>";
         document.getElementById("totalCombinations").innerText = "(" + possibilities.length + ")";
     } else {
         document.getElementById("combinations").innerText = "No combinations found. Maybe try adjacent values for right wheel?";
@@ -82,7 +140,6 @@ function selectUpperDiskGate() {
     var gate = document.forms['diskGateSelectors'].elements['topGatePosition'].value;
     if (!gate.length) {
         document.getElementById('top-gate-sequence').innerHTML = '&nbsp;';
-        document.getElementById('right-gate-select').classList.add('not-enough-information');
     } else {
         gate = parseInt(gate, 10);
         var totalUpMoves = Math.floor(gate / 3);
@@ -92,6 +149,7 @@ function selectUpperDiskGate() {
             "0",
             (totalUpMoves > 0 ? new Array(totalUpMoves).fill("U").join("") : ""),
             (hasRightMove ? "R" : (hasLeftMove ? "L" : "")),
+            "DDDDD"
         ].filter(s => s.length).join(" ");
 
         var rightWheelPosition = {
@@ -146,7 +204,7 @@ function selectUpperDiskGate() {
 function parsePositionText(str) {
     var matches = str.match(/([0-4]),([-]?[0|1])/);
     if (matches) {
-        /* don't need to worry about -0 because -0 === 0 */
+        // don't need to worry about -0 because -0 === 0
         return { N: Number(matches[1]), M: Number(matches[2]) };
     } else {
         return matches;
@@ -171,9 +229,8 @@ function separateConsecutiveDistinct(str) {
 }
 
 window.addEventListener('DOMContentLoaded', function(){
-    if (!states) {
-        states = new AxisStates();
-    }
+    return;
+    //document.getElementById('calculate').addEventListener('click', calculate);
     for (var radio of document.forms['diskGateSelectors'].elements['topGatePosition']) {
         radio.addEventListener('change', selectUpperDiskGate);
     }

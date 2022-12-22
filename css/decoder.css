@@ -1,27 +1,53 @@
 :root {
+    --back-button-height: 25vh;
+    --back-button-width: 10vw;
+    --header-bg-color: lavender;
+    --instructions-bg-color: lavender;
+}
+
+html, body { margin: 0; padding: 0; }
+body > header { border-bottom: 2px solid black; text-align: center; background-color: var(--header-bg-color); }
+body > header h1 { margin: 0; padding: 0.2em 0; }
+
+#global-nav {
+    position: fixed;
+    top: calc(50vh - var(--back-button-height)/2);
+    left: 0;
+    height: var(--back-button-height);
+    width: var(--back-button-width);
+}
+#global-nav * { height: 100%; }
+#global-nav ul, #global-nav li { margin: 0; padding: 0; }
+
+.card {
+    margin-left: var(--back-button-width);
+    padding: 0.6em 0.3em 0.3em 0.3em;
+}
+.card *:first-child { margin-top: 0; }
+[data-next-card], [data-nav-back] { display: block; margin: 1em 0; }
+
+.card details { margin-bottom: 1em; background-color: var(--instructions-bg-color); }
+.card details ol { margin: 0; padding-left: 6vw; }
+
+#combinations { font-family: monospace; }
+.combination .pull { color: red; }
+
+/*** OLD, MUST BE BROUGHT INTO NEW ***/
+:root {
     --selector-cell-width: 5em;
     --selector-cell-adjacent-width: 3em;
     --selector-cell-padding: 0.4em;
 }
 
-.intro { padding: 0.5em; background-color: lightblue; }
 .right-wheel-position { color: #6f8bff; }
 h3:first-child { margin-top: 0; }
 h3, h4 { margin-bottom: 0; }
-#quick-sequence-ui { margin: 1em 0; }
-#quick-sequence-ui h4 { margin: 0; }
-#right-wheel-ui { clear: both; }
 #top-gate-select, #right-gate-select { border-collapse: collapse; }
 #top-gate-select tbody, #right-gate-select tbody { font-family: monospace; }
 #top-gate-select tbody td, #right-gate-select tbody td { padding: 0; border: 1px solid black; }
 
 table:not(.not-enough-information) label span { cursor: pointer; }
-input[type=radio] {
-    margin: 0;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
+input[type=radio] { margin: 0; appearance: none; }
 input[type=radio] ~ span { display: inline-block; width: var(--selector-cell-width); padding: var(--selector-cell-padding) 0; }
 input[type=radio]:checked ~ span { background-color: lightgreen; }
 table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled) ~ span:hover { background-color: lightyellow; }
@@ -41,11 +67,4 @@ table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled
 input[type=radio]:disabled ~ span { cursor: default; background-color: lightgray; }
 output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
 output.short-generate { width: 8em; text-align: center; font-size: 125%; font-weight: bold; }
-#combinations ul { font: 150% monospace; }
-
-@media screen and (min-width: 35em) {
-    .intro { max-width: 35em; }
-    #top-gate-ui { float: left; margin-bottom: 2em; }
-    #quick-sequence-ui { float: left; margin: 2em 0 0 2em; }
-    #quick-sequence-ui h4 { margin-top: revert; }
-}
+#combinations select { width: 18em; padding-left: 0.2em; padding-right: 0.25em; font-family: monospace; }
