@@ -4,12 +4,21 @@
 	<meta charset="utf-8">
 	<title>speed dial decoder</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="js/AxisIndex.js"></script>
 	<script src="js/StateTable.js"></script>
+	<script src="js/AxisIndex.js"></script>
 	<script src="js/AxisStates.js"></script>
+	<script src="js/AxisMoves.js"></script>
+	<script src="js/AxisColorSelector.js"></script>
+	<script src="js/AxisDisk.js"></script>
 	<script src="js/blank-reg-locker-unlocker-table.js"></script>
-	<script src="js/decoder.js"></script>
+	<script src="js/query-axis-states.js"></script>
 	<script>
+	'option strict';
+	var states = new AxisStates();
+
+	/* This code is really bad. How *not* to write front-end JS: mix UI
+	** and logic code, spooky action at a distance. <3 prevarikate. */
+	
 	/*
 	** Expects an array of combinations with form
 	** { combo: string, [indicesForMultiplePulls: [number, ...]] }
@@ -39,20 +48,17 @@
 		}
 	}
 
-	function matchingLockerUnlockerToCombinations() {
-		if (!arguments.length) {
-			return lockerUnlockerTable.map(x => lockerUnlockerFormatToCombination(x)); // we need to not pass (x,i) as second argument
-		}
-
+	function matchingLockerUnlockerToCombinationsWithState() {
 		var filterArguments = arguments;
 		var tableWithIndices = lockerUnlockerTable.map(chain => chain.map(function(moveSet, idx){ return { index: idx, moveSet: moveSet }; }));
-		var filteredTable = tableWithIndices.map(chain => chain.filter(o => stateMatchesFilters(o.moveSet.state, filterArguments)));
+		var filteredTable = tableWithIndices.map(chain => chain.filter(o => stateMatchesFilters.apply(this, [o.moveSet.state].concat(filterArguments))));
 		return filteredTable.map(function(chain, i) {
+			var result = null;
 			if (chain.length) {
-				return lockerUnlockerFormatToCombination(lockerUnlockerTable[i], chain.map(o => o.index));
-			} else {
-				return null;
+				var result = lockerUnlockerFormatToCombination(lockerUnlockerTable[i], chain.map(o => o.index));
+				result.states = chain.map(o => o.moveSet.state);
 			}
+			return result;
 		}).filter(x => x);
 
 		function stateMatchesFilters(state, filters) {
@@ -115,13 +121,15 @@
 		'start': {
 			setup: function() {
 				decoderHistory.push('start');
+				// firefox will persist form options on a reload, make sure this is cleared
+				document.forms['decoder'].reset();
 				document.getElementById('locker-unlocker-only').addEventListener('click', function(){
 					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
 					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
-					clearRadioOption('topGatePosition');
+					clearRadioOption('firstDiskGatePosition');
 				});
 				document.getElementById('simplify-possibilities').addEventListener('click', function(){
-					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;//false;
+					document.forms['decoder'].elements['onlyFactoryCombos'].checked = false;
 					document.forms['decoder'].elements['onlyFactoryCombos'].removeAttribute('disabled');
 				});
 			},
@@ -133,25 +141,72 @@
 			onShow: function(){
 				var filters = [];
 				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
-				var firstGateSelection = +document.forms['decoder'].elements['topGatePosition'].value;
-
-				if (firstGateSelection > 0) {
-					var firstGatePosition = { N: Math.floor((firstGateSelection+1)/3) % 5, M: ((firstGateSelection+1) % 3) - 1 };
+				var firstDiskGate = +document.forms['decoder'].elements['firstDiskGatePosition'].value;
+				if (firstDiskGate > 0) {
+					var firstGatePosition = { N: Math.floor((firstDiskGate+1)/3) % 5, M: ((firstDiskGate+1) % 3) - 1 };
 					filters.push(gateIs(firstBindingDisk, firstGatePosition));
+
+					var draggingMoveWithClick = +document.forms['decoder'].elements['draggingMoveWithClick'].value;
+					var modifiedDraggingMoveWithClick = +document.forms['decoder'].elements['modifiedDraggingMoveWithClick'].value;
+					var assumeLastMoveInDraggingDirection = (document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value === "1");
+
+					// use most specific information, if we have the click points
+					if (draggingMoveWithClick > 0 && modifiedDraggingMoveWithClick > 0) {
+						// sequence R D [quick seq] advances left by 0, bottom by 1, and right by 2 relative to [quick seq]
+						switch((draggingMoveWithClick - modifiedDraggingMoveWithClick + 5) % 5) {
+							case 0:	var secondBindingDisk = 'left'; break;
+							case 1: var secondBindingDisk = 'bottom'; break;
+							case 2: var secondBindingDisk = 'right'; break;
+						}
+
+						// now grab start and end positions for found disk while dragging on given move.
+						var draggingStartCombo =
+						  getQuickSequenceArray(firstBindingDisk, +document.forms['decoder'].elements['firstDiskGatePosition'].value).join('')
+						  + new Array(draggingMoveWithClick-1).fill(normalizeMove(firstBindingDisk, "D")).join('');
+						var draggingStartState = moveStringToState(draggingStartCombo);
+						var draggingEndState = moveStringToState(draggingStartCombo + normalizeMove(firstBindingDisk, "D"));
+						console.log(draggingStartCombo, draggingStartState, draggingEndState);
+
+						filters.push(gateIsBetween(secondBindingDisk, draggingStartState[diskToStateIdx(secondBindingDisk)], draggingEndState[diskToStateIdx(secondBindingDisk)]));
+					} else if (assumeLastMoveInDraggingDirection) {
+						var oppositeBindingDiskMap = {
+							top: ['right', 'bottom', 'left'],
+							left: ['top', 'right', 'bottom'],
+							bottom: ['left', 'top', 'right'],
+							right: ['bottom', 'left', 'top']
+						};
+						filters.push(function(st){
+							return st[oppositeBindingDiskMap[firstBindingDisk][0]].M === -1 && st[oppositeBindingDiskMap[firstBindingDisk][1]].M === 0 && st[oppositeBindingDiskMap[firstBindingDisk][2]].M === 1;
+						});
+					}
 				}
 
-				var matchingCombinations = null;
-				if (document.forms['decoder'].elements['onlyFactoryCombos'].checked) {
-					matchingCombinations = matchingLockerUnlockerToCombinations.apply(null, filters);
-				} else {
-					// calling out to decoder.js here
-					matchingCombinations = filterByEndIndices.apply(null, filters).sort(sortEndIndicesByCombinationLength).map(function(c){ return { combo: c.combination }; });
+				// always lead with locker unlocker combinations
+				var matchingCombinations = matchingLockerUnlockerToCombinationsWithState.apply(null, filters);
+
+				if (!document.forms['decoder'].elements['onlyFactoryCombos'].checked) {
+					// add filter to not repeat states already visited by locker unlocker combos
+					var visitedStates = {};
+					for (var state of matchingCombinations.map(o => o.states).flat().map(st => AxisStates.State2StateNumber.apply(null, st))) {
+						visitedStates[state] = true;
+					}
+					filters.push(function(st){
+						return typeof visitedStates[AxisStates.State2StateNumber(st.top, st.left, st.bottom, st.right)] === 'undefined';
+					});
+
+					var additionalCombinations = filterByEndIndices
+					  .apply(null, filters)
+					  .sort(sortEndIndicesByCombinationLength)
+					  .map(function(c){ return { combo: c.combination }; });
+					matchingCombinations = matchingCombinations.concat(additionalCombinations);
 				}
 
 				Array.from(document.querySelectorAll('[data-total-combinations]')).forEach(el => el.innerText = matchingCombinations.map(o => o.indicesForMultiplePulls ? o.indicesForMultiplePulls.length : 1).reduce((a,b) => a+b, 0));
 
-				if (matchingCombinations) {
-					outputCombinations(matchingCombinations);
+				outputCombinations(matchingCombinations);
+
+				function diskToStateIdx(disk) {
+					return { top: 0, left: 1, bottom: 2, right: 3 }[disk];
 				}
 			},
 			onHide: function(){
@@ -162,18 +217,26 @@
 		'identify-first-binding-disk': {
 			setup: function() {
 				document.forms['decoder'].elements['firstBindingDisk'].addEventListener('change', function(e){
-					var firstBindingDisk = e.target.value;
+					// TODO: this is basically "clear forward values"
+					clearRadioOption('firstDiskGatePosition');
+
+					// update the values on the identifying gate page
+					var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
 					var steppingDirections = {
-						top: ["L", "R", "U"],
-						left: ["D", "U", "L"],
-						bottom: ["R", "L", "D"],
-						right: ["U", "D", "R"],
+						top: ["L", "R", "U"].map(dir => normalizeMove('top', dir)),
+						left: ["L", "R", "U"].map(dir => normalizeMove('left', dir)),
+						bottom: ["L", "R", "U"].map(dir => normalizeMove('bottom', dir)),
+						right: ["L", "R", "U"].map(dir => normalizeMove('right', dir)),
 					};
 					for (var i = 1; i <= 3; ++i) {
-						document.getElementById('top-gate-direction-' + i).innerText = steppingDirections[firstBindingDisk][i-1];
+						Array.from(document.querySelectorAll('[data-stepping-direction-' + i + ']')).forEach(el => el.innerText = steppingDirections[firstBindingDisk][i-1]);
 					}
-					Array.from(document.querySelectorAll('[data-stepping-pattern]')).forEach(el => el.innerText = steppingDirections[firstBindingDisk].join(''));
+					
 					Array.from(document.querySelectorAll('[data-first-binding-disk]')).forEach(el => el.innerText = firstBindingDisk);
+					Array.from(document.querySelectorAll('[data-full-stepping-pattern]')).forEach(el => el.innerText = steppingDirections[firstBindingDisk].map(fullMoveName).join(', '));
+					Array.from(document.querySelectorAll('[data-stepping-pattern]')).forEach(el => el.innerText = steppingDirections[firstBindingDisk].join(' '));
+					Array.from(document.querySelectorAll('[data-full-move-opposite-first-binding-disk]')).forEach(el => el.innerText = fullMoveName(normalizeMove(firstBindingDisk, "D")));
+					Array.from(document.querySelectorAll('[data-move-opposite-first-binding-disk]')).forEach(el => el.innerText = normalizeMove(firstBindingDisk, "D"));
 				});
 				document.forms['decoder'].elements['firstBindingDisk'].dispatchEvent(new Event('change'));
 			}
@@ -181,14 +244,154 @@
 
 		'identify-gate-on-first-binding-disk': {
 			setup: function(el){
-				el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', e => clearRadioOption('topGatePosition'));
+				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'firstDiskGatePosition');
+				el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', e => clearRadioOption('firstDiskGatePosition'));
+				el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
+					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
+					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
+				});
+				el.querySelector('[data-next-card=identify-dragging-move-with-click]').addEventListener('click', function(){
+					document.forms['decoder'].elements['onlyFactoryCombos'].checked = false;
+					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = false;
+				});
+				Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', e => clearRadioOption('draggingMoveWithClick')));
 			},
-			onShow: function(){
-				document.forms['decoder'].elements['gateTableHeader'].innerText = uppercaseFirst(document.forms['decoder'].elements['gateTableHeader'].innerText);
-				function uppercaseFirst(s){ return s[0].toUpperCase() + s.slice(1); }
+		},
+
+		'identify-dragging-move-with-click': {
+			setup: function(el) {
+				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'draggingMoveWithClick');
+				Array.from(document.forms['decoder'].elements['draggingMoveWithClick']).forEach(el => el.addEventListener('change', e => clearRadioOption('modifiedDraggingMoveWithClick')));
+			},
+			onShow: function() {
+				// update quick move sequence
+				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
+				var gate = +document.forms['decoder'].elements['firstDiskGatePosition'].value;
+				if (gate > 0) {
+					var quickSequence = getQuickSequenceArray(firstBindingDisk, gate);
+					Array.from(document.querySelectorAll('[data-dragging-moves]')).forEach(function(el){
+						var which = el.closest('label').querySelector('[name=draggingMoveWithClick]');
+						el.innerText = quickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(normalizeMove(firstBindingDisk, "D")).join('')).join(' ');
+					});
+				}
+			}
+		},
+
+		'identify-modified-dragging-move-with-click': {
+			setup: function(el){
+				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'modifiedDraggingMoveWithClick');
+			},
+			onShow: function() {
+				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
+				var draggingMoveWithClick = +document.forms['decoder'].elements['draggingMoveWithClick'].value;
+				var adjustedQuickSequence = getQuickSequenceArray(firstBindingDisk, +document.forms['decoder'].elements['firstDiskGatePosition'].value);
+				adjustedQuickSequence.splice(1, 0, normalizeMove(firstBindingDisk, "R"), normalizeMove(firstBindingDisk, "D"));
+				Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
+					var which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
+					// performing [R D] [quick seq] advances the right wheel by 2, and the bottom wheel by 1, so we need to show sequences that are effectively 0, -1 and -2.
+					var possibleClickOnDrag = (((+which.value - draggingMoveWithClick - 5) % 5) >= -2);
+					if (possibleClickOnDrag) {
+						el.innerText = adjustedQuickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(normalizeMove(firstBindingDisk, "D")).join('')).join(' ');
+						which.disabled = false;
+						el.closest('li').style.display = '';
+					} else {
+						which.disabled = true;
+						el.closest('li').style.display = 'none';
+					}
+				});
+			}
+		},
+
+		'confirm-assume-last-move-in-dragging-direction': {
+			setup: function(el) {
+				Array.from(el.querySelectorAll("[data-next-card], [data-nav-back]")).forEach(el =>
+					el.addEventListener('click', function(){
+						if (typeof el.dataset.nextCard !== "undefined" && el.dataset.nextCard === "combination-listing") {
+							clearRadioOption('draggingMoveWithClick');
+							document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value = "1";
+						} else {
+							document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value = "0";
+						}
+					})
+				);
+				el.querySelector("[data-set-top-gate-adjacent]").addEventListener('click', function(){
+					// set the gate to be one forward of what was previously tried.
+					var gate = +document.forms['decoder'].elements['firstDiskGatePosition'].value;
+					if (gate > 0) {
+						document.forms['decoder'].elements['firstDiskGatePosition'].value = (gate === 15 ? 1 : gate+1).toString();
+					}
+				});
+			}
+		},
+
+		'suggest-locker-unlocker': {
+			setup: function(el) {
+				el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
+					clearRadioOption('firstDiskGatePosition'); // TODO: is "clear forward data"
+					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
+					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
+				});
 			}
 		}
  	};
+
+	/* expects position as 1-indexed integer starting at 0,0. */
+	function getQuickSequenceArray(disk, gatePosition) {
+		var totalUpMoves = Math.floor(gatePosition / 3);
+		if (totalUpMoves === 0) {
+			totalUpMoves = 5;
+		}
+		var hasLeftMove  = ((gatePosition % 3) >= 1);
+		var hasRightMove = ((gatePosition % 3) >= 2);
+
+		return [
+			"0",
+			new Array(totalUpMoves).fill(normalizeMove(disk, "U")).join(""),
+			(hasRightMove ? normalizeMove(disk, "R") : (hasLeftMove ? normalizeMove(disk, "L") : ""))
+		].filter(s => s.length);
+	}
+
+	function normalizeMove(disk, unnormalizedMove) {
+		return {
+			top: { U: "U", L: "L", D: "D", R: "R" },
+			left: { U: "L", L: "D", D: "R", R: "U" },
+			bottom: { U: "D", L: "R", D: "U", R: "L" },
+			right: { U: "R", L: "U", D: "L", R: "D" }
+		}[disk][unnormalizedMove];
+	}
+
+	function fullMoveName(char) {
+		return { U: "Up", L: "Left", D: "Down", R: "Right" }[char];
+	}
+
+	// requires replaying move sequences right now, and some weird dependencies based on original setup
+	function moveStringToState(moves) {
+		moves = moves.replace(/[0 ]/g, '').split('').map(moveToAxisMove);
+		// TODO: quit faking things out
+		var dummyCanvas = document.createElement('canvas');
+		var dummyImage = document.createElement('img');
+		var disks = [
+			new AxisDisk(dummyCanvas, dummyImage, 0, AxisDisk.DISK_TOP),
+			new AxisDisk(dummyCanvas, dummyImage, 90, AxisDisk.DISK_LEFT),
+			new AxisDisk(dummyCanvas, dummyImage, 180, AxisDisk.DISK_BOTTOM),
+			new AxisDisk(dummyCanvas, dummyImage, 270, AxisDisk.DISK_RIGHT)
+		]
+		for (var move of moves) {
+			for (var disk of disks) {
+				disk.move(move);
+			}
+		}
+		return disks.map(disk => disk.index);
+
+		function moveToAxisMove(m) {
+			switch(m) {
+				case "U": return AxisMoves.MOVE_UP;
+				case "L": return AxisMoves.MOVE_LEFT;
+				case "D": return AxisMoves.MOVE_DOWN;
+				case "R": return AxisMoves.MOVE_RIGHT;
+			}
+		}
+	}
 
 	function hideCard(el) { el.style.display = 'none'; el.dispatchEvent(new Event('onHide')); }
 	function showCard(el, skipHistory) {
@@ -211,8 +414,23 @@
 		}
 	}
 
+	function enableButtonsWithRadioSelection(buttons, name) {
+		buttons.forEach(function(button){
+			enableButtonWithRadioSelection(button, name);
+			for (var i = 0, radioOptions = document.forms['decoder'][name]; i < radioOptions.length; ++i) {
+				radioOptions[i].addEventListener('change', function(){ enableButtonWithRadioSelection(button, name) });
+			}
+		});
+	}
+	function enableButtonWithRadioSelection(button, name) {
+		button.disabled = !document.querySelector('input[name="' + name + '"]:checked');
+	}
 	function clearRadioOption(name) {
-		document.querySelector('input[name="' + name + '"]:checked').checked = false;
+		var el = document.querySelector('input[name="' + name + '"]:checked');
+		if (el) {
+			el.checked = false;
+			el.dispatchEvent(new Event('change'));
+		}
 	}
 	</script>
 	<link href="css/decoder.css" rel="stylesheet">
@@ -245,29 +463,28 @@
 </section>
 
 <section id="identify-first-binding-disk" class="card">
-	<h2>Let's find the first binding disk.</h2>
+	<h2>Let's find a direction the knob slides freely.</h2>
 	<details open>
-		<summary>Dial sticking technique</summary>
+		<summary>Knob sticking technique</summary>
 		<ol>
-			<li>Reset.</li>
-			<li>For each direction, U, L, R and D, do the following.
+			<li>Reset. (Push the shackle in twice.)</li>
+			<li>For each direction, Up, Left, Right and Down:
 				<ol type="a">
-					<li>Move the dial in the chosen direction, but hold the dial at the end of its travel.</li>
-					<li>Apply light-to-moderate tension on the shackle, enough to bind (ideally) just the first binding disk.</li>
-					<li>Release the dial, noting whether the dial sticks or slides freely back to the center.</li>
+					<li>Move the knob in that direction, but hold the knob at the end of its travel.</li>
+					<li>Apply light-to-moderate opening tension on the shackle, enough to bind just one internal disk.</li>
+					<li>Release the knob, seeing whether the knob sticks or slides freely back to the center.</li>
 				</ol>
 			</li>
 			<li>
-			The dial should slide freely in exactly 1 direction, and stick in the 3 other directions. The first binding disk
-			is in the <em>opposite</em> direction from the move that slides freely (i.e., if the dial moves on a D move, the
-			<strong>top</strong> disk is the first binding disk.)
+			The knob should slide freely back to center during exactly 1 move, and stick during the other 3 moves.
 			</li>
 	</details>
+	<p>What move allows the knob to slide freely back to center?</p>
 	<select name="firstBindingDisk">
-		<option value="top" selected="selected">Top</option>
-		<option value="left">Left</option>
-		<option value="bottom">Bottom</option>
-		<option value="right">Right</option>
+		<option value="top" selected="selected">Down</option>
+		<option value="left">Right</option>
+		<option value="bottom">Up</option>
+		<option value="right">Left</option>
 	</select>
 	<hr>
 	<input id="found-first-binding-disk" type="button" value="OK" data-next-card="identify-gate-on-first-binding-disk">
@@ -278,114 +495,168 @@
 	<h2>Let's find the gate for the first binding disk.</h2>
 	<details open>
 		<summary>Incremental stepping technique</summary>
+		<p>This uses the knob sticking technique from our last page.</p>
 		<ol>
 			<li>Reset.</li>
-			<li>Moving the dial in an <output data-stepping-pattern="">LRU</output> pattern rotates the <output data-first-binding-disk="">top</output> wheel clockwise each time, in the smallest increment.</li>
-			<li>After each move in the <output data-stepping-pattern="">LRU</output> pattern, move outward, but hold the button at the end of travel and then do the following.
+			<li>We'll go one move at a time in a <output data-full-stepping-pattern=""></output> (<output data-stepping-pattern=""></output>) pattern, repeating from the beginning when we reach the end.</li>
+			<li>For each move in the <output data-stepping-pattern=""></output> pattern:
 				<ol type="a">
-					<li>Apply light-to-moderate tension on the shackle, enough to bind (ideally) just the first disk.</li>
-					<li>Release the dial, noting whether the dial sticks or slides freely back to the center.</li>
-					<li>If the dial slides freely, then the first disk is still binding and not in a gate.</li>
-					<li>If the dial sticks (under appropriate tension,) it means that another disk is now bound, and the fence is in a gate.</li>
-					<li>For the Master Lock Speed Dial version, the tolerances seem to allow the fence to move into the gate in two positions — the correct position, and the one immediately before. So as you go around, when there are two consecutive positions that stick, the second position should be the location of the true gate.</li>
+					<li>Make a full move in the given direction.</li>
+					<li>Then move outward in the <output data-full-move-opposite-first-binding-disk=""></output> (<output data-move-opposite-first-binding-disk=""></output>) direction, but hold the knob at the end of its travel.</li>
+					<li>Using the knob sticking technique, check if the knob slides freely back to center.</li>
+					<li>If the knob sticks, go to step (b). While the knob continues sticking, repeat the process 5 times.</li>
+					<li><strong>We're looking for the knob to stick during all 5 <output data-move-opposite-first-binding-disk=""></output> moves.</strong></li>
 				</ol>
 			</li>
+			<li>The fence might move into the gate for two moves in the <output data-stepping-pattern=""></output> pattern — the correct move, and the one immediately before.</li>
+			<li>So as you go around, when there are two consecutive <output data-stepping-pattern=""></output> moves that stick, the <em>second move</em> should be the location of the true gate.</li>
 		</ol>
 	</details>
-	<h3><output data-first-binding-disk="" name="gateTableHeader">Top</output> gate state table</h3>
-	<table id="top-gate-select">
-		<thead>
-			<tr><th><span id="top-gate-direction-1"></span></th><th><span id="top-gate-direction-2"></span></th><th><span id="top-gate-direction-3"></span></th></tr>
-		</thead>
+	<p>What's the last move in the <output data-stepping-pattern=""></output> pattern where the knob sticks for all five <output data-move-opposite-first-binding-disk=""></output> moves?</p>
+	<table class="gate-selection radio-as-button">
 		<tbody>
 			<tr>
-				<td><label><input type='radio' name='topGatePosition' value='1'><span>(0,1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='2'><span>(1,-1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='3'><span>(1,0)</span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='1'><span><output data-stepping-direction-1=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='2'><span><output data-stepping-direction-2=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='3'><span><output data-stepping-direction-3=""></output></span></label></td>
 			</tr>
 			<tr>
-				<td><label><input type='radio' name='topGatePosition' value='4'><span>(1,1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='5'><span>(2,-1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='6'><span>(2,0)</span></label></td>
+				<td colspan="3">&#11019;</td>
 			</tr>
 			<tr>
-				<td><label><input type='radio' name='topGatePosition' value='7'><span>(2,1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='8'><span>(3,-1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='9'><span>(3,0)</span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='4'><span><output data-stepping-direction-1=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='5'><span><output data-stepping-direction-2=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='6'><span><output data-stepping-direction-3=""></output></span></label></td>
 			</tr>
 			<tr>
-				<td><label><input type='radio' name='topGatePosition' value='10'><span>(3,1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='11'><span>(4,-1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='12'><span>(4,0)</span></label></td>
+				<td colspan="3">&#11019;</td>
 			</tr>
 			<tr>
-				<td><label><input type='radio' name='topGatePosition' value='13'><span>(4,1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='14'><span>(0,-1)</span></label></td>
-				<td><label><input type='radio' name='topGatePosition' value='15'><span>(0,0)</span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='7'><span><output data-stepping-direction-1=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='8'><span><output data-stepping-direction-2=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='9'><span><output data-stepping-direction-3=""></output></span></label></td>
+			</tr>
+			<tr>
+				<td colspan="3">&#11019;</td>
+			</tr>
+			<tr>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='10'><span><output data-stepping-direction-1=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='11'><span><output data-stepping-direction-2=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='12'><span><output data-stepping-direction-3=""></output></span></label></td>
+			</tr>
+			<tr>
+				<td colspan="3">&#11019;</td>
+			</tr>
+			<tr>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='13'><span><output data-stepping-direction-1=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='14'><span><output data-stepping-direction-2=""></output></span></label></td>
+				<td><label><input type='radio' name='firstDiskGatePosition' value='15'><span><output data-stepping-direction-3=""></output></span></label></td>
 			</tr>
 		</tbody>
 	</table>
 	<hr>
-	<input id="found-first-gate" type="button" value="OK" data-next-card="combination-listing">
+	<input id="found-first-gate" type="button" value="OK" data-next-card="identify-dragging-move-with-click" data-nav-next="">
+	<input type="button" value="Try 4-move factory codes with this info" data-next-card="combination-listing" data-nav-next="">
 	<input type="button" value="I can't find it" data-next-card="suggest-locker-unlocker">
 </section>
 
-<section id="suggest-locker-unlocker" class="card">
-	<h2>try locker unlocker?</h2>
-	<input type="button" value="OK" data-next-card="combination-listing">
-	<input type="button" value="Let me try again" data-nav-back="">
+<section id="identify-dragging-move-with-click" class="card">
+	<h2>Let's try dragging to find a sequence where the shackle comes out a bit.</h2>
+	<details open>
+		<summary>Dragging technique</summary>
+		<ol>
+			<li>Before moving the knob in a direction, apply medium-heavy opening tension to the shackle.</li>
+			<li>Slowly move the knob in the direction.</li>
+			<li><strong>We're feeling for the shackle to come out slightly.</strong></li>
+		</ol>
+	</details>
+	<p>
+		For each sequence below:
+		<ol>
+			<li>Reset. (Indicated by "<span style="font-family: monospace;">0</span>".)</li>
+			<li>Enter the sequence.</li>
+			<li>See if the shackle comes out slightly when dragging on the <em>next</em> <output data-move-opposite-first-binding-disk=""></output> move.</li>
+		</ol>
+	</p>
+	<p>
+		Which sequence has the <em>most</em> outward shackle movement on the next <output data-move-opposite-first-binding-disk=""></output> move?
+	</p>
+	<ul id="dragging-move-selection" class="hide-list-format radio-as-button">
+		<li><label><input type="radio" name="draggingMoveWithClick" value="2"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="draggingMoveWithClick" value="3"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="draggingMoveWithClick" value="4"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="draggingMoveWithClick" value="5"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="draggingMoveWithClick" value="1"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+	</ul>
+	<hr>
+	<input type="button" value="OK" data-next-card="identify-modified-dragging-move-with-click" data-nav-next="">
+	<input type="button" value="I can't find one" data-next-card="confirm-assume-last-move-in-dragging-direction">
 </section>
 
+<section id="identify-modified-dragging-move-with-click" class="card">
+	<h2>Let's find another sequence where the shackle comes out while dragging.</h2>
+	<p>
+		Same as the last page. For each sequence below:
+		<ol>
+			<li>Reset.</li>
+			<li>Enter the sequence.</li>
+			<li>See if the shackle comes out slightly when dragging on the <em>next</em> <output data-move-opposite-first-binding-disk=""></output> move.</li>
+		</ol>
+	</p>
+	<p>
+		Which sequence has the <em>most</em> outward shackle movement on the next <output data-move-opposite-first-binding-disk=""></output> move?
+	</p>
+	<ul id="modified-dragging-move-selection" class="hide-list-format radio-as-button">
+		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="2"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="3"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="4"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="5"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="1"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
+	</ul>
+	<hr>
+	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next="">
+	<input type="button" value="I can't find one" data-next-card="confirm-assume-last-move-in-dragging-direction">
+</section>
+
+<section id="confirm-assume-last-move-in-dragging-direction" class="card">
+	<h2>We can try something else.</h2>
+	<p>
+		Sometimes it's hard to feel a gate while dragging because the last move in the combination is in the dragging direction.
+	</p>
+	<p>
+		It could also be that the gate we found for the first binding disk isn't right. We could try an adjacent gate in case we're a little bit off.
+	</p>
+	<p>
+		What would you like to do?
+	</p>
+	<hr>
+	<input type="hidden" name="assumeLastMoveInDraggingDirection" value="0">
+	<input type="button" value="See combinations with the last move in the dragging direction" data-next-card="combination-listing" data-nav-next="">
+	<input type="button" value="Try dragging with a new gate on the first binding disk" data-set-top-gate-adjacent="" data-nav-back="">
+	<input type="button" value="Let me try dragging again" data-nav-back="">
+</section>
+
+<section id="suggest-locker-unlocker" class="card">
+	<h2>Try the Locker Unlocker sheet?</h2>
+	<p>Our best bet is to try the combinations on <a href="https://drive.google.com/file/d/1u3AgRIjficr5jQgkzEi9W6LfUoCii-G_/view" style="white-space: nowrap;">Blank Registration's Locker Unlocker worksheet</a> with the information we have.</p>
+	<p>Would you like to try that?</p>
+	<hr>
+	<input type="button" value="Yes" data-next-card="combination-listing">
+	<input type="button" value="Let me check again" data-nav-back="">
+</section>
+
+<!--
 <section id="" class="card">
 	<h2>title</h2>
 	<input type="button" value="OK" data-next-card="">
 	<input type="button" value="Let me try again" data-nav-back="">
 </section>
+-->
 
 </form>
 
 <!--
 <ol>
-
-<li>
-<h2>Identify second binding disk:</h2>
-<h3>Enter sequence:</h3>
-<output id='top-gate-sequence' class='mono-output short-generate'>&nbsp;</output>
-<p>
-    Mark the downward move count (cyclical) that has a distinct click or the <em>most</em> outward shackle movement:
-</p>
-<ul>
-	<li><label><input class="downward-stick" type="checkbox"> 1</label></li>
-	<li><label><input class="downward-stick" type="checkbox"> 2</label></li>
-	<li><label><input class="downward-stick" type="checkbox"> 3</label></li>
-	<li><label><input class="downward-stick" type="checkbox"> 4</label></li>
-	<li><label><input class="downward-stick" type="checkbox"> 5</label></li>
-    <li><label><input class="downward-stick" type="checkbox"> I can't find one</label></li>
-</ul>
-
-<h3>Enter 2<sup>nd</sup> sequence:</h3>
-<output id='top-gate-sequence' class='mono-output short-generate'>R D &nbsp;</output>
-<p>
-    Again, mark the downward move count (cyclical) that has a distinct click or the <em>most</em> outward shackle movement:
-</p>
-<ul>
-    <li><label><input class="downward-stick" type="checkbox"> 1</label></li>
-    <li><label><input class="downward-stick" type="checkbox"> 2</label></li>
-    <li><label><input class="downward-stick" type="checkbox"> 3</label></li>
-    <li><label><input class="downward-stick" type="checkbox"> 4</label></li>
-    <li><label><input class="downward-stick" type="checkbox"> 5</label></li>
-</ul>
-
-<h3>Second binding disk:
-<select id="second-binding-disk" disabled="disabled">
-    <option value="top">Top</option>
-    <option value="left">Left</option>
-    <option value="bottom">Bottom</option>
-    <option value="right" selected="selected">Right</option>
-</select>
-</h3>
-</li>
-
 
 <li>
 <h2>Identify correct gate for second binding disk:</h2>
