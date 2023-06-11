@@ -4,6 +4,7 @@
     --selector-cell-padding: 0.4em;
 }
 
+body { max-width: 8in; margin: 0 auto; padding: 0 0.5em; }
 .intro { padding: 0.5em; background-color: lightblue; }
 .right-wheel-position { color: #6f8bff; }
 h3:first-child { margin-top: 0; }
