@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 15.4">
+    <g id="arrow-left-down">
+        <path stroke="#8787bb" fill="none" d="M67,7.7,67,1Z Q67,13.7,40,7.7 Q13,1.7,13,7.7 M13,14.4,13,7.7Z m-3,-3,3,3,3,-3"/>
+    </g>
+</svg>

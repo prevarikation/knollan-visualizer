@@ -49,7 +49,8 @@ input[type=radio]:disabled ~ span { color: lightgrey; }
 
 table.gate-selection { margin-top: 1em; border-collapse: collapse; }
 table.gate-selection tbody { font-family: monospace; }
-table.gate-selection tbody td { padding: 0; border: 1px solid black; }
+table.gate-selection tbody td { padding: 0; border: 1px solid black; width: 26px; /* setting a fixed width for background image purposes */ }
+table.gate-selection tbody td.rtl-arrow { height: 15.4px; background: url("../img/arrow-left-down-icon.svg"); }
 table.gate-selection label { text-align: center; }
 table.gate-selection input[type=radio] ~ span { display: inline-block; width: var(--selector-cell-width); padding: var(--selector-cell-padding) 0; }
 
