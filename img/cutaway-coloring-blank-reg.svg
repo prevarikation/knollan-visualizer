@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="112px"
+   height="112px"
+   viewBox="-56 -56 112 112">
+   <metadata>
+      <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+         <dc:format>image/svg+xml</dc:format>
+         <dc:type
+            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+         <dc:title />
+      </cc:Work>
+      </rdf:RDF>
+   </metadata>
+   <style>
+   .curve {
+      fill-opacity: 1;
+      fill-rule: evenodd;
+      stroke: #010101;
+      stroke-width: 2.64999;
+      stroke-miterlimit: 4.42857;
+      stroke-dasharray: none;
+      stroke-opacity: 1;
+   }
+   .reference {
+      fill: #808080;
+   }
+   .non-reference {
+      fill: #c0c0c0;
+   }
+   .wheel-bg {
+      fill: #f8f8f8;
+   }
+   .reference-line {
+      fill: none;
+      stroke: #010101;
+      stroke-width: 2.64999;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 4.42857;
+      stroke-dasharray: 5.3, 10.6;
+      stroke-dashoffset: 0;
+      stroke-opacity: 1;
+   }
+   .test {
+      stroke: yellow;
+      fill: yellow;
+   }
+   .black { fill: black; }
+   .white { fill: white; }
+   g { fill: blue; }
+   </style>
+   <g
+      id="cutaway-coloring-blank-reg">
+      <rect x="-56" y="-56" width="112" height="112" style="fill:gray;"/>
+      <path
+         d="M 56 0 A 56 56 0 0 1 51 23 L 0 0 Z"
+         style="fill:orange;"/>
+      <path
+         d="M 51 23 A 56 56 24 0 1 37 42 L 0 0 Z"
+         class="black" />
+      <path
+         d="M 37 42 A 56 56 48 0 1 17 53 L 0 0 Z"
+         class="white" />
+      <path
+         d="M 17 53 A 56 56 72 0 1 -6 56 L 0 0 Z"
+         style="fill:yellow;" />
+      <path
+         d="M -6 56 A 56 56 96 0 1 -28 48 L 0 0 Z"
+         class="black" />
+      <path
+         d="M -28 48 A 56 56 120 0 1 -45 33 L 0 0 Z"
+         class="white" />
+      <path
+         d="M -45 33 A 56 56 144 0 1 -55 12 L 0 0 Z"
+         style="fill:green;" />
+      <path
+         d="M -55 12 A 56 56 168 0 1 -55 -12 L 0 0 Z"
+         class="black" />
+      <path
+         d="M -55 -12 A 56 56 192 0 1 -45 -33 L 0 0 Z"
+         class="white" />
+      <path
+         d="M -45 -33 A 56 56 216 0 1 -28 -48 L 0 0 Z"
+         style="fill:#88f;" />
+      <path
+         d="M -28 -48 A 56 56 240 0 1 -6 -56 L 0 0 Z"
+         class="black" />
+      <path
+         d="M -6 -56 A 56 56 264 0 1 17 -53 L 0 0 Z"
+         class="white" />
+      <path
+         d="M 17 -53 A 56 56 288 0 1 37 -42 L 0 0 Z"
+         style="fill:red;" />
+      <path
+         d="M 37 -42 A 56 56 312 0 1 51 -23 L 0 0 Z"
+         class="black" />
+      <path
+         d="M 51 -23 A 56 56 336 0 1 56 0 L 0 0 Z"
+         class="white" />
+   </g>
+</svg>

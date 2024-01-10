@@ -12,6 +12,7 @@
 	<script src="js/AxisDisk.js"></script>
 	<script src="js/blank-reg-locker-unlocker-table.js"></script>
 	<script src="js/query-axis-states.js"></script>
+	<script src="js/decoder-model.js"></script>
 	<script>
 	'option strict';
 	var states = new AxisStates();
@@ -91,6 +92,7 @@
 		return { combo: fullCombo, indicesForMultiplePulls: desiredIndices };
 	}
 
+	var decoder = new Decoder();
 	var decoderHistory = [];
 	document.addEventListener('DOMContentLoaded', function(){
 		var htmlCards = Array.from(document.querySelectorAll('.card'));
@@ -126,9 +128,12 @@
 				document.getElementById('locker-unlocker-only').addEventListener('click', function(){
 					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
 					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
+					decoder.set('factoryCombosOnly', true);
 					clearRadioOption('firstDiskGatePosition');
+					decoder.set('firstBindingDisk', undefined);
 				});
 				document.getElementById('simplify-possibilities').addEventListener('click', function(){
+					decoder.set('factoryCombosOnly', false);
 					document.forms['decoder'].elements['onlyFactoryCombos'].checked = false;
 					document.forms['decoder'].elements['onlyFactoryCombos'].removeAttribute('disabled');
 				});
@@ -158,6 +163,7 @@
 							case 1: var secondBindingDisk = 'bottom'; break;
 							case 2: var secondBindingDisk = 'right'; break;
 						}
+						secondBindingDisk = normalizeDisk(firstBindingDisk, secondBindingDisk);
 
 						// now grab start and end positions for found disk while dragging on given move.
 						var draggingStartCombo =
@@ -302,6 +308,41 @@
 			}
 		},
 
+		'identify-gate-on-second-binding-disk': {
+			setup: function(el) {
+				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'partialMoveWithClickSecondGate');
+			},
+			onShow: function() {
+				// TODO: much copy-paste from combination-listing
+				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
+				var draggingMoveWithClick = +document.forms['decoder'].elements['draggingMoveWithClick'].value;
+				var modifiedDraggingMoveWithClick = +document.forms['decoder'].elements['modifiedDraggingMoveWithClick'].value;
+				switch((draggingMoveWithClick - modifiedDraggingMoveWithClick + 5) % 5) {
+					case 0:	var secondBindingDisk = 'left'; break;
+					case 1: var secondBindingDisk = 'bottom'; break;
+					case 2: var secondBindingDisk = 'right'; break;
+				}
+				secondBindingDisk = normalizeDisk(firstBindingDisk, secondBindingDisk);
+
+				var partialMoveSequence = ["U", "R", "L"].map(dir => normalizeMove(secondBindingDisk, dir).toLowerCase());
+
+				var quickSequence = getQuickSequenceArray(firstBindingDisk, +document.forms['decoder'].elements['firstDiskGatePosition'].value);
+				var draggingOvershoot = new Array(draggingMoveWithClick).fill(normalizeMove(firstBindingDisk, 'D'));
+
+				Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el){
+					var which = el.closest('label').querySelector('[name=partialMoveWithClickSecondGate]');
+
+					el.innerText = draggingOvershootSequence.concat(partialMoveSequence).join(' ');
+					// performing [R D] [quick seq] advances the right wheel by 2, and the bottom wheel by 1, so we need to show sequences that are effectively 0, -1 and -2.
+					//var possibleClickOnDrag = (((+which.value - draggingMoveWithClick - 5) % 5) >= -2);
+					//if (possibleClickOnDrag) {
+					//	el.innerText = adjustedQuickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(normalizeMove(firstBindingDisk, "D")).join('')).join(' ');
+					//}
+				});
+
+			}
+		},
+
 		'confirm-assume-last-move-in-dragging-direction': {
 			setup: function(el) {
 				Array.from(el.querySelectorAll("[data-next-card], [data-nav-back]")).forEach(el =>
@@ -358,6 +399,17 @@
 			bottom: { U: "D", L: "R", D: "U", R: "L" },
 			right: { U: "R", L: "U", D: "L", R: "D" }
 		}[disk][unnormalizedMove];
+	}
+	function normalizeDisk(disk, firstBindingDisk) {
+		if (firstBindingDisk === 'top') {
+			return disk;
+		} else {
+			return {
+				left: { top: "left", left: "bottom", bottom: "right", right: "top" },
+				bottom: { top: "bottom", left: "right", bottom: "top", right: "left" },
+				right: { top: "right", left: "top", bottom: "left", right: "bottom" }
+			}[firstBindingDisk][disk];
+		}
 	}
 
 	function fullMoveName(char) {
@@ -478,6 +530,7 @@
 			<li>
 			The knob should slide freely back to center during exactly 1 move, and stick during the other 3 moves.
 			</li>
+		</ol>
 	</details>
 	<p>What move allows the knob to slide freely back to center?</p>
 	<select name="firstBindingDisk">
@@ -570,18 +623,16 @@
 			<li><strong>We're feeling for the shackle to come out slightly.</strong></li>
 		</ol>
 	</details>
-	<p>
-		For each sequence below:
-		<ol>
-			<li>Reset. (Indicated by "<span style="font-family: monospace;">0</span>".)</li>
-			<li>Enter the sequence.</li>
-			<li>See if the shackle comes out slightly when dragging on the <em>next</em> <output data-move-opposite-first-binding-disk=""></output> move.</li>
-		</ol>
-	</p>
+	<p>For each sequence below:</p>
+	<ol>
+		<li>Reset. (Indicated by "<span style="font-family: monospace;">0</span>".)</li>
+		<li>Enter the sequence.</li>
+		<li>See if the shackle comes out slightly when dragging on the <em>next</em> <output data-move-opposite-first-binding-disk=""></output> move.</li>
+	</ol>
 	<p>
 		Which sequence has the <em>most</em> outward shackle movement on the next <output data-move-opposite-first-binding-disk=""></output> move?
 	</p>
-	<ul id="dragging-move-selection" class="hide-list-format radio-as-button">
+	<ul class="hide-list-format space-out-list-items radio-as-button">
 		<li><label><input type="radio" name="draggingMoveWithClick" value="2"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="draggingMoveWithClick" value="3"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="draggingMoveWithClick" value="4"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
@@ -595,18 +646,16 @@
 
 <section id="identify-modified-dragging-move-with-click" class="card">
 	<h2>Let's find another sequence where the shackle comes out while dragging.</h2>
-	<p>
-		Same as the last page. For each sequence below:
-		<ol>
-			<li>Reset.</li>
-			<li>Enter the sequence.</li>
-			<li>See if the shackle comes out slightly when dragging on the <em>next</em> <output data-move-opposite-first-binding-disk=""></output> move.</li>
-		</ol>
-	</p>
+	<p>Same as the last page. For each sequence below:</p>
+	<ol>
+		<li>Reset.</li>
+		<li>Enter the sequence.</li>
+		<li>See if the shackle comes out slightly when dragging on the <em>next</em> <output data-move-opposite-first-binding-disk=""></output> move.</li>
+	</ol>
 	<p>
 		Which sequence has the <em>most</em> outward shackle movement on the next <output data-move-opposite-first-binding-disk=""></output> move?
 	</p>
-	<ul id="modified-dragging-move-selection" class="hide-list-format radio-as-button">
+	<ul class="hide-list-format space-out-list-items radio-as-button">
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="2"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="3"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="4"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
@@ -614,7 +663,8 @@
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="1"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 	</ul>
 	<hr>
-	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next="">
+	<input type="button" value="OK" data-next-card="identify-gate-on-second-binding-disk" data-nav-next="">
+	<input type="button" value="See combinations based on the info so far" data-next-card="combination-listing" data-nav-next="">
 	<input type="button" value="I can't find one" data-next-card="confirm-assume-last-move-in-dragging-direction">
 </section>
 
@@ -634,6 +684,37 @@
 	<input type="button" value="See combinations with the last move in the dragging direction" data-next-card="combination-listing" data-nav-next="">
 	<input type="button" value="Try dragging with a new gate on the first binding disk" data-set-top-gate-adjacent="" data-nav-back="">
 	<input type="button" value="Let me try dragging again" data-nav-back="">
+</section>
+
+<section id="identify-gate-on-second-binding-disk" class="card">
+	<h2>Let's use partial moves to find the gate on the second binding disk.</h2>
+	<details open>
+		<summary>Partial move technique</summary>
+		<ol>
+			<li>Slowly move the knob in a given direction, <em>halfway out</em> and back to center.</li>
+		</ol>
+	</details>
+	<p>For each sequence below:</p>
+	<ol>
+		<li>Reset.</li>
+		<li><strong>Lowercase letters represent partial moves.</strong></li>
+		<li>Enter all but the last move in the sequence.</li>
+		<li>Before moving the knob in the last direction, apply medium-heavy opening tension to the shackle.</li>
+		<li>Slowly move the knob in the last direction, <em>halfway out</em> and back to center.</li>
+		<li><strong>We're feeling for the shackle to come out slightly.</strong></li>
+	</ol>
+	<p>
+		What's the first sequence to have outward shackle movement?
+	</p>
+	<ul class="hide-list-format space-out-list-items radio-as-button">
+		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="2"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="3"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="4"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="1"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
+	</ul>
+	<hr>
+	<input type="button" value="OK" data-next-card="combination-listing">
+	<input type="button" value="I can't find it" data-next-card="TODO">
 </section>
 
 <section id="suggest-locker-unlocker" class="card">

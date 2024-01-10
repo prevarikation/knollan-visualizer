@@ -15,6 +15,7 @@ body > header h1 { margin: 0; padding: 0.2em 0; }
 h3:first-child { margin-top: 0; }
 h3, h4 { margin-bottom: 0; }
 ul.hide-list-format { padding: 0; list-style: none; }
+.space-out-list-items li { margin: 0.2em 0; }
 input[type=radio]:disabled ~ span { color: lightgrey; }
 
 #global-nav {
@@ -51,8 +52,6 @@ table.gate-selection tbody { font-family: monospace; }
 table.gate-selection tbody td { padding: 0; border: 1px solid black; }
 table.gate-selection label { text-align: center; }
 table.gate-selection input[type=radio] ~ span { display: inline-block; width: var(--selector-cell-width); padding: var(--selector-cell-padding) 0; }
-
-#dragging-move-selection li, #modified-dragging-move-selection li { margin: 0.2em 0; }
 
 output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
 output.short-generate { padding-left: 0.25em; padding-right: 0.25em; font-size: 125%; font-weight: bold; }
