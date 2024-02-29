@@ -13,13 +13,29 @@ class Decoder {
 
     set(prop, val) {
         this[prop] = val;
+        this.clearProgressPast(prop);
+    }
 
+    clearProgressIncluding(prop) {
+        var positionInDependencies = Decoder.dependencies.indexOf(prop);
+        if (positionInDependencies !== -1) {
+            for (var i = positionInDependencies; i < Decoder.dependencies.length; ++i) {
+                this[Decoder.dependencies[i]] = undefined;
+            }
+        }
+    }
+
+    clearProgressPast(prop) {
         var positionInDependencies = Decoder.dependencies.indexOf(prop);
         if (positionInDependencies !== -1) {
             for (var i = positionInDependencies + 1; i < Decoder.dependencies.length; ++i) {
                 this[Decoder.dependencies[i]] = undefined;
             }
         }
+    }
+
+    clearAllProgress() {
+        this.clearProgressIncluding('firstBindingDisk');
     }
 }
 Decoder.dependencies = [

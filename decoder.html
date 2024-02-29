@@ -92,6 +92,79 @@
 		return { combo: fullCombo, indicesForMultiplePulls: desiredIndices };
 	}
 
+	function generateCombinations() {
+		var filters = [];
+		var firstBindingDisk = decoder.firstBindingDisk;
+		var firstDiskGate = decoder.firstDiskGatePosition;
+		if (firstBindingDisk && firstDiskGate > 0) {
+			var firstGatePosition = { N: Math.floor((firstDiskGate+1)/3) % 5, M: ((firstDiskGate+1) % 3) - 1 };
+			filters.push(gateIs(firstBindingDisk, firstGatePosition));
+
+			var draggingMoveWithClick = decoder.draggingMoveWithClick;
+			var modifiedDraggingMoveWithClick = decoder.modifiedDraggingMoveWithClick;
+			var assumeLastMoveInDraggingDirection = decoder.assumeLastMoveInDraggingDirection;
+
+			// use most specific information, if we have the click points
+			if (draggingMoveWithClick > 0 && modifiedDraggingMoveWithClick > 0) {
+				// sequence R D [quick seq] advances left by 0, bottom by 1, and right by 2 relative to [quick seq]
+				switch((draggingMoveWithClick - modifiedDraggingMoveWithClick + 5) % 5) {
+					case 0:	var secondBindingDisk = 'left'; break;
+					case 1: var secondBindingDisk = 'bottom'; break;
+					case 2: var secondBindingDisk = 'right'; break;
+				}
+				secondBindingDisk = normalizeDisk(firstBindingDisk, secondBindingDisk);
+
+				// now grab start and end positions for found disk while dragging on given move.
+				var draggingStartCombo =
+				getQuickSequenceArray(firstBindingDisk, decoder.firstDiskGatePosition).join('')
+				+ new Array(draggingMoveWithClick-1).fill(normalizeMove(firstBindingDisk, "D")).join('');
+				var draggingStartState = moveStringToState(draggingStartCombo);
+				var draggingEndState = moveStringToState(draggingStartCombo + normalizeMove(firstBindingDisk, "D"));
+				console.log(draggingStartCombo, draggingStartState, draggingEndState);
+
+				filters.push(gateIsBetween(secondBindingDisk, draggingStartState[diskToStateIdx(secondBindingDisk)], draggingEndState[diskToStateIdx(secondBindingDisk)]));
+			} else if (assumeLastMoveInDraggingDirection) {
+				var oppositeBindingDiskMap = {
+					top: ['right', 'bottom', 'left'],
+					left: ['top', 'right', 'bottom'],
+					bottom: ['left', 'top', 'right'],
+					right: ['bottom', 'left', 'top']
+				};
+				filters.push(function(st){
+					return st[oppositeBindingDiskMap[firstBindingDisk][0]].M === -1 && st[oppositeBindingDiskMap[firstBindingDisk][1]].M === 0 && st[oppositeBindingDiskMap[firstBindingDisk][2]].M === 1;
+				});
+			}
+		}
+
+		// always lead with locker unlocker combinations
+		var matchingCombinations = matchingLockerUnlockerToCombinationsWithState.apply(null, filters);
+
+		if (!decoder.onlyFactoryCombos) {
+			// add filter to not repeat states already visited by locker unlocker combos
+			var visitedStates = {};
+			for (var state of matchingCombinations.map(o => o.states).flat().map(st => AxisStates.State2StateNumber.apply(null, st))) {
+				visitedStates[state] = true;
+			}
+			filters.push(function(st){
+				return typeof visitedStates[AxisStates.State2StateNumber(st.top, st.left, st.bottom, st.right)] === 'undefined';
+			});
+
+			var additionalCombinations = filterByEndIndices
+			.apply(null, filters)
+			.sort(sortEndIndicesByCombinationLength)
+			.map(function(c){ return { combo: c.combination }; });
+			matchingCombinations = matchingCombinations.concat(additionalCombinations);
+		}
+
+		Array.from(document.querySelectorAll('[data-total-combinations]')).forEach(el => el.innerText = matchingCombinations.map(o => o.indicesForMultiplePulls ? o.indicesForMultiplePulls.length : 1).reduce((a,b) => a+b, 0));
+
+		outputCombinations(matchingCombinations);
+
+		function diskToStateIdx(disk) {
+			return { top: 0, left: 1, bottom: 2, right: 3 }[disk];
+		}
+	}
+
 	var decoder = new Decoder();
 	var decoderHistory = [];
 	document.addEventListener('DOMContentLoaded', function(){
@@ -126,16 +199,14 @@
 				// firefox will persist form options on a reload, make sure this is cleared
 				document.forms['decoder'].reset();
 				document.getElementById('locker-unlocker-only').addEventListener('click', function(){
-					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
-					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
-					decoder.set('factoryCombosOnly', true);
+					decoder.clearProgressPast('firstBindingDisk');
+					decoder.set('onlyFactoryCombos', true);
+					decoder.set('forceOnlyFactoryCombos', true);
 					clearRadioOption('firstDiskGatePosition');
-					decoder.set('firstBindingDisk', undefined);
 				});
 				document.getElementById('simplify-possibilities').addEventListener('click', function(){
-					decoder.set('factoryCombosOnly', false);
-					document.forms['decoder'].elements['onlyFactoryCombos'].checked = false;
-					document.forms['decoder'].elements['onlyFactoryCombos'].removeAttribute('disabled');
+					decoder.set('onlyFactoryCombos', false);
+					decoder.set('forceOnlyFactoryCombos', false);
 				});
 			},
 			onShow: function(){},
@@ -143,77 +214,18 @@
 		},
 
 		'combination-listing': {
+			setup: function() {
+				document.forms['decoder'].elements['onlyFactoryCombos'].addEventListener('change', generateCombinations);
+			},
 			onShow: function(){
-				var filters = [];
-				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
-				var firstDiskGate = +document.forms['decoder'].elements['firstDiskGatePosition'].value;
-				if (firstDiskGate > 0) {
-					var firstGatePosition = { N: Math.floor((firstDiskGate+1)/3) % 5, M: ((firstDiskGate+1) % 3) - 1 };
-					filters.push(gateIs(firstBindingDisk, firstGatePosition));
-
-					var draggingMoveWithClick = +document.forms['decoder'].elements['draggingMoveWithClick'].value;
-					var modifiedDraggingMoveWithClick = +document.forms['decoder'].elements['modifiedDraggingMoveWithClick'].value;
-					var assumeLastMoveInDraggingDirection = (document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value === "1");
-
-					// use most specific information, if we have the click points
-					if (draggingMoveWithClick > 0 && modifiedDraggingMoveWithClick > 0) {
-						// sequence R D [quick seq] advances left by 0, bottom by 1, and right by 2 relative to [quick seq]
-						switch((draggingMoveWithClick - modifiedDraggingMoveWithClick + 5) % 5) {
-							case 0:	var secondBindingDisk = 'left'; break;
-							case 1: var secondBindingDisk = 'bottom'; break;
-							case 2: var secondBindingDisk = 'right'; break;
-						}
-						secondBindingDisk = normalizeDisk(firstBindingDisk, secondBindingDisk);
-
-						// now grab start and end positions for found disk while dragging on given move.
-						var draggingStartCombo =
-						  getQuickSequenceArray(firstBindingDisk, +document.forms['decoder'].elements['firstDiskGatePosition'].value).join('')
-						  + new Array(draggingMoveWithClick-1).fill(normalizeMove(firstBindingDisk, "D")).join('');
-						var draggingStartState = moveStringToState(draggingStartCombo);
-						var draggingEndState = moveStringToState(draggingStartCombo + normalizeMove(firstBindingDisk, "D"));
-						console.log(draggingStartCombo, draggingStartState, draggingEndState);
-
-						filters.push(gateIsBetween(secondBindingDisk, draggingStartState[diskToStateIdx(secondBindingDisk)], draggingEndState[diskToStateIdx(secondBindingDisk)]));
-					} else if (assumeLastMoveInDraggingDirection) {
-						var oppositeBindingDiskMap = {
-							top: ['right', 'bottom', 'left'],
-							left: ['top', 'right', 'bottom'],
-							bottom: ['left', 'top', 'right'],
-							right: ['bottom', 'left', 'top']
-						};
-						filters.push(function(st){
-							return st[oppositeBindingDiskMap[firstBindingDisk][0]].M === -1 && st[oppositeBindingDiskMap[firstBindingDisk][1]].M === 0 && st[oppositeBindingDiskMap[firstBindingDisk][2]].M === 1;
-						});
-					}
+				document.forms['decoder'].elements['onlyFactoryCombos'].checked = !!decoder.onlyFactoryCombos;
+				if (!!decoder.forceOnlyFactoryCombos) {
+					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
+				} else {
+					document.forms['decoder'].elements['onlyFactoryCombos'].removeAttribute('disabled');
 				}
 
-				// always lead with locker unlocker combinations
-				var matchingCombinations = matchingLockerUnlockerToCombinationsWithState.apply(null, filters);
-
-				if (!document.forms['decoder'].elements['onlyFactoryCombos'].checked) {
-					// add filter to not repeat states already visited by locker unlocker combos
-					var visitedStates = {};
-					for (var state of matchingCombinations.map(o => o.states).flat().map(st => AxisStates.State2StateNumber.apply(null, st))) {
-						visitedStates[state] = true;
-					}
-					filters.push(function(st){
-						return typeof visitedStates[AxisStates.State2StateNumber(st.top, st.left, st.bottom, st.right)] === 'undefined';
-					});
-
-					var additionalCombinations = filterByEndIndices
-					  .apply(null, filters)
-					  .sort(sortEndIndicesByCombinationLength)
-					  .map(function(c){ return { combo: c.combination }; });
-					matchingCombinations = matchingCombinations.concat(additionalCombinations);
-				}
-
-				Array.from(document.querySelectorAll('[data-total-combinations]')).forEach(el => el.innerText = matchingCombinations.map(o => o.indicesForMultiplePulls ? o.indicesForMultiplePulls.length : 1).reduce((a,b) => a+b, 0));
-
-				outputCombinations(matchingCombinations);
-
-				function diskToStateIdx(disk) {
-					return { top: 0, left: 1, bottom: 2, right: 3 }[disk];
-				}
+				generateCombinations();
 			},
 			onHide: function(){
 				document.getElementById('combinations').innerHTML = '';
@@ -223,11 +235,12 @@
 		'identify-first-binding-disk': {
 			setup: function() {
 				document.forms['decoder'].elements['firstBindingDisk'].addEventListener('change', function(e){
+					decoder.set('firstBindingDisk', e.currentTarget.value);
 					// TODO: this is basically "clear forward values"
 					clearRadioOption('firstDiskGatePosition');
 
 					// update the values on the identifying gate page
-					var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
+					var firstBindingDisk = decoder.firstBindingDisk;
 					var steppingDirections = {
 						top: ["L", "R", "U"].map(dir => normalizeMove('top', dir)),
 						left: ["L", "R", "U"].map(dir => normalizeMove('left', dir)),
@@ -237,7 +250,7 @@
 					for (var i = 1; i <= 3; ++i) {
 						Array.from(document.querySelectorAll('[data-stepping-direction-' + i + ']')).forEach(el => el.innerText = steppingDirections[firstBindingDisk][i-1]);
 					}
-					
+
 					Array.from(document.querySelectorAll('[data-first-binding-disk]')).forEach(el => el.innerText = firstBindingDisk);
 					Array.from(document.querySelectorAll('[data-full-stepping-pattern]')).forEach(el => el.innerText = steppingDirections[firstBindingDisk].map(fullMoveName).join(', '));
 					Array.from(document.querySelectorAll('[data-stepping-pattern]')).forEach(el => el.innerText = steppingDirections[firstBindingDisk].join(' '));
@@ -251,28 +264,28 @@
 		'identify-gate-on-first-binding-disk': {
 			setup: function(el){
 				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'firstDiskGatePosition');
-				el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', e => clearRadioOption('firstDiskGatePosition'));
+				el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', function(e) { decoder.clearProgressIncluding('firstDiskGatePosition'); clearRadioOption('firstDiskGatePosition'); });
 				el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
-					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
-					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
+					decoder.set('onlyFactoryCombos', true);
+					decoder.set('forceOnlyFactoryCombos', true);
 				});
 				el.querySelector('[data-next-card=identify-dragging-move-with-click]').addEventListener('click', function(){
-					document.forms['decoder'].elements['onlyFactoryCombos'].checked = false;
-					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = false;
+					decoder.set('onlyFactoryCombos', false);
+					decoder.set('forceOnlyFactoryCombos', false);
 				});
-				Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', e => clearRadioOption('draggingMoveWithClick')));
+				Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', function(e) { decoder.set('firstDiskGatePosition', +e.currentTarget.value); clearRadioOption('draggingMoveWithClick'); }));
 			},
 		},
 
 		'identify-dragging-move-with-click': {
 			setup: function(el) {
 				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'draggingMoveWithClick');
-				Array.from(document.forms['decoder'].elements['draggingMoveWithClick']).forEach(el => el.addEventListener('change', e => clearRadioOption('modifiedDraggingMoveWithClick')));
+				Array.from(document.forms['decoder'].elements['draggingMoveWithClick']).forEach(el => el.addEventListener('change', function(e){ decoder.set('draggingMoveWithClick', +e.currentTarget.value); clearRadioOption('modifiedDraggingMoveWithClick'); }));
 			},
 			onShow: function() {
 				// update quick move sequence
-				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
-				var gate = +document.forms['decoder'].elements['firstDiskGatePosition'].value;
+				var firstBindingDisk = decoder.firstBindingDisk;
+				var gate = decoder.firstDiskGatePosition;
 				if (gate > 0) {
 					var quickSequence = getQuickSequenceArray(firstBindingDisk, gate);
 					Array.from(document.querySelectorAll('[data-dragging-moves]')).forEach(function(el){
@@ -288,9 +301,9 @@
 				enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'modifiedDraggingMoveWithClick');
 			},
 			onShow: function() {
-				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
-				var draggingMoveWithClick = +document.forms['decoder'].elements['draggingMoveWithClick'].value;
-				var adjustedQuickSequence = getQuickSequenceArray(firstBindingDisk, +document.forms['decoder'].elements['firstDiskGatePosition'].value);
+				var firstBindingDisk = decoder.firstBindingDisk;
+				var draggingMoveWithClick = decoder.draggingMoveWithClick;
+				var adjustedQuickSequence = getQuickSequenceArray(firstBindingDisk, decoder.firstDiskGatePosition);
 				adjustedQuickSequence.splice(1, 0, normalizeMove(firstBindingDisk, "R"), normalizeMove(firstBindingDisk, "D"));
 				Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
 					var which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
@@ -299,7 +312,7 @@
 					if (possibleClickOnDrag) {
 						el.innerText = adjustedQuickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(normalizeMove(firstBindingDisk, "D")).join('')).join(' ');
 						which.disabled = false;
-						el.closest('li').style.display = '';
+						el.closest('li').style.display = 'revert';
 					} else {
 						which.disabled = true;
 						el.closest('li').style.display = 'none';
@@ -314,9 +327,9 @@
 			},
 			onShow: function() {
 				// TODO: much copy-paste from combination-listing
-				var firstBindingDisk = document.forms['decoder'].elements['firstBindingDisk'].value;
-				var draggingMoveWithClick = +document.forms['decoder'].elements['draggingMoveWithClick'].value;
-				var modifiedDraggingMoveWithClick = +document.forms['decoder'].elements['modifiedDraggingMoveWithClick'].value;
+				var firstBindingDisk = decoder.firstBindingDisk;
+				var draggingMoveWithClick = decoder.draggingMoveWithClick;
+				var modifiedDraggingMoveWithClick = decoder.modifiedDraggingMoveWithClick;
 				switch((draggingMoveWithClick - modifiedDraggingMoveWithClick + 5) % 5) {
 					case 0:	var secondBindingDisk = 'left'; break;
 					case 1: var secondBindingDisk = 'bottom'; break;
@@ -326,7 +339,7 @@
 
 				var partialMoveSequence = ["U", "R", "L"].map(dir => normalizeMove(secondBindingDisk, dir).toLowerCase());
 
-				var quickSequence = getQuickSequenceArray(firstBindingDisk, +document.forms['decoder'].elements['firstDiskGatePosition'].value);
+				var quickSequence = getQuickSequenceArray(firstBindingDisk, decoder.firstDiskGatePosition);
 				var draggingOvershoot = new Array(draggingMoveWithClick).fill(normalizeMove(firstBindingDisk, 'D'));
 
 				Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el){
@@ -348,18 +361,22 @@
 				Array.from(el.querySelectorAll("[data-next-card], [data-nav-back]")).forEach(el =>
 					el.addEventListener('click', function(){
 						if (typeof el.dataset.nextCard !== "undefined" && el.dataset.nextCard === "combination-listing") {
+							decoder.clearProgressIncluding('draggingMoveWithClick');
 							clearRadioOption('draggingMoveWithClick');
+							decoder.set('assumeLastMoveInDraggingDirection', true);
 							document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value = "1";
 						} else {
+							decoder.set('assumeLastMoveInDraggingDirection', false);
 							document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value = "0";
 						}
 					})
 				);
 				el.querySelector("[data-set-top-gate-adjacent]").addEventListener('click', function(){
 					// set the gate to be one forward of what was previously tried.
-					var gate = +document.forms['decoder'].elements['firstDiskGatePosition'].value;
+					var gate = decoder.firstDiskGatePosition;
 					if (gate > 0) {
-						document.forms['decoder'].elements['firstDiskGatePosition'].value = (gate === 15 ? 1 : gate+1).toString();
+						decoder.firstDiskGatePosition = (gate === 15 ? 1 : gate+1);
+						document.forms['decoder'].elements['firstDiskGatePosition'].value = decoder.firstDiskGatePosition.toString();
 					}
 				});
 			}
@@ -368,9 +385,10 @@
 		'suggest-locker-unlocker': {
 			setup: function(el) {
 				el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
+					decoder.clearAllProgress();
 					clearRadioOption('firstDiskGatePosition'); // TODO: is "clear forward data"
-					document.forms['decoder'].elements['onlyFactoryCombos'].checked = true;
-					document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
+					decoder.set('onlyFactoryCombos', true);
+					decoder.set('forceOnlyFactoryCombos', true);
 				});
 			}
 		}
