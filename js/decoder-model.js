@@ -70,6 +70,25 @@ class Decoder {
         return [AxisMoves.MOVE_RIGHT, AxisMoves.MOVE_DOWN].map(move => this.constructor.normalizeMove(move, this.firstBindingDisk)).concat(quickSequence);
     }
 
+    adjustedQuickSequencesWithPossibleClickOnDrag() {
+        const adjustedQuickSequence = this.adjustedQuickSequenceToFirstBindingGate();
+        if (!adjustedQuickSequence || !this.draggingMoveWithClick) {
+            return null;
+        }
+
+        const fiveRelativeDownMoves = new Array(5).fill(Decoder.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk));
+        const result = [];
+        for (let i = 1; i <= 5; ++i) {
+            // performing [R D] [quick seq] advances the right wheel by 2, and the bottom wheel by 1, so we need to show sequences that are effectively 0, -1 and -2.
+            const possibleClickOnDrag = (((i - this.draggingMoveWithClick - 5) % 5) >= -2);
+            if (possibleClickOnDrag) {
+                result[i] = adjustedQuickSequence.concat(fiveRelativeDownMoves.slice(0, (i-1) || 5));
+            }
+        }
+
+        return result;
+    }
+
     // note that this is computed instead of being directly assigned
     secondBindingDisk() {
         if (!this.draggingMoveWithClick || !this.modifiedDraggingMoveWithClick) {

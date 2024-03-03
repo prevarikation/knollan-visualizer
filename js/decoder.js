@@ -135,19 +135,16 @@ const cards = {
             Array.from(document.forms['decoder'].elements['modifiedDraggingMoveWithClick']).forEach(el => el.addEventListener('change', e => decoder.modifiedDraggingMoveWithClick = +e.currentTarget.value));
         },
         onShow: function() {
-            const adjustedQuickSequence = decoder.adjustedQuickSequenceToFirstBindingGate();
+            const sequencesWithPossibleClickOnDrag = decoder.adjustedQuickSequencesWithPossibleClickOnDrag();
             Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
-                var which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
-                // performing [R D] [quick seq] advances the right wheel by 2, and the bottom wheel by 1, so we need to show sequences that are effectively 0, -1 and -2.
-                var possibleClickOnDrag = (((+which.value - decoder.draggingMoveWithClick - 5) % 5) >= -2);
-                if (possibleClickOnDrag) {
-                    el.innerText = "0 " + formatMoveSequence(adjustedQuickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(Decoder.normalizeMove(AxisMoves.MOVE_DOWN, decoder.firstBindingDisk))).map(x => AxisHumanReadableHelper.moveTo('short')(x)));
-                    which.disabled = false;
-                    el.closest('li').style.display = 'revert';
-                } else {
-                    which.disabled = true;
-                    el.closest('li').style.display = 'none';
+                const which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
+
+                const sequenceForWhich = sequencesWithPossibleClickOnDrag[+which.value];
+                if (sequenceForWhich) {
+                    el.innerText = "0 " + formatMoveSequence(sequenceForWhich.map(x => AxisHumanReadableHelper.moveTo('short')(x)));
                 }
+                which.disabled = !sequenceForWhich;
+                el.closest('li').style.display = (!!sequenceForWhich ? 'revert' : 'none');
             });
         }
     },
