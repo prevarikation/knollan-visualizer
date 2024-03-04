@@ -115,7 +115,8 @@ class Decoder {
     }
 
     secondBindingDiskPossibleGatePositions() {
-        if (!this.secondBindingDisk()) {
+        // we must compare against null because disk enums include 0 as an acceptable value
+        if (this.secondBindingDisk() === null) {
             return null;
         }
 
@@ -167,7 +168,7 @@ class Decoder {
     }
 
     secondBindingDiskPartialMoveReverseSteppingDirections() {
-        return (this.secondBindingDisk() ? this.constructor.reverseSteppingDirections(this.secondBindingDisk()).map(AxisMoves.createPartialMove) : null);
+        return (this.secondBindingDisk() !== null ? this.constructor.reverseSteppingDirections(this.secondBindingDisk()).map(AxisMoves.createPartialMove) : null);
     }
 
     // there's no guarantee these sequences are universally applicable -- sometimes partial moves will disturb the first disk. check beforehand.
@@ -222,7 +223,7 @@ class Decoder {
                 filters.push(function(st){
                     return st[oppositeBindingDiskMap[firstBindingDiskFilterName][0]].M === -1 && st[oppositeBindingDiskMap[firstBindingDiskFilterName][1]].M === 0 && st[oppositeBindingDiskMap[firstBindingDiskFilterName][2]].M === 1;
                 });
-            } else if (this.secondBindingDisk()) {
+            } else if (this.secondBindingDisk() !== null) {
                 const secondBindingDiskFilterName = AxisHumanReadableHelper.diskTo('long')(this.secondBindingDisk()).toLowerCase();
                 if (this.secondBindingDiskGatePosition()) {
                     filters.push(gateIs(secondBindingDiskFilterName, internalPositionToAxisIndex(this.secondBindingDiskGatePosition())));
