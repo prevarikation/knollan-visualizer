@@ -148,7 +148,8 @@ class Decoder {
         }
 
         function axisIndexToInternalPosition(o) {
-            return ((3*o.N + o.M + 15) % 15) + 1;
+            const pos = (3*o.N + o.M + 15) % 15;
+            return (pos === 0 ? 15 : pos);
         }
         function diskToStateIdx(disk) {
             return { [AxisDisk.DISK_TOP]: 0, [AxisDisk.DISK_LEFT]: 1, [AxisDisk.DISK_BOTTOM]: 2, [AxisDisk.DISK_RIGHT]: 3 }[disk];
@@ -168,7 +169,7 @@ class Decoder {
     }
 
     secondBindingDiskPartialMoveReverseSteppingDirections() {
-        return (this.secondBindingDisk() !== null ? this.constructor.reverseSteppingDirections(this.secondBindingDisk()).map(AxisMoves.createPartialMove) : null);
+        return (this.secondBindingDisk() !== null ? this.constructor.partialMoveReverseSteppingDirections(this.secondBindingDisk()) : null);
     }
 
     // there's no guarantee these sequences are universally applicable -- sometimes partial moves will disturb the first disk. check beforehand.
@@ -177,14 +178,17 @@ class Decoder {
             return null;
         }
 
-        const partialMoveSequence = this.secondBindingDiskPartialMoveReverseSteppingDirections();
         const quickSequence = this.quickSequenceToFirstBindingGate();
         const draggingOvershoot = new Array(this.draggingMoveWithClick).fill(this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk));
         const draggingOvershootSequence = quickSequence.concat(draggingOvershoot);
 
+        const partialMoveSequence = this.secondBindingDiskPartialMoveReverseSteppingDirections();
+        const firstPartialMoveForSecondBindingDisk = this.constructor.normalizeMove([AxisMoves.PARTIAL_MOVE_LEFT, AxisMoves.PARTIAL_MOVE_RIGHT, AxisMoves.PARTIAL_MOVE_UP][this.secondBindingDiskPossibleGatePositions().high % 3], this.secondBindingDisk());
+        const adjustedPartialMoveSequence = partialMoveSequence.concat(partialMoveSequence).slice(partialMoveSequence.indexOf(firstPartialMoveForSecondBindingDisk));
+
         const result = [];
         for (let i = 1; i <= 4; ++i) {
-            result[i] = draggingOvershootSequence.concat(partialMoveSequence.concat(partialMoveSequence).slice(0, i));
+            result[i] = draggingOvershootSequence.concat(adjustedPartialMoveSequence.slice(0, i));
         }
         return result;
     }
@@ -287,8 +291,9 @@ Decoder.steppingDirections = function(targetDisk) {
     const lruPattern = [AxisMoves.MOVE_LEFT, AxisMoves.MOVE_RIGHT, AxisMoves.MOVE_UP];
     return lruPattern.map(dir => this.normalizeMove(dir, targetDisk));
 };
-Decoder.reverseSteppingDirections = function(targetDisk) {
-    return this.steppingDirections(targetDisk).toReversed();
+Decoder.partialMoveReverseSteppingDirections = function(targetDisk) {
+    const lurPattern = [AxisMoves.PARTIAL_MOVE_LEFT, AxisMoves.PARTIAL_MOVE_UP, AxisMoves.PARTIAL_MOVE_RIGHT];
+    return lurPattern.map(dir => this.normalizeMove(dir, targetDisk));
 };
 Decoder.SECOND_GATE_ISOLATION_TECHNIQUE = {
     PARTIAL_MOVES_ON_SECOND_DISK: 0,
