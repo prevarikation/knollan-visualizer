@@ -193,7 +193,7 @@
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="1"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 	</ul>
 	<hr>
-	<input type="button" value="OK" data-next-card="identify-gate-on-second-binding-disk" data-nav-next="">
+	<input type="button" value="OK" data-next-card="" data-nav-next-branching="" data-nav-next="">
 	<input type="button" value="See combinations based on the info so far" data-next-card="combination-listing" data-nav-next="">
 	<input type="button" value="I can't find one" data-next-card="confirm-assume-last-move-in-dragging-direction">
 </section>
@@ -210,13 +210,12 @@
 		What would you like to do?
 	</p>
 	<hr>
-	<input type="hidden" name="assumeLastMoveInDraggingDirection" value="0">
 	<input type="button" value="See combinations with the last move in the dragging direction" data-next-card="combination-listing" data-nav-next="">
-	<input type="button" value="Try dragging with a new gate on the first binding disk" data-set-top-gate-adjacent="" data-nav-back="">
+	<input type="button" value="Try dragging with a new gate on the first binding disk" data-set-top-gate-adjacent="" data-nav-back="" data-nav-back-until="identify-gate-on-first-binding-disk">
 	<input type="button" value="Let me try dragging again" data-nav-back="">
 </section>
 
-<section id="identify-gate-on-second-binding-disk" class="card">
+<section id="partial-moves-isolate-gate-on-second-binding-disk" class="card">
 	<h2>Let's use partial moves to find the gate on the second binding disk.</h2>
 	<details open>
 		<summary>Partial move technique</summary>
@@ -237,7 +236,6 @@
 		What's the first sequence to have outward shackle movement?
 	</p>
 	<ul class="hide-list-format space-out-list-items radio-as-button">
-		<!-- TODO: from where these specific values? -->
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="1"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="2"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="3"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
@@ -246,6 +244,11 @@
 	<hr>
 	<input type="button" value="OK" data-next-card="combination-listing">
 	<input type="button" value="I can't find it" data-next-card="TODO">
+</section>
+
+<section id="placeholder" class="card">
+	<h2>Placeholder</h2>
+	<p>Placeholder for future content</p>
 </section>
 
 <section id="suggest-locker-unlocker" class="card">

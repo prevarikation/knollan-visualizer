@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
         // MUST follow card actions, because we want click handlers in setup()s to be added first
         Array.from(htmlCard.querySelectorAll('input[type=button][data-next-card]')).forEach(function(el){
-                el.addEventListener('click', transitionCards(htmlCard.id, el.dataset.nextCard));
+                el.addEventListener('click', (e) => transitionCards(htmlCard.id, e.currentTarget.dataset.nextCard)());
         });
     }
 
@@ -68,6 +68,7 @@ const cards = {
         },
         onHide: function(){
             document.getElementById('combinations').innerHTML = '';
+            decoder.set('assumeLastMoveInDraggingDirection', false); // not sticky! must be manually set each time
         }
     },
 
@@ -109,7 +110,7 @@ const cards = {
                 decoder.set('forceOnlyFactoryCombos', false);
             });
             Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', function(e) { decoder.set('firstBindingDiskGatePosition', +e.currentTarget.value); clearRadioOption('draggingMoveWithClick'); }));
-        },
+        }
     },
 
     'identify-dragging-move-with-click': {
@@ -131,46 +132,50 @@ const cards = {
     'identify-modified-dragging-move-with-click': {
         setup: function(el){
             enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'modifiedDraggingMoveWithClick');
-            el.querySelector("[data-next-card=combination-listing]").addEventListener('click', () => decoder.clearProgressPast('modifiedDraggingMoveWithClick'));
-            Array.from(document.forms['decoder'].elements['modifiedDraggingMoveWithClick']).forEach(el => el.addEventListener('change', e => decoder.modifiedDraggingMoveWithClick = +e.currentTarget.value));
+            Array.from(el.querySelectorAll("[data-next-card]")).forEach(el => el.addEventListener('click', function(e) {
+                if (e.currentTarget.dataset.nextCard === "combination-listing") {
+                    decoder.clearProgressPast('modifiedDraggingMoveWithClick');
+                }
+            }));
+            Array.from(document.forms['decoder'].elements['modifiedDraggingMoveWithClick']).forEach(nestedEl => nestedEl.addEventListener('change', function(e) { 
+                decoder.modifiedDraggingMoveWithClick = +e.currentTarget.value;
+
+                let nextCard;
+                switch(decoder.howToIsolateSecondGate()) {
+                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.PARTIAL_MOVES_ON_SECOND_DISK:             nextCard = 'partial-moves-isolate-gate-on-second-binding-disk'; break;
+                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK: nextCard = 'placeholder'; break;
+                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.UNKNOWN:                                  nextCard = 'placeholder'; break;
+                }
+                el.querySelector("[data-nav-next-branching]").dataset.nextCard = nextCard;
+            }));
         },
         onShow: function() {
             const sequencesWithPossibleClickOnDrag = decoder.adjustedQuickSequencesWithPossibleClickOnDrag();
-            Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
-                const which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
+            if (sequencesWithPossibleClickOnDrag) {
+                Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
+                    const which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
 
-                const sequenceForWhich = sequencesWithPossibleClickOnDrag[+which.value];
-                if (sequenceForWhich) {
-                    el.innerText = "0 " + formatMoveSequence(sequenceForWhich.map(x => AxisHumanReadableHelper.moveTo('short')(x)));
-                }
-                which.disabled = !sequenceForWhich;
-                el.closest('li').style.display = (!!sequenceForWhich ? 'revert' : 'none');
-            });
+                    const sequenceForWhich = sequencesWithPossibleClickOnDrag[+which.value];
+                    if (sequenceForWhich) {
+                        el.innerText = "0 " + formatMoveSequence(sequenceForWhich.map(x => AxisHumanReadableHelper.moveTo('short')(x)));
+                    }
+                    which.disabled = !sequenceForWhich;
+                    el.closest('li').style.display = (!!sequenceForWhich ? 'revert' : 'none');
+                });
+            }
         }
     },
 
-    'identify-gate-on-second-binding-disk': {
+    'partial-moves-isolate-gate-on-second-binding-disk': {
         setup: function(el) {
             enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'partialMoveWithClickSecondGate');
             Array.from(document.forms['decoder'].elements['partialMoveWithClickSecondGate']).forEach(el => el.addEventListener('change', e => decoder.partialMoveWithClickSecondGate = +e.currentTarget.value));
-
         },
         onShow: function() {
-            // TODO: BUG: we need to create actual partial move sequence, respecting unreachable areas
-            const partialMoveSequence = Decoder.reverseSteppingDirections(decoder.secondBindingDisk()).map(AxisMoves.createPartialMove);
-            const quickSequence = decoder.quickSequenceToFirstBindingGate();
-            const draggingOvershoot = new Array(decoder.draggingMoveWithClick).fill(Decoder.normalizeMove(AxisMoves.MOVE_DOWN, decoder.firstBindingDisk));
-            const draggingOvershootSequence = quickSequence.concat(draggingOvershoot);
-
-            Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el, i){
+            const partialMoveSequences = decoder.secondBindingDiskPartialMoveSequencesToIsolateGate();
+            Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el){
                 var which = el.closest('label').querySelector('[name=partialMoveWithClickSecondGate]');
-
-                el.innerText = "0 " + formatMoveSequence(draggingOvershootSequence.concat(partialMoveSequence.concat(partialMoveSequence).slice(0, i+1)).map(AxisHumanReadableHelper.moveTo('short')));
-                // performing [R D] [quick seq] advances the right wheel by 2, and the bottom wheel by 1, so we need to show sequences that are effectively 0, -1 and -2.
-                //var possibleClickOnDrag = (((+which.value - draggingMoveWithClick - 5) % 5) >= -2);
-                //if (possibleClickOnDrag) {
-                //	el.innerText = adjustedQuickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(normalizeMove(firstBindingDisk, "D")).join('')).join(' ');
-                //}
+                el.innerText = "0 " + formatMoveSequence(partialMoveSequences[+which.value].map(AxisHumanReadableHelper.moveTo('short')));
             });
         }
     },
@@ -178,24 +183,16 @@ const cards = {
     'confirm-assume-last-move-in-dragging-direction': {
         setup: function(el) {
             Array.from(el.querySelectorAll("[data-next-card], [data-nav-back]")).forEach(el =>
-                el.addEventListener('click', function(){
-                    if (typeof el.dataset.nextCard !== "undefined" && el.dataset.nextCard === "combination-listing") {
-                        decoder.clearProgressIncluding('draggingMoveWithClick');
-                        clearRadioOption('draggingMoveWithClick');
-                        decoder.set('assumeLastMoveInDraggingDirection', true);
-                        document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value = "1";
-                    } else {
-                        decoder.set('assumeLastMoveInDraggingDirection', false);
-                        document.forms['decoder'].elements['assumeLastMoveInDraggingDirection'].value = "0";
-                    }
-                })
+                el.addEventListener('click', () => decoder.set('assumeLastMoveInDraggingDirection', (el.dataset.nextCard === "combination-listing")))
             );
             el.querySelector("[data-set-top-gate-adjacent]").addEventListener('click', function(){
                 // set the gate to be one forward of what was previously tried.
-                var gate = decoder.firstDiskGatePosition;
-                if (gate > 0) {
-                    decoder.firstDiskGatePosition = (gate === 15 ? 1 : gate+1);
-                    document.forms['decoder'].elements['firstDiskGatePosition'].value = decoder.firstDiskGatePosition.toString();
+                var gate = decoder.firstBindingDiskGatePosition;
+                if (gate) {
+                    decoder.set('firstBindingDiskGatePosition', (gate === 15 ? 1 : gate+1));
+                    document.forms['decoder'].elements['firstDiskGatePosition'].value = decoder.firstBindingDiskGatePosition.toString();
+                    clearRadioOption('draggingMoveWithClick');
+                    clearRadioOption('modifiedDraggingMoveWithClick');
                 }
             });
         }
@@ -307,8 +304,20 @@ function transitionCards(prev, next, skipHistory) {
         showCard(document.getElementById(next), skipHistory);
     }
 }
-function back() {
-    if (decoderHistory.length > 1) {
+function back(e) {
+    if (decoderHistory.length <= 1) {
+        return;
+    }
+
+    const backUntil = e.currentTarget.dataset.navBackUntil;
+    if (backUntil) {
+        let thisCard = decoderHistory[decoderHistory.length-1];
+        let cardIdxInHistory = decoderHistory.lastIndexOf(backUntil);
+        if (cardIdxInHistory !== -1) {
+            decoderHistory.splice(cardIdxInHistory+1, decoderHistory.length);
+            transitionCards(thisCard, decoderHistory[decoderHistory.length-1], true)();
+        }
+    } else {
         transitionCards(decoderHistory.pop(), decoderHistory[decoderHistory.length-1], true)();
     }
 }
