@@ -54,7 +54,7 @@ const cards = {
 
     'combination-listing': {
         setup: function() {
-            document.forms['decoder'].elements['onlyFactoryCombos'].addEventListener('change', generateCombinations);
+            document.forms['decoder'].elements['onlyFactoryCombos'].addEventListener('change', function(e){ decoder.onlyFactoryCombos = e.currentTarget.checked; generateCombinations(); });
         },
         onShow: function(){
             document.forms['decoder'].elements['onlyFactoryCombos'].checked = !!decoder.onlyFactoryCombos;
