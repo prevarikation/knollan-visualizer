@@ -121,7 +121,7 @@ const cards = {
             const quickSequence = decoder.quickSequenceToFirstBindingGate();
             if (quickSequence) {
                 Array.from(document.querySelectorAll('[data-dragging-moves]')).forEach(function(el){
-                    var which = el.closest('label').querySelector('[name=draggingMoveWithClick]');
+                    var which = el.closest('label').control;
                     el.innerText = "0 " + formatMoveSequence(quickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(Decoder.normalizeMove(AxisMoves.MOVE_DOWN, decoder.firstBindingDisk))).map(x => AxisHumanReadableHelper.moveTo('short')(x)));
                 });
             }
@@ -152,7 +152,7 @@ const cards = {
             const sequencesWithPossibleClickOnDrag = decoder.adjustedQuickSequencesWithPossibleClickOnDrag();
             if (sequencesWithPossibleClickOnDrag) {
                 Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
-                    const which = el.closest('label').querySelector('[name=modifiedDraggingMoveWithClick]');
+                    const which = el.closest('label').control;
 
                     const sequenceForWhich = sequencesWithPossibleClickOnDrag[+which.value];
                     if (sequenceForWhich) {
@@ -174,7 +174,7 @@ const cards = {
         onShow: function() {
             const partialMoveSequences = decoder.secondBindingDiskPartialMoveSequencesToIsolateGate();
             Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el){
-                let which = el.closest('label').querySelector('[name=partialMoveWithClickSecondGate]');
+                let which = el.closest('label').control;
                 el.innerText = "0 " + formatMoveSequence(partialMoveSequences[+which.value].map(AxisHumanReadableHelper.moveTo('short')));
             });
         }
