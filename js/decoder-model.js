@@ -1,14 +1,9 @@
 'use strict';
-//factory codes only
-//assume last move in dragging direction
-
-//first binding disk
-//first binding disk gate position
-//// quick sequence
-//// dragging sequences
-//dragging move with click
-//modified dragging move with click
-//second binding disk
+/*
+// Boolean setting options:
+// - factory codes only
+// - assume last move in dragging direction
+*/
 class Decoder {
     constructor() {
         this.firstBindingDiskGatePosition = null;
@@ -20,21 +15,33 @@ class Decoder {
     }
 
     clearProgressIncluding(prop) {
-        var positionInDependencies = Decoder.dependencies.indexOf(prop);
+        var positionInDependencies = this.constructor.dependencies.findIndex(hasTargetProp);
         if (positionInDependencies !== -1) {
-            for (var i = positionInDependencies; i < Decoder.dependencies.length; ++i) {
-                this[Decoder.dependencies[i]] = undefined;
+            for (var i = positionInDependencies; i < this.constructor.dependencies.length; ++i) {
+                if (Array.isArray(this.constructor.dependencies)[i]) {
+                    this.constructor.dependencies[i].forEach(s => this[s] = undefined);
+                } else {
+                    this[this.constructor.dependencies[i]] = undefined;
+                }
             }
         }
+
+        function hasTargetProp(x) { return Array.isArray(x) ? x.includes(prop) : x === prop; }
     }
 
     clearProgressPast(prop) {
-        var positionInDependencies = Decoder.dependencies.indexOf(prop);
+        var positionInDependencies = this.constructor.dependencies.findIndex(hasTargetProp);
         if (positionInDependencies !== -1) {
-            for (var i = positionInDependencies + 1; i < Decoder.dependencies.length; ++i) {
-                this[Decoder.dependencies[i]] = undefined;
+            for (var i = positionInDependencies + 1; i < this.constructor.dependencies.length; ++i) {
+                if (Array.isArray(this.constructor.dependencies)[i]) {
+                    this.constructor.dependencies[i].forEach(s => this[s] = undefined);
+                } else {
+                    this[this.constructor.dependencies[i]] = undefined;
+                }
             }
         }
+
+        function hasTargetProp(x) { return Array.isArray(x) ? x.includes(prop) : x === prop; }
     }
 
     clearAllProgress() {
@@ -78,7 +85,7 @@ class Decoder {
             return null;
         }
 
-        const fiveRelativeDownMoves = new Array(5).fill(Decoder.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk));
+        const fiveRelativeDownMoves = new Array(5).fill(this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk));
         const result = [];
         for (let i = 1; i <= 5; ++i) {
             // performing [R D] [quick seq] advances the right wheel by 2, and the bottom wheel by 1, so we need to show sequences that are effectively 0, -1 and -2.
@@ -96,7 +103,7 @@ class Decoder {
             return null;
         }
 
-        return this.constructor.normalizeMove([AxisMoves.PARTIAL_MOVE_LEFT, AxisMoves.PARTIAL_MOVE_RIGHT, AxisMoves.PARTIAL_MOVE_UP][this.firstBindingDiskGatePosition % 3], this.firstBindingDisk);
+        return this.constructor.immediateGlobalPartialMovesActingOnDisk(this.firstBindingDisk, this.firstBindingDiskGatePosition)[0];
     }
 
     // note that this is computed instead of being directly assigned
@@ -121,50 +128,60 @@ class Decoder {
         }
 
         let draggingStartCombo = this.quickSequenceToFirstBindingGate().concat(new Array(this.draggingMoveWithClick-1 || 5).fill(this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk)));
-        let draggingStartState = movesToState(draggingStartCombo);
-        let draggingEndState = movesToState(draggingStartCombo.concat(this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk)));
+        let draggingStartState = movesToMHState(draggingStartCombo);
+        let draggingEndState = movesToMHState(draggingStartCombo.concat(this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk)));
 
         // convert to our 1-15 range for positions
-        const secondDiskLowGatePosition = axisIndexToInternalPosition(draggingStartState[diskToStateIdx(this.secondBindingDisk())]);
-        const secondDiskHighGatePosition = axisIndexToInternalPosition(draggingEndState[diskToStateIdx(this.secondBindingDisk())]);
-        return { low: secondDiskLowGatePosition, high: secondDiskHighGatePosition };
+        const secondDiskLowGatePosition = this.constructor.mhIndexToInternalPosition(draggingStartState[diskToMHStateIdx(this.secondBindingDisk())]);
+        const secondDiskHighGatePosition = this.constructor.mhIndexToInternalPosition(draggingEndState[diskToMHStateIdx(this.secondBindingDisk())]);
+        return { low: (secondDiskLowGatePosition + 1 % 15) || 15, high: secondDiskHighGatePosition };
+    }
 
-        // requires replaying move sequences right now, and some weird dependencies based on original setup
-        function movesToState(moves) {
-            var dummyCanvas = document.createElement('canvas');
-            var dummyImage = document.createElement('img');
-            var disks = [
-                new AxisDisk(dummyCanvas, dummyImage, 0, AxisDisk.DISK_TOP),
-                new AxisDisk(dummyCanvas, dummyImage, 90, AxisDisk.DISK_LEFT),
-                new AxisDisk(dummyCanvas, dummyImage, 180, AxisDisk.DISK_BOTTOM),
-                new AxisDisk(dummyCanvas, dummyImage, 270, AxisDisk.DISK_RIGHT)
-            ]
-            for (var move of moves) {
-                for (var disk of disks) {
-                    disk.move(move);
-                }
+    secondBindingDiskPossibleCombinations() {
+        const secondBindingDiskPossibleGatePositions = this.secondBindingDiskPossibleGatePositions();
+        if (!secondBindingDiskPossibleGatePositions) {
+            return null;
+        }
+
+        let result = {};
+        const firstGatePositionFilter = gateIs(filterNameForDisk(this.firstBindingDisk), this.constructor.internalPositionToMHIndex(this.firstBindingDiskGatePosition));
+        for (let position of unzipPossibleGatePositions(secondBindingDiskPossibleGatePositions)) {
+            let secondGatePositionFilter = gateIs(filterNameForDisk(this.secondBindingDisk()), this.constructor.internalPositionToMHIndex(position));
+            // TODO: could use some optimization
+            let matchingCombinations = filterByEndIndices(firstGatePositionFilter, secondGatePositionFilter);
+            if (matchingCombinations.length) {
+                let sortedCombinations = matchingCombinations.sort(sortEndIndicesByCombinationLength).map(o => o.combination.split('').map(shortMoveToMove));
+                result[position] = sortedCombinations;
+            } else {
+                // combination is not possible
+                result[position] = null;
             }
-            return disks.map(disk => disk.index);
         }
+        return result;
 
-        function axisIndexToInternalPosition(o) {
-            const pos = (3*o.N + o.M + 15) % 15;
-            return (pos === 0 ? 15 : pos);
+        function filterNameForDisk(disk) {
+            return AxisHumanReadableHelper.diskTo('long')(disk).toLowerCase();
         }
-        function diskToStateIdx(disk) {
-            return { [AxisDisk.DISK_TOP]: 0, [AxisDisk.DISK_LEFT]: 1, [AxisDisk.DISK_BOTTOM]: 2, [AxisDisk.DISK_RIGHT]: 3 }[disk];
+        function unzipPossibleGatePositions(possiblePositions) {
+            if (possiblePositions.low > possiblePositions.high) {
+                possiblePositions.high += 15;
+            }
+            return new Array(2*15+1).fill(true).map((x, i) => (i % 15) || 15).slice(possiblePositions.low, possiblePositions.high + 1);
+        }
+        function shortMoveToMove(c) {
+            return { U: AxisMoves.MOVE_UP, L: AxisMoves.MOVE_LEFT, D: AxisMoves.MOVE_DOWN, R: AxisMoves.MOVE_RIGHT }[c];
         }
     }
 
     howToIsolateSecondGate() {
-        // TODO: describe the path forward
-        const partialMovesCanBeIsolated = !this.secondBindingDiskPartialMoveReverseSteppingDirections().includes(this.partialMoveDisturbingFirstBindingDisk());
-        if (partialMovesCanBeIsolated) {
-            return Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.PARTIAL_MOVES_ON_SECOND_DISK;
-        } else if (false) { // TODO
-            return Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK;
+        const partialMoveSequencesToDirectlyIsolateGate = this.secondBindingDiskPartialMoveSequencesToIsolateGate();
+        const partialMoveSequencesToIndirectlyIsolateGate = this.partialMoveSequencesToIsolateGateOnSecondBindingDiskUsingNonBindingDisks();
+        if (partialMoveSequencesToDirectlyIsolateGate) {
+            return this.constructor.SECOND_GATE_ISOLATION_TECHNIQUE.PARTIAL_MOVES_ON_SECOND_DISK;
+        } else if (partialMoveSequencesToIndirectlyIsolateGate) {
+            return this.constructor.SECOND_GATE_ISOLATION_TECHNIQUE.INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK;
         } else {
-            return Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.UNKNOWN;
+            return this.constructor.SECOND_GATE_ISOLATION_TECHNIQUE.UNKNOWN;
         }
     }
 
@@ -172,48 +189,93 @@ class Decoder {
         return (this.secondBindingDisk() !== null ? this.constructor.partialMoveReverseSteppingDirections(this.secondBindingDisk()) : null);
     }
 
-    // there's no guarantee these sequences are universally applicable -- sometimes partial moves will disturb the first disk. check beforehand.
     secondBindingDiskPartialMoveSequencesToIsolateGate() {
         if (!this.secondBindingDiskPossibleGatePositions()) {
+            return null;
+        }
+        const startPositionToWorkBackward = this.secondBindingDiskPossibleGatePositions().high + 3;
+        const partialMoveSequence = this.constructor.immediateGlobalPartialMovesActingOnDisk(this.secondBindingDisk(), startPositionToWorkBackward);
+        // we don't consider this sequence properly isolating if partial moves will disturb the first binding disk
+        if (partialMoveSequence.includes(this.partialMoveDisturbingFirstBindingDisk())) {
             return null;
         }
 
         const quickSequence = this.quickSequenceToFirstBindingGate();
         const draggingOvershoot = new Array(this.draggingMoveWithClick).fill(this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk));
-        const draggingOvershootSequence = quickSequence.concat(draggingOvershoot);
-
-        const partialMoveSequence = this.secondBindingDiskPartialMoveReverseSteppingDirections();
-        const firstPartialMoveForSecondBindingDisk = this.constructor.normalizeMove([AxisMoves.PARTIAL_MOVE_LEFT, AxisMoves.PARTIAL_MOVE_RIGHT, AxisMoves.PARTIAL_MOVE_UP][this.secondBindingDiskPossibleGatePositions().high % 3], this.secondBindingDisk());
-        const adjustedPartialMoveSequence = partialMoveSequence.concat(partialMoveSequence).slice(partialMoveSequence.indexOf(firstPartialMoveForSecondBindingDisk));
 
         const result = [];
         for (let i = 1; i <= 4; ++i) {
-            result[i] = draggingOvershootSequence.concat(adjustedPartialMoveSequence.slice(0, i));
+            let draggingOvershootSequence = quickSequence.concat(draggingOvershoot, (i === 1 ? this.constructor.normalizeMove(AxisMoves.MOVE_DOWN, this.firstBindingDisk) : []));
+            let applicablePartialMoveSequence = partialMoveSequence.slice(0, (i-1) || 3);
+            result[i] = draggingOvershootSequence.concat(applicablePartialMoveSequence);
         }
         return result;
     }
 
-    secondBindingDiskGatePosition() {
-        const approximatePositions = this.secondBindingDiskPossibleGatePositions();
-        if (!approximatePositions || !this.partialMoveWithClickSecondGate) {
+    partialMoveSequencesToIsolateGateOnSecondBindingDiskUsingNonBindingDisks() {
+        const secondBindingDiskPossibleCombinations = this.secondBindingDiskPossibleCombinations();
+        if (!secondBindingDiskPossibleCombinations) {
             return null;
         }
 
-        if (approximatePositions.high < approximatePositions.low) {
-            approximatePositions.high += 15;
+        const result = {};
+        for (const [key, val] of Object.entries(secondBindingDiskPossibleCombinations)) {
+            if (val) {
+                let partialMovesReducingCombinations = val.map(properPartialMovesGivenCombination.bind(this)).filter(x => Object.keys(x).length);
+                if (partialMovesReducingCombinations.length) {
+                    result[key] = partialMovesReducingCombinations;
+                }
+            }
         }
-        // BEWARE: off-by-one errors await any attempt to modify this. returned value is in range 1-15.
-        return (approximatePositions.high - 1 - this.partialMoveWithClickSecondGate + 15) % 15 + 1;
+        return Object.keys(result).length ? result : null;
+
+        // TODO: whole function makes direct use of DISK_TOP = 0, DISK_LEFT = 1, etc.
+        function properPartialMovesGivenCombination(combination) {
+            const state = movesToMHState(combination).map(this.constructor.mhIndexToInternalPosition);
+            const partialMovesImmediatelyAffectingDisks = state.map((n, i) => this.constructor.immediateGlobalPartialMovesActingOnDisk(i, n));
+
+            const fixedDisks = [this.firstBindingDisk, this.secondBindingDisk()];
+            const variableDisks = [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT].filter(disk => !fixedDisks.includes(disk));
+
+            const possibleVariableDiskFirstMoves = new Map(variableDisks.map(disk => [partialMovesImmediatelyAffectingDisks[disk][0], true]));
+            fixedDisks.map(disk => partialMovesImmediatelyAffectingDisks[disk][0]).forEach((move) => possibleVariableDiskFirstMoves.delete(move));
+
+            let result = {};
+            if (possibleVariableDiskFirstMoves.size == 2) {
+                for (let key of possibleVariableDiskFirstMoves.keys()) {
+                    // TODO: actually map result[TODO] to the affected disk(s)
+                    result[key] = combination.concat(key);
+                }
+            }
+
+            return result;
+        }
+    }
+
+    secondBindingDiskGatePosition() {
+        const approximatePositions = this.secondBindingDiskPossibleGatePositions();
+
+        let result = null;
+        if (this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.positive) {
+            result = +this.partialMoveWithResistanceOnNonBindingDisk.positive.split('-')[0];
+        } else if (approximatePositions && this.partialMoveWithClickSecondGate) {
+            if (approximatePositions.high < approximatePositions.low) {
+                approximatePositions.high += 15;
+            }
+            // BEWARE: off-by-one errors await any attempt to modify this. returned value is in range 1-15.
+            result = (((approximatePositions.high + 1 - this.partialMoveWithClickSecondGate) + 15) % 15) || 15;    
+        }
+
+        return result;
     }
 
     // returns combinations in a SPECIFIC format, not the way we've been storing moves here.
-    // TODO: inaccuracies, maybe based off second gate positions etc.?
     matchingCombinations() {
         let filters = [];
 
         if (this.quickSequenceToFirstBindingGate()) {
             const firstBindingDiskFilterName = AxisHumanReadableHelper.diskTo('long')(this.firstBindingDisk).toLowerCase();
-            let firstGatePosition = internalPositionToAxisIndex(this.firstBindingDiskGatePosition);
+            let firstGatePosition = this.constructor.internalPositionToMHIndex(this.firstBindingDiskGatePosition);
             filters.push(gateIs(firstBindingDiskFilterName, firstGatePosition));
 
             // note that this will ignore later data if we're forcing last move in the dragging direction
@@ -230,10 +292,23 @@ class Decoder {
             } else if (this.secondBindingDisk() !== null) {
                 const secondBindingDiskFilterName = AxisHumanReadableHelper.diskTo('long')(this.secondBindingDisk()).toLowerCase();
                 if (this.secondBindingDiskGatePosition()) {
-                    filters.push(gateIs(secondBindingDiskFilterName, internalPositionToAxisIndex(this.secondBindingDiskGatePosition())));
+                    filters.push(gateIs(secondBindingDiskFilterName, this.constructor.internalPositionToMHIndex(this.secondBindingDiskGatePosition())));
+                } else if (this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.negative && this.partialMoveWithResistanceOnNonBindingDisk.negative.length) {
+                    let impossibleSecondGates = this.partialMoveWithResistanceOnNonBindingDisk.negative.map(s => +s.split('-')[0]);
+                    let possibleSecondGates = unzipPossibleGatePositions(this.secondBindingDiskPossibleGatePositions()).filter(x => !impossibleSecondGates.includes(x));
+                    let secondGateFilters = possibleSecondGates.map(n => gateIs(secondBindingDiskFilterName, n));
+                    let orFilter = function(st) {
+                        for (let filter of secondGateFilters) {
+                            if (filter(st)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    filters.push(orFilter);
                 } else {
                     const possibleGatePositions = this.secondBindingDiskPossibleGatePositions();
-                    filters.push(gateIsBetween(secondBindingDiskFilterName, internalPositionToAxisIndex(possibleGatePositions.low), internalPositionToAxisIndex(possibleGatePositions.high)));
+                    filters.push(gateIsBetween(secondBindingDiskFilterName, this.constructor.internalPositionToMHIndex(possibleGatePositions.low), this.constructor.internalPositionToMHIndex(possibleGatePositions.high)));
                 }
             }
         }
@@ -257,8 +332,12 @@ class Decoder {
 
         return matchingCombinations;
 
-        function internalPositionToAxisIndex(n) {
-            return { N: Math.floor((n+1)/3) % 5, M: ((n+1) % 3) - 1 };
+        // TODO: copy-pasted from above
+        function unzipPossibleGatePositions(possiblePositions) {
+            if (possiblePositions.low > possiblePositions.high) {
+                possiblePositions.high += 15;
+            }
+            return new Array(2*15+1).fill(true).map((x, i) => (i % 15) || 15).slice(possiblePositions.low, possiblePositions.high + 1);
         }
     }
 }
@@ -267,7 +346,7 @@ Decoder.dependencies = [
     'firstBindingDiskGatePosition',
     'draggingMoveWithClick',
     'modifiedDraggingMoveWithClick',
-    'partialMoveWithClickSecondGate'
+    ['partialMoveWithClickSecondGate', 'partialMoveWithResistanceOnNonBindingDisk'], // if in an array, they are concurrently cleared
 ];
 Decoder.normalizeMove = function(unnormalizedMove, relativeTopDisk) {
     const isPartial = AxisMoves.isPartialMove(unnormalizedMove);
@@ -295,11 +374,50 @@ Decoder.partialMoveReverseSteppingDirections = function(targetDisk) {
     const lurPattern = [AxisMoves.PARTIAL_MOVE_LEFT, AxisMoves.PARTIAL_MOVE_UP, AxisMoves.PARTIAL_MOVE_RIGHT];
     return lurPattern.map(dir => this.normalizeMove(dir, targetDisk));
 };
+// "global" refers to this being absolute moves, i.e. not depending on a reference disk
+Decoder.immediateGlobalPartialMovesActingOnDisk = function(disk, diskPosition) {
+    if (diskPosition > 15) {
+        diskPosition %= 15;
+    }
+    const partialMoveSequence = this.partialMoveReverseSteppingDirections(disk);
+    const firstImmediatePartialMoveOnDisk = this.normalizeMove([AxisMoves.PARTIAL_MOVE_LEFT, AxisMoves.PARTIAL_MOVE_RIGHT, AxisMoves.PARTIAL_MOVE_UP][diskPosition % 3], disk);
+    const idx = partialMoveSequence.indexOf(firstImmediatePartialMoveOnDisk);
+    const adjustedPartialMoveSequence = partialMoveSequence.concat(partialMoveSequence).slice(idx, idx + 3);
+    return adjustedPartialMoveSequence;
+};
 Decoder.SECOND_GATE_ISOLATION_TECHNIQUE = {
     PARTIAL_MOVES_ON_SECOND_DISK: 0,
     INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK: 1,
     UNKNOWN: 15
 };
+Decoder.mhIndexToInternalPosition = function(o) {
+    const pos = (3*o.N + o.M + 15) % 15;
+    return (pos === 0 ? 15 : pos);
+};
+Decoder.internalPositionToMHIndex = function(n) {
+    return { N: Math.floor((n+1)/3) % 5, M: ((n+1) % 3) - 1 };
+};
+
+// requires replaying move sequences right now, and some weird dependencies based on original setup
+function movesToMHState(moves) {
+    var dummyCanvas = document.createElement('canvas');
+    var dummyImage = document.createElement('img');
+    var disks = [
+        new AxisDisk(dummyCanvas, dummyImage, 0, AxisDisk.DISK_TOP),
+        new AxisDisk(dummyCanvas, dummyImage, 90, AxisDisk.DISK_LEFT),
+        new AxisDisk(dummyCanvas, dummyImage, 180, AxisDisk.DISK_BOTTOM),
+        new AxisDisk(dummyCanvas, dummyImage, 270, AxisDisk.DISK_RIGHT)
+    ]
+    for (var move of moves) {
+        for (var disk of disks) {
+            disk.move(move);
+        }
+    }
+    return disks.map(disk => disk.index);
+}
+function diskToMHStateIdx(disk) {
+    return { [AxisDisk.DISK_TOP]: 0, [AxisDisk.DISK_LEFT]: 1, [AxisDisk.DISK_BOTTOM]: 2, [AxisDisk.DISK_RIGHT]: 3 }[disk];
+}
 
 function formatMoveSequence(moves) {
     return moves.reduce(function(a,b){ return (!a.length || a[a.length-1] === b ? a + b : a + ' ' + b); }, '');

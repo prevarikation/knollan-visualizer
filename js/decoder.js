@@ -38,10 +38,10 @@ const cards = {
             // firefox will persist form options on a reload, make sure this is cleared
             document.forms['decoder'].reset();
             document.getElementById('locker-unlocker-only').addEventListener('click', function(){
+                clearRadioOption('firstDiskGatePosition');
                 decoder.clearProgressPast('firstBindingDisk');
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
-                clearRadioOption('firstDiskGatePosition');
             });
             document.getElementById('simplify-possibilities').addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', false);
@@ -75,9 +75,8 @@ const cards = {
     'identify-first-binding-disk': {
         setup: function() {
             document.forms['decoder'].elements['firstBindingDisk'].addEventListener('change', function(e){
-                decoder.set('firstBindingDisk', AxisDisk[`DISK_${e.currentTarget.value.toUpperCase()}`]);
-                // TODO: this is basically "clear forward values"
                 clearRadioOption('firstDiskGatePosition');
+                decoder.set('firstBindingDisk', AxisDisk[`DISK_${e.currentTarget.value.toUpperCase()}`]);
 
                 const steppingDirections = Decoder.steppingDirections(decoder.firstBindingDisk);
                 const shortSteppingDirections = steppingDirections.map(x => AxisHumanReadableHelper.moveTo('short')(x));
@@ -100,7 +99,7 @@ const cards = {
     'identify-gate-on-first-binding-disk': {
         setup: function(el){
             enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'firstDiskGatePosition');
-            el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', function() { decoder.clearProgressIncluding('firstBindingDiskGatePosition'); clearRadioOption('firstDiskGatePosition'); });
+            el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', function() { clearRadioOption('firstDiskGatePosition'); decoder.clearProgressIncluding('firstBindingDiskGatePosition'); });
             el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
@@ -109,14 +108,14 @@ const cards = {
                 decoder.set('onlyFactoryCombos', false);
                 decoder.set('forceOnlyFactoryCombos', false);
             });
-            Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', function(e) { decoder.set('firstBindingDiskGatePosition', +e.currentTarget.value); clearRadioOption('draggingMoveWithClick'); }));
+            Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', function(e) { clearRadioOption('draggingMoveWithClick'); decoder.set('firstBindingDiskGatePosition', +e.currentTarget.value); }));
         }
     },
 
     'identify-dragging-move-with-click': {
         setup: function(el) {
             enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'draggingMoveWithClick');
-            Array.from(document.forms['decoder'].elements['draggingMoveWithClick']).forEach(el => el.addEventListener('change', function(e){ decoder.set('draggingMoveWithClick', +e.currentTarget.value); clearRadioOption('modifiedDraggingMoveWithClick'); }));
+            Array.from(document.forms['decoder'].elements['draggingMoveWithClick']).forEach(el => el.addEventListener('change', function(e){ clearRadioOption('modifiedDraggingMoveWithClick'); decoder.set('draggingMoveWithClick', +e.currentTarget.value); }));
         },
         onShow: function() {
             const quickSequence = decoder.quickSequenceToFirstBindingGate();
@@ -143,8 +142,8 @@ const cards = {
                 let nextCard;
                 switch(decoder.howToIsolateSecondGate()) {
                     case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.PARTIAL_MOVES_ON_SECOND_DISK:             nextCard = 'partial-moves-isolate-gate-on-second-binding-disk'; break;
-                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK: nextCard = 'placeholder'; break;
-                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.UNKNOWN:                                  nextCard = 'placeholder'; break;
+                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK: nextCard = 'partial-moves-indirectly-determine-gate-on-second-binding-disk'; break;
+                    case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.UNKNOWN:                                  nextCard = 'combination-listing'; break;
                 }
                 el.querySelector("[data-nav-next-branching]").dataset.nextCard = nextCard;
             }));
@@ -170,12 +169,58 @@ const cards = {
         setup: function(el) {
             enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'partialMoveWithClickSecondGate');
             Array.from(document.forms['decoder'].elements['partialMoveWithClickSecondGate']).forEach(el => el.addEventListener('change', e => decoder.partialMoveWithClickSecondGate = +e.currentTarget.value));
+            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ clearRadioOption('partialMoveWithClickSecondGate'); decoder.clearProgressIncluding('partialMoveWithClickSecondGate'); });
         },
         onShow: function() {
             const partialMoveSequences = decoder.secondBindingDiskPartialMoveSequencesToIsolateGate();
             Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el){
-                var which = el.closest('label').querySelector('[name=partialMoveWithClickSecondGate]');
+                let which = el.closest('label').querySelector('[name=partialMoveWithClickSecondGate]');
                 el.innerText = "0 " + formatMoveSequence(partialMoveSequences[+which.value].map(AxisHumanReadableHelper.moveTo('short')));
+            });
+        }
+    },
+
+    'partial-moves-indirectly-determine-gate-on-second-binding-disk': {
+        setup: function(el) {
+            enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'partialMoveWithResistanceOnNonBindingDisk');
+            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ clearRadioOption('partialMoveWithResistanceOnNonBindingDisk'); decoder.clearProgressIncluding('partialMoveWithResistanceOnNonBindingDisk'); });
+            let radioOptions = Array.from(document.forms['decoder'].elements['partialMoveWithResistanceOnNonBindingDisk']);
+            radioOptions.forEach(el => el.addEventListener('change', function(e) {
+                decoder.partialMoveWithResistanceOnNonBindingDisk = { positive: e.currentTarget.value };
+            }));
+            el.querySelector("[data-no-options-apply]").addEventListener('click', function(e){
+                let inapplicableGates = radioOptions.filter(el => el.value !== "").reduce((prev, cur) => prev.concat(cur.value), []);
+                decoder.partialMoveWithResistanceOnNonBindingDisk = { negative: inapplicableGates }; 
+            });
+        },
+        onShow: function() {
+            const uiEls = Array.from(document.querySelectorAll('[data-partial-move-with-resistance-on-non-binding-disk]'));
+            uiEls.forEach(function(el){
+                let which =  el.closest('label').control;
+                which.value = "";
+                el.disabled = true;
+                el.closest('li').style.display = 'none';
+            });
+
+            const applicablePartialMoveSequences = {};
+            const partialMoveSequencesObject = decoder.partialMoveSequencesToIsolateGateOnSecondBindingDiskUsingNonBindingDisks();
+            for (const [gate, partialMoveSequences] of Object.entries(partialMoveSequencesObject)) {
+                partialMoveSequences.forEach(function(sequence) {
+                    for (let [partialMove, combination] of Object.entries(sequence)) {
+                        let partialMoveHash = `${gate}-${partialMove}`;
+                        if (!applicablePartialMoveSequences[partialMoveHash]) {
+                            applicablePartialMoveSequences[partialMoveHash] = combination;
+                        }
+                    }
+                });
+            }
+
+            Object.entries(applicablePartialMoveSequences).forEach(function(o, i) {
+                let which = uiEls[i].closest('label').control;
+                which.value = o[0];
+                uiEls[i].innerText = "0 " + formatMoveSequence(o[1].map(AxisHumanReadableHelper.moveTo('short')));
+                uiEls[i].removeAttribute('disabled');
+                uiEls[i].closest('li').style.display = 'revert';
             });
         }
     },
@@ -189,10 +234,10 @@ const cards = {
                 // set the gate to be one forward of what was previously tried.
                 var gate = decoder.firstBindingDiskGatePosition;
                 if (gate) {
-                    decoder.set('firstBindingDiskGatePosition', (gate === 15 ? 1 : gate+1));
-                    document.forms['decoder'].elements['firstDiskGatePosition'].value = decoder.firstBindingDiskGatePosition.toString();
                     clearRadioOption('draggingMoveWithClick');
                     clearRadioOption('modifiedDraggingMoveWithClick');
+                    decoder.set('firstBindingDiskGatePosition', (gate === 15 ? 1 : gate+1));
+                    document.forms['decoder'].elements['firstDiskGatePosition'].value = decoder.firstBindingDiskGatePosition.toString();
                 }
             });
         }
@@ -202,7 +247,6 @@ const cards = {
         setup: function(el) {
             el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
                 decoder.clearAllProgress();
-                clearRadioOption('firstDiskGatePosition'); // TODO: is "clear forward data"
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
             });

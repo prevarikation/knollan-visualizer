@@ -242,13 +242,51 @@
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="4"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
 	</ul>
 	<hr>
-	<input type="button" value="OK" data-next-card="combination-listing">
-	<input type="button" value="I can't find it" data-next-card="TODO">
+	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next="">
+	<input type="button" value="I can't find one" data-next-card="suggest-combination-listing-with-current-data">
 </section>
 
-<section id="placeholder" class="card">
-	<h2>Placeholder</h2>
-	<p>Placeholder for future content</p>
+<section id="partial-moves-indirectly-determine-gate-on-second-binding-disk" class="card">
+	<h2>Let's use partial moves to indirectly find the gate on the second binding disk.</h2>
+	<details open>
+		<summary>Partial move technique</summary>
+		<ol>
+			<li>Slowly move the knob in a given direction, <em>halfway out</em> and back to center.</li>
+		</ol>
+	</details>
+	<p>For each sequence below:</p>
+	<ol>
+		<li>Reset.</li>
+		<li><strong>Lowercase letters represent partial moves.</strong></li>
+		<li>Enter all but the last move in the sequence.</li>
+		<li>Before moving the knob in the last direction, apply medium-heavy opening tension to the shackle.</li>
+		<li>Slowly move the knob in the last direction, <em>halfway out</em> and back to center.</li>
+		<li><strong>We're looking for a grinding feeling or resistance to movement when making the last move.</strong></li>
+	</ol>
+	<p>
+		Which sequence gives resistance during the last move?
+	</p>
+	<ul class="hide-list-format space-out-list-items radio-as-button">
+		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+	</ul>
+	<hr>
+	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next="">
+	<input type="button" value="None of these drag or give resistance" data-next-card="combination-listing" data-no-options-apply="">
+	<input type="button" value="I'm not sure" data-next-card="suggest-combination-listing-with-current-data">
+</section>
+
+<section id="suggest-combination-listing-with-current-data" class="card">
+	<h2>We could try combinations using the data we already have.</h2>
+	<p>Our best bet is to try all combinations matching the data we already have. It's a little tedious but it's more reliable.</p>
+	<p>Would you like to try that?</p>
+	<hr>
+	<input type="button" value="Yes" data-next-card="combination-listing" data-nav-next="">
+	<input type="button" value="Let me check again" data-nav-back="">
 </section>
 
 <section id="suggest-locker-unlocker" class="card">
@@ -256,14 +294,14 @@
 	<p>Our best bet is to try the combinations on <a href="https://drive.google.com/file/d/1u3AgRIjficr5jQgkzEi9W6LfUoCii-G_/view" style="white-space: nowrap;">Blank Registration's Locker Unlocker worksheet</a> with the information we have.</p>
 	<p>Would you like to try that?</p>
 	<hr>
-	<input type="button" value="Yes" data-next-card="combination-listing">
+	<input type="button" value="Yes" data-next-card="combination-listing" data-nav-next="">
 	<input type="button" value="Let me check again" data-nav-back="">
 </section>
 
 <!--
 <section id="" class="card">
 	<h2>title</h2>
-	<input type="button" value="OK" data-next-card="">
+	<input type="button" value="OK" data-next-card="" data-nav-next="">
 	<input type="button" value="Let me try again" data-nav-back="">
 </section>
 -->
