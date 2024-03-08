@@ -1,6 +1,6 @@
 'use strict';
 /*** example:
-var possibilities = filterByEndIndices(
+let possibilities = filterByEndIndices(
     gateIs('top', { N: 3, M: -1 }),
     gateIsBetween('left', {N: 1, M: 1}, {N: 3, M:1}),
     gateIsBetween('bottom', {N: 1, M: 0}, {N: 3, M:0}),
@@ -8,35 +8,45 @@ var possibilities = filterByEndIndices(
 );
 possibilities.sort(sortEndIndicesByCombinationLength);
 ****/
-function filterByEndIndices() {
-    var st = { top: {}, left: {}, bottom: {}, right: {} };
-    var found = [];
-    for (var i in AxisStates.CombinationTable) {
-        AxisStates.StateNumber2State(i, st.top, st.left, st.bottom, st.right);
-        var matches = true;
-        for (var arg of arguments) {
-            if (typeof arg === 'function' && !arg(st)) {
+function filterByEndIndices(...filters) {
+    // HACK: you can operate on a previously filtered array by passing it as the first argument
+    if (filters.length && Array.isArray(filters[0])) {
+        let subset = filters.shift();
+        return subset.filter(entry => matchesPassedFilters(entry.state));
+    } else {
+        let st = { top: {}, left: {}, bottom: {}, right: {} };
+        let found = [];
+        for (let i in AxisStates.CombinationTable) {
+            AxisStates.StateNumber2State(i, st.top, st.left, st.bottom, st.right);
+            if (matchesPassedFilters(st)) {
+                const individualState = { top: Object.assign({}, st.top), left: Object.assign({}, st.left), bottom: Object.assign({}, st.bottom), right: Object.assign({}, st.right) };
+                found.push({
+                    i: i,
+                    state: individualState,
+                    combination: AxisStates.CombinationTable[i]
+                });
+            }
+        }
+        return found;
+    }
+
+    function matchesPassedFilters(state) {
+        let matches = true;
+        for (const filter of filters) {
+            if (typeof filter === 'function' && !filter(state)) {
                 matches = false;
             }
         }
-        if (matches) {
-            var individualState = { top: Object.assign({}, st.top), left: Object.assign({}, st.left), bottom: Object.assign({}, st.bottom), right: Object.assign({}, st.right) };
-            found.push({
-                i: i,
-                state: individualState,
-                combination: AxisStates.CombinationTable[i]
-            });
-        }
+        return matches;
     }
-    return found;
 }
 
 // all ranges are boundary-inclusive.
 function gateIsBetween(which, first, second) {
-    var lower = indexPairToInteger(first);
-    var upper = indexPairToInteger(second);
+    const lower = indexPairToInteger(first);
+    const upper = indexPairToInteger(second);
     return function(st) {
-        var value = indexPairToInteger(st[which]);
+        const value = indexPairToInteger(st[which]);
         // if lower is greater than upper, we invert criteria, for wraparound.
         return (lower <= upper ? (value >= lower && value <= upper) : (value <= lower || value >= upper));
     };
@@ -61,7 +71,7 @@ function relatedByDownMoves(stateA, stateB) {
         return false;
     }
 
-    for (var dir of ["left", "bottom", "right"]) {
+    for (let dir of ["left", "bottom", "right"]) {
         if (stateA[dir].M !== stateB[dir].M) {
             //return false;`
         }
@@ -74,7 +84,7 @@ function relatedByDownMoves(stateA, stateB) {
 }
 
 function moveDown(state) {
-    var newState = { top: Object.assign({}, state.top) };
+    let newState = { top: Object.assign({}, state.top) };
     newState.left   = { M: 1,  N: (state.left.N +     (state.left.M < 1 ? 0 : 1)) % 5 };
     newState.bottom = { M: 0,  N: (state.bottom.N + (state.bottom.M < 0 ? 0 : 1)) % 5 };
     newState.right  = { M: -1, N: (state.right.N + 1) % 5 };
@@ -86,8 +96,8 @@ function separateConsecutiveDistinct(str) {
         return str;
     }
 
-    var current = str[0];
-    for (var i = 1, result = current; i < str.length; ++i) {
+    let current = str[0];
+    for (let i = 1, result = current; i < str.length; ++i) {
         if (str[i] === current) {
             result += current;
         } else {

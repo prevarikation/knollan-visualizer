@@ -1,47 +1,53 @@
 'use strict';
 /*
 // Boolean setting options:
-// - factory codes only
+// - only factory combos
+// - force only factory combos
 // - assume last move in dragging direction
 */
 class Decoder {
     constructor() {
-        this.firstBindingDiskGatePosition = null;
+        Object.defineProperty(this, '_internal', { value: {} });
+        this.constructor.dependencies.flat().forEach(basicSetup.bind(this));
+
+        this[[].concat(this.constructor.dependencies[0])[0].name] = null;
+
+        // helpers
+        function basicSetup(prop) {
+            const basic = {
+                enumerable: true,
+                get: simpleGet(prop.name),
+                set: simpleSet(prop.name)
+            };
+            let final = Object.assign(basic, prop);
+            Object.defineProperty(this, prop.name, final);
+        }
+        function simpleGet(prop) { return function(){ return this._internal[prop]; }; }
+        function simpleSet(prop) { return function(x){ return this._internal[prop] = x; }; }
     }
 
     set(prop, val) {
+        let curVal = this[prop];
         this[prop] = val;
-        this.clearProgressPast(prop);
+        // TODO: HACK: preventing downstream things from freaking out
+        if (val !== curVal) {
+            this.clearProgressPast(prop);
+        }
     }
 
-    clearProgressIncluding(prop) {
+    clearProgressIncluding(prop, actuallyPast) {
         var positionInDependencies = this.constructor.dependencies.findIndex(hasTargetProp);
         if (positionInDependencies !== -1) {
-            for (var i = positionInDependencies; i < this.constructor.dependencies.length; ++i) {
-                if (Array.isArray(this.constructor.dependencies)[i]) {
-                    this.constructor.dependencies[i].forEach(s => this[s] = undefined);
-                } else {
-                    this[this.constructor.dependencies[i]] = undefined;
-                }
+            for (var i = positionInDependencies + (actuallyPast ? 1 : 0); i < this.constructor.dependencies.length; ++i) {
+                [].concat(this.constructor.dependencies[i]).forEach(s => this[s.name] = null);
             }
         }
 
-        function hasTargetProp(x) { return Array.isArray(x) ? x.includes(prop) : x === prop; }
+        function hasTargetProp(p) { return [].concat(p).find((x) => x.name === prop); }
     }
 
     clearProgressPast(prop) {
-        var positionInDependencies = this.constructor.dependencies.findIndex(hasTargetProp);
-        if (positionInDependencies !== -1) {
-            for (var i = positionInDependencies + 1; i < this.constructor.dependencies.length; ++i) {
-                if (Array.isArray(this.constructor.dependencies)[i]) {
-                    this.constructor.dependencies[i].forEach(s => this[s] = undefined);
-                } else {
-                    this[this.constructor.dependencies[i]] = undefined;
-                }
-            }
-        }
-
-        function hasTargetProp(x) { return Array.isArray(x) ? x.includes(prop) : x === prop; }
+        this.clearProgressIncluding(prop, true);
     }
 
     clearAllProgress() {
@@ -296,7 +302,7 @@ class Decoder {
                 } else if (this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.negative && this.partialMoveWithResistanceOnNonBindingDisk.negative.length) {
                     let impossibleSecondGates = this.partialMoveWithResistanceOnNonBindingDisk.negative.map(s => +s.split('-')[0]);
                     let possibleSecondGates = unzipPossibleGatePositions(this.secondBindingDiskPossibleGatePositions()).filter(x => !impossibleSecondGates.includes(x));
-                    let secondGateFilters = possibleSecondGates.map(n => gateIs(secondBindingDiskFilterName, n));
+                    let secondGateFilters = possibleSecondGates.map(n => gateIs(secondBindingDiskFilterName, this.constructor.internalPositionToMHIndex(n)));
                     let orFilter = function(st) {
                         for (let filter of secondGateFilters) {
                             if (filter(st)) {
@@ -342,11 +348,19 @@ class Decoder {
     }
 }
 Decoder.dependencies = [
-    'firstBindingDisk',
-    'firstBindingDiskGatePosition',
-    'draggingMoveWithClick',
-    'modifiedDraggingMoveWithClick',
-    ['partialMoveWithClickSecondGate', 'partialMoveWithResistanceOnNonBindingDisk'], // if in an array, they are concurrently cleared
+    {
+        name: 'firstBindingDisk',
+        set: function(x) {
+            if (typeof x === "string") {
+                x = AxisDisk[`DISK_${x.toUpperCase()}`];
+            }
+            return this._internal.firstBindingDisk = x;
+        }
+    },
+    { name: 'firstBindingDiskGatePosition' },
+    { name: 'draggingMoveWithClick' },
+    { name: 'modifiedDraggingMoveWithClick' },
+    [{name: 'partialMoveWithClickSecondGate'}, {name: 'partialMoveWithResistanceOnNonBindingDisk'}], // if in an array together, they are concurrently cleared
 ];
 Decoder.normalizeMove = function(unnormalizedMove, relativeTopDisk) {
     const isPartial = AxisMoves.isPartialMove(unnormalizedMove);

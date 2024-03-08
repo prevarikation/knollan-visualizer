@@ -38,18 +38,14 @@ const cards = {
             // firefox will persist form options on a reload, make sure this is cleared
             document.forms['decoder'].reset();
             document.forms['decoder'].elements['lockerUnlockerOnly'].addEventListener('click', function(){
-                clearRadioOption('firstDiskGatePosition');
                 decoder.clearProgressPast('firstBindingDisk');
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
             });
             document.forms['decoder'].elements['simplifyPossibilities'].addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', false);
-                decoder.set('forceOnlyFactoryCombos', false);
             });
-        },
-        onShow: function(){},
-        onHide: function(){}
+        }
     },
 
     'combination-listing': {
@@ -68,15 +64,16 @@ const cards = {
         },
         onHide: function(){
             document.getElementById('combinations').innerHTML = '';
-            decoder.set('assumeLastMoveInDraggingDirection', false); // not sticky! must be manually set each time
+            // these not sticky! must be manually set each time
+            decoder.set('forceOnlyFactoryCombos', false);
+            decoder.set('assumeLastMoveInDraggingDirection', false);
         }
     },
 
     'identify-first-binding-disk': {
         setup: function() {
             document.forms['decoder'].elements['firstBindingDisk'].addEventListener('change', function(e){
-                clearRadioOption('firstDiskGatePosition');
-                decoder.set('firstBindingDisk', AxisDisk[`DISK_${e.currentTarget.value.toUpperCase()}`]);
+                decoder.set('firstBindingDisk', e.currentTarget.value);
 
                 const steppingDirections = Decoder.steppingDirections(decoder.firstBindingDisk);
                 const shortSteppingDirections = steppingDirections.map(x => AxisHumanReadableHelper.moveTo('short')(x));
@@ -98,26 +95,29 @@ const cards = {
 
     'identify-gate-on-first-binding-disk': {
         setup: function(el){
-            enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'firstDiskGatePosition');
-            el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', function() { clearRadioOption('firstDiskGatePosition'); decoder.clearProgressIncluding('firstBindingDiskGatePosition'); });
+            autoEnableForwardButtonsWithRadioSelection(el);
+            autoSyncRadioChangesToModel(el);
+            el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', function() { decoder.clearProgressIncluding('firstBindingDiskGatePosition'); });
             el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
             });
             el.querySelector('[data-next-card=identify-dragging-move-with-click]').addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', false);
-                decoder.set('forceOnlyFactoryCombos', false);
             });
-            Array.from(document.forms['decoder'].elements['firstDiskGatePosition']).forEach(el => el.addEventListener('change', function(e) { clearRadioOption('draggingMoveWithClick'); decoder.set('firstBindingDiskGatePosition', +e.currentTarget.value); }));
+        },
+        onShow: function(e) {
+            setRadioOptionsFromDecoderModel(e.currentTarget);
+            updateForwardButtons(e.currentTarget);
         }
     },
 
     'identify-dragging-move-with-click': {
         setup: function(el) {
-            enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'draggingMoveWithClick');
-            Array.from(document.forms['decoder'].elements['draggingMoveWithClick']).forEach(el => el.addEventListener('change', function(e){ clearRadioOption('modifiedDraggingMoveWithClick'); decoder.set('draggingMoveWithClick', +e.currentTarget.value); }));
+            autoEnableForwardButtonsWithRadioSelection(el);
+            autoSyncRadioChangesToModel(el);
         },
-        onShow: function() {
+        onShow: function(e) {
             const quickSequence = decoder.quickSequenceToFirstBindingGate();
             if (quickSequence) {
                 Array.from(document.querySelectorAll('[data-dragging-moves]')).forEach(function(el){
@@ -125,20 +125,22 @@ const cards = {
                     el.innerText = "0 " + formatMoveSequence(quickSequence.concat(new Array( (which.value === "1" ? 5 : +which.value-1) ).fill(Decoder.normalizeMove(AxisMoves.MOVE_DOWN, decoder.firstBindingDisk))).map(x => AxisHumanReadableHelper.moveTo('short')(x)));
                 });
             }
+
+            setRadioOptionsFromDecoderModel(e.currentTarget);
+            updateForwardButtons(e.currentTarget);
         }
     },
 
     'identify-modified-dragging-move-with-click': {
         setup: function(el){
-            enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'modifiedDraggingMoveWithClick');
+            autoEnableForwardButtonsWithRadioSelection(el);
+            autoSyncRadioChangesToModel(el);
             Array.from(el.querySelectorAll("[data-next-card]")).forEach(el => el.addEventListener('click', function(e) {
                 if (e.currentTarget.dataset.nextCard === "combination-listing") {
                     decoder.clearProgressPast('modifiedDraggingMoveWithClick');
                 }
             }));
             Array.from(document.forms['decoder'].elements['modifiedDraggingMoveWithClick']).forEach(nestedEl => nestedEl.addEventListener('change', function(e) { 
-                decoder.modifiedDraggingMoveWithClick = +e.currentTarget.value;
-
                 let nextCard;
                 switch(decoder.howToIsolateSecondGate()) {
                     case Decoder.SECOND_GATE_ISOLATION_TECHNIQUE.PARTIAL_MOVES_ON_SECOND_DISK:             nextCard = 'partial-moves-isolate-gate-on-second-binding-disk'; break;
@@ -148,7 +150,7 @@ const cards = {
                 el.querySelector("[data-nav-next-branching]").dataset.nextCard = nextCard;
             }));
         },
-        onShow: function() {
+        onShow: function(e) {
             const sequencesWithPossibleClickOnDrag = decoder.adjustedQuickSequencesWithPossibleClickOnDrag();
             if (sequencesWithPossibleClickOnDrag) {
                 Array.from(document.querySelectorAll('[data-modified-dragging-moves]')).forEach(function(el){
@@ -162,38 +164,42 @@ const cards = {
                     el.closest('li').style.display = (!!sequenceForWhich ? 'revert' : 'none');
                 });
             }
+
+            setRadioOptionsFromDecoderModel(e.currentTarget);
+            updateForwardButtons(e.currentTarget);
         }
     },
 
     'partial-moves-isolate-gate-on-second-binding-disk': {
         setup: function(el) {
-            enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'partialMoveWithClickSecondGate');
-            Array.from(document.forms['decoder'].elements['partialMoveWithClickSecondGate']).forEach(el => el.addEventListener('change', e => decoder.partialMoveWithClickSecondGate = +e.currentTarget.value));
-            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ clearRadioOption('partialMoveWithClickSecondGate'); decoder.clearProgressIncluding('partialMoveWithClickSecondGate'); });
+            autoEnableForwardButtonsWithRadioSelection(el);
+            autoSyncRadioChangesToModel(el);
+            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ decoder.clearProgressIncluding('partialMoveWithClickSecondGate'); });
         },
-        onShow: function() {
+        onShow: function(e) {
             const partialMoveSequences = decoder.secondBindingDiskPartialMoveSequencesToIsolateGate();
             Array.from(document.querySelectorAll('[data-partial-moves-second-gate]')).forEach(function(el){
                 let which = el.closest('label').control;
                 el.innerText = "0 " + formatMoveSequence(partialMoveSequences[+which.value].map(AxisHumanReadableHelper.moveTo('short')));
             });
+
+            setRadioOptionsFromDecoderModel(e.currentTarget);
+            updateForwardButtons(e.currentTarget);
         }
     },
 
     'partial-moves-indirectly-determine-gate-on-second-binding-disk': {
         setup: function(el) {
-            enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next]"), 'partialMoveWithResistanceOnNonBindingDisk');
-            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ clearRadioOption('partialMoveWithResistanceOnNonBindingDisk'); decoder.clearProgressIncluding('partialMoveWithResistanceOnNonBindingDisk'); });
-            let radioOptions = Array.from(document.forms['decoder'].elements['partialMoveWithResistanceOnNonBindingDisk']);
-            radioOptions.forEach(el => el.addEventListener('change', function(e) {
-                decoder.partialMoveWithResistanceOnNonBindingDisk = { positive: e.currentTarget.value };
-            }));
+            autoEnableForwardButtonsWithRadioSelection(el);
+            autoSyncRadioChangesToModel(el, function(val){ return { positive: val }; });
+            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ decoder.clearProgressIncluding('partialMoveWithResistanceOnNonBindingDisk'); });
+            let radioOptions = Array.from(document.forms['decoder'].elements[radioOptionNamesAsChildrenOf(el)[0]]);
             el.querySelector("[data-no-options-apply]").addEventListener('click', function(e){
                 let inapplicableGates = radioOptions.filter(el => el.value !== "").reduce((prev, cur) => prev.concat(cur.value), []);
                 decoder.partialMoveWithResistanceOnNonBindingDisk = { negative: inapplicableGates }; 
             });
         },
-        onShow: function() {
+        onShow: function(e) {
             const uiEls = Array.from(document.querySelectorAll('[data-partial-move-with-resistance-on-non-binding-disk]'));
             uiEls.forEach(function(el){
                 let which =  el.closest('label').control;
@@ -222,6 +228,9 @@ const cards = {
                 uiEls[i].removeAttribute('disabled');
                 uiEls[i].closest('li').style.display = 'revert';
             });
+
+            setRadioOptionsFromDecoderModel(e.currentTarget);
+            updateForwardButtons(e.currentTarget);
         }
     },
 
@@ -234,10 +243,8 @@ const cards = {
                 // set the gate to be one forward of what was previously tried.
                 var gate = decoder.firstBindingDiskGatePosition;
                 if (gate) {
-                    clearRadioOption('draggingMoveWithClick');
-                    clearRadioOption('modifiedDraggingMoveWithClick');
                     decoder.set('firstBindingDiskGatePosition', (gate === 15 ? 1 : gate+1));
-                    document.forms['decoder'].elements['firstDiskGatePosition'].value = decoder.firstBindingDiskGatePosition.toString();
+                    document.forms['decoder'].elements['firstBindingDiskGatePosition'].value = decoder.firstBindingDiskGatePosition.toString();
                 }
             });
         }
@@ -252,7 +259,7 @@ const cards = {
             });
         }
     }
- };
+};
 
 /*
 ** Expects an array of combinations with form
@@ -366,21 +373,52 @@ function back(e) {
     }
 }
 
+function autoSyncRadioChangesToModel(el, conversionFunc) {
+    let radioOptionNames = radioOptionNamesAsChildrenOf(el);
+    for (let name of radioOptionNames) {
+        Array.from(document.forms['decoder'].elements[name]).forEach(el => el.addEventListener('change', function(e){ decoder.set(name, (conversionFunc || autoPromoteToInteger)(e.currentTarget.value)); }));
+    }
+
+    function autoPromoteToInteger(x) {
+        let int = +x;
+        return (!Number.isNaN(x) ? int : x);
+    }
+}
+function autoEnableForwardButtonsWithRadioSelection(el) {
+    radioOptionNamesAsChildrenOf(el).forEach(name => enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next-only-with-selection]"), name));
+}
 function enableButtonsWithRadioSelection(buttons, name) {
     buttons.forEach(function(button){
-        enableButtonWithRadioSelection(button, name);
+        let toggle = togglingFunc(button, name);
+        toggle();
         for (var i = 0, radioOptions = document.forms['decoder'][name]; i < radioOptions.length; ++i) {
-            radioOptions[i].addEventListener('change', function(){ enableButtonWithRadioSelection(button, name) });
+            radioOptions[i].addEventListener('change', toggle);
         }
+        button.addEventListener('uiUpdate', toggle);
     });
+
+    function togglingFunc(button, name) { return function(){ enableButtonWithRadioSelection(button, name); }; }
 }
 function enableButtonWithRadioSelection(button, name) {
     button.disabled = !document.querySelector('input[name="' + name + '"]:checked');
 }
-function clearRadioOption(name) {
-    var el = document.querySelector('input[name="' + name + '"]:checked');
-    if (el) {
-        el.checked = false;
-        el.dispatchEvent(new Event('change'));
+function setRadioOptionsFromDecoderModel(el) {
+    for (let name of radioOptionNamesAsChildrenOf(el)) {
+        if (decoder[name]) {
+            document.forms['decoder'].elements[name].value = decoder[name].toString();
+        }
+
+        let checkedEl = document.querySelector('input[name="' + name + '"]:checked');
+
+        if (!decoder[name] && checkedEl) {
+                checkedEl.checked = false;
+        }
     }
+}
+function updateForwardButtons(el) {
+    Array.from(el.querySelectorAll("[data-nav-next-only-with-selection]")).forEach(button => button.dispatchEvent(new Event('uiUpdate')));
+}
+function radioOptionNamesAsChildrenOf(el) {
+    // uniqueness reduce() here isn't great but there shouldn't be that many radio options on a page (probably just one)
+    return Array.from(el.querySelectorAll("input[type=radio]")).reduce((prev, cur) => (prev.includes(cur.name) ? prev : prev.concat(cur.name)), []);
 }
