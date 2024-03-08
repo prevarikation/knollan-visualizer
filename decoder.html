@@ -34,8 +34,8 @@
 
 <section id="start" class="card">
 	<h2>How would you like to start?</h2>
-	<input id="locker-unlocker-only" type="button" value="Let's cover 4-move (factory) codes only" data-next-card="combination-listing">
-	<input id="simplify-possibilities" type="button" value="Let's simplify possibilities first" data-next-card="identify-first-binding-disk">	
+	<input type="button" name="lockerUnlockerOnly" value="Let's cover 4-move (factory) codes only" data-next-card="combination-listing">
+	<input type="button" name="simplifyPossibilities" value="Let's simplify possibilities first" data-next-card="identify-first-binding-disk">	
 </section>
 
 <section id="combination-listing" class="card">
@@ -70,7 +70,7 @@
 		<option value="right">Left</option>
 	</select>
 	<hr>
-	<input id="found-first-binding-disk" type="button" value="OK" data-next-card="identify-gate-on-first-binding-disk">
+	<input type="button" value="OK" data-next-card="identify-gate-on-first-binding-disk">
 	<input type="button" value="I can't find it" data-next-card="suggest-locker-unlocker">
 </section>
 
@@ -138,7 +138,7 @@
 		</tbody>
 	</table>
 	<hr>
-	<input id="found-first-gate" type="button" value="OK" data-next-card="identify-dragging-move-with-click" data-nav-next="">
+	<input type="button" value="OK" data-next-card="identify-dragging-move-with-click" data-nav-next="">
 	<input type="button" value="Try 4-move factory codes with this info" data-next-card="combination-listing" data-nav-next="">
 	<input type="button" value="I can't find it" data-next-card="suggest-locker-unlocker">
 </section>

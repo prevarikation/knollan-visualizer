@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
         // MUST follow card actions, because we want click handlers in setup()s to be added first
         Array.from(htmlCard.querySelectorAll('input[type=button][data-next-card]')).forEach(function(el){
-                el.addEventListener('click', (e) => transitionCards(htmlCard.id, e.currentTarget.dataset.nextCard)());
+            el.addEventListener('click', (e) => transitionCards(htmlCard.id, e.currentTarget.dataset.nextCard)());
         });
     }
 
@@ -37,13 +37,13 @@ const cards = {
             decoderHistory.push('start');
             // firefox will persist form options on a reload, make sure this is cleared
             document.forms['decoder'].reset();
-            document.getElementById('locker-unlocker-only').addEventListener('click', function(){
+            document.forms['decoder'].elements['lockerUnlockerOnly'].addEventListener('click', function(){
                 clearRadioOption('firstDiskGatePosition');
                 decoder.clearProgressPast('firstBindingDisk');
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
             });
-            document.getElementById('simplify-possibilities').addEventListener('click', function(){
+            document.forms['decoder'].elements['simplifyPossibilities'].addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', false);
                 decoder.set('forceOnlyFactoryCombos', false);
             });
