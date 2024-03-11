@@ -50,24 +50,41 @@ const cards = {
     },
 
     'combination-listing': {
-        setup: function() {
-            document.forms['decoder'].elements['onlyFactoryCombos'].addEventListener('change', function(e){ decoder.onlyFactoryCombos = e.currentTarget.checked; generateCombinations(); });
+        setup: function(el) {
+            document.forms['decoder'].elements['onlyFactoryCombos'].addEventListener('change', function(e){
+                decoder.onlyFactoryCombos = e.currentTarget.checked;
+                el.dispatchEvent(new Event('onCombinationChanges'));   
+            });
+            document.getElementById('combinations').addEventListener('click', function(e){
+                let container = e.currentTarget;
+                let old = container.querySelector('.combination.highlight');
+                if (old) {
+                    old.classList.remove('highlight');
+                    old.nextElementSibling.classList.add('highlight');
+                }
+            });
         },
-        onShow: function(){
+        onShow: function(e){
             document.forms['decoder'].elements['onlyFactoryCombos'].checked = !!decoder.onlyFactoryCombos;
             if (!!decoder.forceOnlyFactoryCombos) {
                 document.forms['decoder'].elements['onlyFactoryCombos'].disabled = true;
             } else {
                 document.forms['decoder'].elements['onlyFactoryCombos'].removeAttribute('disabled');
             }
-
-            generateCombinations();
+            e.currentTarget.dispatchEvent(new Event('onCombinationChanges'));
         },
         onHide: function(){
             document.getElementById('combinations').innerHTML = '';
             // these not sticky! must be manually set each time
             decoder.set('forceOnlyFactoryCombos', false);
             decoder.set('assumeLastMoveInDraggingDirection', false);
+        },
+        onCombinationChanges: function() {
+            generateCombinations();
+            let firstCombination = document.getElementById('combinations').firstElementChild;
+            if (firstCombination) {
+                firstCombination.classList.add('highlight');
+            }
         }
     },
 

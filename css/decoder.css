@@ -58,8 +58,10 @@ table.gate-selection input[type=radio] ~ span { display: inline-block; width: va
 output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
 output.short-generate { padding-left: 0.25em; padding-right: 0.25em; font-size: 125%; font-weight: bold; }
 
-#combinations { font-family: monospace; }
+#combination-listing h2 { margin-bottom: 0; }
+#combinations { display: block; margin-top: 1em; font-family: monospace; }
 .combination .pull { color: red; }
+.combination.highlight { background-color: yellow; }
 
 @media screen and (min-width: 500px) {
     :root {
