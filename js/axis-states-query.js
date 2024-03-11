@@ -46,13 +46,14 @@ export function filterByEndIndices(...filters) {
 }
 
 // all ranges are boundary-inclusive.
+// as far as directionality: this counts values between first ------> second, not second ------> first
 export function gateIsBetween(which, first, second) {
     const lower = indexPairToInteger(first);
     const upper = indexPairToInteger(second);
     return function(st) {
         const value = indexPairToInteger(st[which]);
-        // if lower is greater than upper, we invert criteria, for wraparound.
-        return (lower <= upper ? (value >= lower && value <= upper) : (value <= lower || value >= upper));
+        // if lower is greater than upper, we need to wrap around.
+        return (lower <= upper ? (value >= lower && value <= upper) : (value >= lower || value <= upper));
     };
 }
 
