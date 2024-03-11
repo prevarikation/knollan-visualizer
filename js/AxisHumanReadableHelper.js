@@ -29,3 +29,10 @@ AxisHumanReadableHelper.diskToLong = function(disk) {
 AxisHumanReadableHelper.diskToShort = function(disk) {
     return AxisHumanReadableHelper.diskToLong(disk).slice(0, 1);
 }
+
+// doesn't support partial moves
+AxisHumanReadableHelper.readableMoveToMove = function(readable) {
+    return {
+        U: AxisMoves.MOVE_UP, L: AxisMoves.MOVE_LEFT, D: AxisMoves.MOVE_DOWN, R: AxisMoves.MOVE_RIGHT
+    }[readable.charAt(0).toUpperCase()];
+}

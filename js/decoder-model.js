@@ -290,7 +290,7 @@ export class Decoder {
 
             // note that this will ignore later data if we're forcing last move in the dragging direction
             if (this.assumeLastMoveInDraggingDirection) {
-                var oppositeBindingDiskMap = {
+                let oppositeBindingDiskMap = {
                     top: ['right', 'bottom', 'left'],
                     left: ['top', 'right', 'bottom'],
                     bottom: ['left', 'top', 'right'],
@@ -335,8 +335,38 @@ export class Decoder {
                 return typeof visitedStates[AxisStates.State2StateNumber(st.top, st.left, st.bottom, st.right)] === 'undefined';
             });
 
-            var additionalCombinations = filterByEndIndices.apply(null, filters).sort(sortEndIndicesByCombinationLength).map(function(c){ return { combo: c.combination }; });
+            let additionalCombinations = filterByEndIndices.apply(null, filters).sort(sortEndIndicesByCombinationLength).map(function(c){ return { combo: c.combination }; });
             matchingCombinations = matchingCombinations.concat(additionalCombinations);
+        }
+
+        // consolidate combos if last move is assumed in a dragging direction, i.e., turn five separate combos into 0 XX Y Z(ZZZZ)
+        if (this.assumeLastMoveInDraggingDirection) {
+            const adjustedCombinations = [];
+            const visitedStates = {};
+            for (const comboData of matchingCombinations) {
+                // assume that we can only simplify if there aren't already multiple pulls associated with a combination sequence
+                if (!comboData.indicesForMultiplePulls) {
+                    const textMoves = comboData.combo.split('');
+                    const lastMove = textMoves[textMoves.length-1];
+                    const startingState = movesToMHState(textMoves.map(AxisHumanReadableHelper.readableMoveToMove));
+                    if (!visitedStates[AxisStates.State2StateNumber.apply(null, startingState)]) {
+                        const states = [];
+                        const indicesForMultiplePulls = [];
+                        for (let i = 0; i < 5; ++i) {
+                            const mhState = movesToMHState(textMoves.concat(new Array(i).fill(lastMove)).map(AxisHumanReadableHelper.readableMoveToMove));
+                            visitedStates[AxisStates.State2StateNumber.apply(null, mhState)] = true;
+                            states.push(mhState);
+                            indicesForMultiplePulls.push(textMoves.length-1 + i);
+                        }
+                        adjustedCombinations.push({
+                            combo: textMoves.concat(new Array(4).fill(lastMove)).join(''),
+                            indicesForMultiplePulls,
+                            states
+                        });
+                    }
+                }
+            }
+            matchingCombinations = adjustedCombinations;
         }
 
         return matchingCombinations;
@@ -417,16 +447,16 @@ Decoder.internalPositionToMHIndex = function(n) {
 
 // requires replaying move sequences right now, and some weird dependencies based on original setup
 function movesToMHState(moves) {
-    var dummyCanvas = document.createElement('canvas');
-    var dummyImage = document.createElement('img');
-    var disks = [
+    let dummyCanvas = document.createElement('canvas');
+    let dummyImage = document.createElement('img');
+    let disks = [
         new AxisDisk(dummyCanvas, dummyImage, 0, AxisDisk.DISK_TOP),
         new AxisDisk(dummyCanvas, dummyImage, 90, AxisDisk.DISK_LEFT),
         new AxisDisk(dummyCanvas, dummyImage, 180, AxisDisk.DISK_BOTTOM),
         new AxisDisk(dummyCanvas, dummyImage, 270, AxisDisk.DISK_RIGHT)
     ]
-    for (var move of moves) {
-        for (var disk of disks) {
+    for (let move of moves) {
+        for (let disk of disks) {
             disk.move(move);
         }
     }
