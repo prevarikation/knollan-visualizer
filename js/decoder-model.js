@@ -13,7 +13,7 @@ export class Decoder {
         Object.defineProperty(this, '_internal', { value: {} });
         this.constructor.dependencies.flat().forEach(basicSetup.bind(this));
 
-        this[[].concat(this.constructor.dependencies[0])[0].name] = null;
+        this.clearProgressIncluding([].concat(this.constructor.dependencies[0])[0].name);
 
         // helpers
         function basicSetup(prop) {
