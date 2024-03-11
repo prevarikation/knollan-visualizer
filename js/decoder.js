@@ -77,6 +77,7 @@ const cards = {
         onHide: function(){
             document.getElementById('combinations').innerHTML = '';
             // these not sticky! must be manually set each time
+            decoder.set('forceAllAndOnlyLockerUnlockerCombos', false);
             decoder.set('forceOnlyFactoryCombos', false);
             decoder.set('assumeLastMoveInDraggingDirection', false);
         },
@@ -116,7 +117,6 @@ const cards = {
         setup: function(el){
             autoEnableForwardButtonsWithRadioSelection(el);
             autoSyncRadioChangesToModel(el);
-            el.querySelector('[data-next-card=suggest-locker-unlocker]').addEventListener('click', function() { decoder.clearProgressIncluding('firstBindingDiskGatePosition'); });
             el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
@@ -272,7 +272,7 @@ const cards = {
     'suggest-locker-unlocker': {
         setup: function(el) {
             el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
-                decoder.clearAllProgress();
+                decoder.set('forceAllAndOnlyLockerUnlockerCombos', true);
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
             });

@@ -4,6 +4,7 @@ import { filterByEndIndices, gateIs, gateIsBetween, sortEndIndicesByCombinationL
 
 /*
 // Boolean setting options:
+// - force all and only locker unlocker combos
 // - only factory combos
 // - force only factory combos
 // - assume last move in dragging direction
@@ -282,7 +283,7 @@ export class Decoder {
     matchingCombinations() {
         let filters = [];
 
-        if (this.quickSequenceToFirstBindingGate()) {
+        if (!this.forceAllAndOnlyLockerUnlockerCombos && this.quickSequenceToFirstBindingGate()) {
             const firstBindingDiskFilterName = AxisHumanReadableHelper.diskTo('long')(this.firstBindingDisk).toLowerCase();
             let firstGatePosition = this.constructor.internalPositionToMHIndex(this.firstBindingDiskGatePosition);
             filters.push(gateIs(firstBindingDiskFilterName, firstGatePosition));
@@ -322,10 +323,9 @@ export class Decoder {
             }
         }
 
-        // always lead with locker unlocker combinations
         let matchingCombinations = matchingLockerUnlockerToCombinationsWithState.apply(null, filters);
 
-        if (!this.onlyFactoryCombos && !this.forceOnlyFactoryCombos) {
+        if (!this.forceAllAndOnlyLockerUnlockerCombos && !this.onlyFactoryCombos && !this.forceOnlyFactoryCombos) {
             // add filter to not repeat states already visited by locker unlocker combos
             let visitedStates = {};
             for (let state of matchingCombinations.map(o => o.states).flat().map(st => AxisStates.State2StateNumber.apply(null, st))) {
