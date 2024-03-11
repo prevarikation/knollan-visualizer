@@ -1,4 +1,8 @@
 'use strict';
+
+// populate the state table
+AxisStates();
+
 /*** example:
 let possibilities = filterByEndIndices(
     gateIs('top', { N: 3, M: -1 }),

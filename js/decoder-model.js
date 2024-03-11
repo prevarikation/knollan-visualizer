@@ -1,6 +1,6 @@
 'use strict';
 
-import { filterByEndIndices, gateIs, gateIsBetween, sortEndIndicesByCombinationLength } from './query-axis-states.js';
+import { filterByEndIndices, gateIs, gateIsBetween, sortEndIndicesByCombinationLength } from './axis-states-query.js';
 
 /*
 // Boolean setting options:
