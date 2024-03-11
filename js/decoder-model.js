@@ -1,11 +1,14 @@
 'use strict';
+
+import { filterByEndIndices, gateIs, gateIsBetween, sortEndIndicesByCombinationLength } from './query-axis-states.js';
+
 /*
 // Boolean setting options:
 // - only factory combos
 // - force only factory combos
 // - assume last move in dragging direction
 */
-class Decoder {
+export class Decoder {
     constructor() {
         Object.defineProperty(this, '_internal', { value: {} });
         this.constructor.dependencies.flat().forEach(basicSetup.bind(this));
@@ -433,6 +436,48 @@ function diskToMHStateIdx(disk) {
     return { [AxisDisk.DISK_TOP]: 0, [AxisDisk.DISK_LEFT]: 1, [AxisDisk.DISK_BOTTOM]: 2, [AxisDisk.DISK_RIGHT]: 3 }[disk];
 }
 
-function formatMoveSequence(moves) {
+function matchingLockerUnlockerToCombinationsWithState() {
+    var filterArguments = arguments;
+    var tableWithIndices = lockerUnlockerTable.map(chain => chain.map(function(moveSet, idx){ return { index: idx, moveSet: moveSet }; }));
+    var filteredTable = tableWithIndices.map(chain => chain.filter(o => stateMatchesFilters.apply(this, [o.moveSet.state].concat(filterArguments))));
+    return filteredTable.map(function(chain, i) {
+        var result = null;
+        if (chain.length) {
+            var result = lockerUnlockerFormatToCombination(lockerUnlockerTable[i], chain.map(o => o.index));
+            result.states = chain.map(o => o.moveSet.state);
+        }
+        return result;
+    }).filter(x => x);
+
+    function stateMatchesFilters(state, filters) {
+        for (var arg of filters) {
+            if (typeof arg === 'function' && !arg({ top: state[0], left: state[1], bottom: state[2], right: state[3] })) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+function lockerUnlockerFormatToCombination(format, desiredIndices) {
+    if (desiredIndices) {
+        if (desiredIndices.length === 1) {
+            // only one pull, so we use the most direct route
+            var fullCombo = format[desiredIndices[0]].directCombo || format[desiredIndices[0]].moves;
+            desiredIndices = [fullCombo.length-1];
+        } else {
+            // multiple pulls, but possibly limited or intermittent
+            var fullCombo = format.filter((x,i) => (i <= Math.max.apply(null, desiredIndices))).map(o => o.moves).join('');
+            desiredIndices = desiredIndices.map(x => x + format[0].moves.length-1);
+        }
+    } else {
+        // no info given = pull at the end of every move sequence
+        var fullCombo = format.map(o => o.moves).join('');
+        desiredIndices = new Array(format.length).fill(true).map((x,i) => i + format[0].moves.length-1);
+    }
+
+    return { combo: fullCombo, indicesForMultiplePulls: desiredIndices };
+}
+
+export function formatMoveSequence(moves) {
     return moves.reduce(function(a,b){ return (!a.length || a[a.length-1] === b ? a + b : a + ' ' + b); }, '');
 }

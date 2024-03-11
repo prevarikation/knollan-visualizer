@@ -8,7 +8,7 @@ let possibilities = filterByEndIndices(
 );
 possibilities.sort(sortEndIndicesByCombinationLength);
 ****/
-function filterByEndIndices(...filters) {
+export function filterByEndIndices(...filters) {
     // HACK: you can operate on a previously filtered array by passing it as the first argument
     if (filters.length && Array.isArray(filters[0])) {
         let subset = filters.shift();
@@ -42,7 +42,7 @@ function filterByEndIndices(...filters) {
 }
 
 // all ranges are boundary-inclusive.
-function gateIsBetween(which, first, second) {
+export function gateIsBetween(which, first, second) {
     const lower = indexPairToInteger(first);
     const upper = indexPairToInteger(second);
     return function(st) {
@@ -52,15 +52,15 @@ function gateIsBetween(which, first, second) {
     };
 }
 
-function gateIs(which, exact) {
+export function gateIs(which, exact) {
     return gateIsBetween(which, exact, exact);
 }
+
+export function sortEndIndicesByCombinationLength(a, b) { return a.combination.length - b.combination.length; }
 
 function indexPairToInteger(indexPair) {
     return 3*indexPair.N + indexPair.M;
 }
-
-function sortEndIndicesByCombinationLength(a, b) { return a.combination.length - b.combination.length; }
 
 /*** BELOW THIS LINE IS KEPT FOR REFERENCE - UNUSED ***/
 
