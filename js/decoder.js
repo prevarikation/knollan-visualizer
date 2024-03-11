@@ -270,10 +270,10 @@ function outputCombinations(combinations) {
     var elements = combinations.map(function(o) {
         var el = document.createElement('div');
         el.classList.add('combination');
-        el.innerText = "0 ";
+        el.innerText = "0";
 
         o.combo.split('')
-          .map((c, i) => ((o.indicesForMultiplePulls && o.indicesForMultiplePulls.includes(i)) || i === o.combo.length-1) ? pullElement(c) : document.createTextNode(" " + c))
+          .map((c, i, arr) => ((o.indicesForMultiplePulls && o.indicesForMultiplePulls.includes(i)) || i === o.combo.length-1) ? pullElement(c) : document.createTextNode(((c !== arr[i-1] || (o.indicesForMultiplePulls && o.indicesForMultiplePulls.includes(i-1)) ) ? " " : "") + c))
           .forEach(function(e) { el.appendChild(e); });
 
         return el;
