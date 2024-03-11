@@ -55,14 +55,15 @@ const cards = {
                 decoder.onlyFactoryCombos = e.currentTarget.checked;
                 el.dispatchEvent(new Event('onCombinationChanges'));   
             });
-            document.getElementById('combinations').addEventListener('click', function(e){
-                let container = e.currentTarget;
-                let old = container.querySelector('.combination.highlight');
+            document.getElementById('combinations').addEventListener('click', nextHighlight);
+
+            function nextHighlight() {
+                let old = document.getElementById('combinations').querySelector('.combination.highlight');
                 if (old) {
                     old.classList.remove('highlight');
                     old.nextElementSibling.classList.add('highlight');
                 }
-            });
+            }
         },
         onShow: function(e){
             document.forms['decoder'].elements['onlyFactoryCombos'].checked = !!decoder.onlyFactoryCombos;
