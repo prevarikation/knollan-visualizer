@@ -315,9 +315,9 @@ function generateCombinations() {
     outputCombinations(matchingCombinations);
 }
 
-function hideCard(el) { el.style.display = 'none'; el.dispatchEvent(new Event('onHide')); }
+function hideCard(el) { el.classList.add('hidden'); el.dispatchEvent(new Event('onHide')); }
 function showCard(el, skipHistory) {
-    el.style.display = '';
+    el.classList.remove('hidden');
     el.dispatchEvent(new Event('onShow'));
     if (!skipHistory) {
         decoderHistory.push(el.id);

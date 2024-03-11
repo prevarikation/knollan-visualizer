@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<title>speed dial decoder</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="css/decoder.css" rel="stylesheet">
 	<script src="js/StateTable.js"></script>
 	<script src="js/AxisIndex.js"></script>
 	<script src="js/AxisStates.js"></script>
@@ -15,7 +16,6 @@
 	<script src="js/axis-states-query.js" type="module"></script>
 	<script src="js/decoder-model.js" type="module"></script>
 	<script src="js/decoder.js" type="module"></script>
-	<link href="css/decoder.css" rel="stylesheet">
 </head>
 <body>
 
@@ -38,13 +38,13 @@
 	<input type="button" name="simplifyPossibilities" value="Let's simplify possibilities first" data-next-card="identify-first-binding-disk">	
 </section>
 
-<section id="combination-listing" class="card">
+<section id="combination-listing" class="card hidden">
 	<h2><output data-total-combinations=""></output> matching combinations:</h2>
 	<label><input type="checkbox" name="onlyFactoryCombos">Cover 4-move (factory) codes only</label>
 	<output id="combinations">will appear here</output>
 </section>
 
-<section id="identify-first-binding-disk" class="card">
+<section id="identify-first-binding-disk" class="card hideen">
 	<h2>Let's find a direction the knob slides freely.</h2>
 	<details open>
 		<summary>Knob sticking technique</summary>
@@ -74,7 +74,7 @@
 	<input type="button" value="I can't find it" data-next-card="suggest-locker-unlocker">
 </section>
 
-<section id="identify-gate-on-first-binding-disk" class="card">
+<section id="identify-gate-on-first-binding-disk" class="card hidden">
 	<h2>Let's find the gate for the first binding disk.</h2>
 	<details open>
 		<summary>Incremental stepping technique</summary>
@@ -143,7 +143,7 @@
 	<input type="button" value="I can't find it" data-next-card="suggest-locker-unlocker">
 </section>
 
-<section id="identify-dragging-move-with-click" class="card">
+<section id="identify-dragging-move-with-click" class="card hidden">
 	<h2>Let's try dragging to find a sequence where the shackle comes out a bit.</h2>
 	<details open>
 		<summary>Dragging technique</summary>
@@ -174,7 +174,7 @@
 	<input type="button" value="I can't find one" data-next-card="confirm-assume-last-move-in-dragging-direction">
 </section>
 
-<section id="identify-modified-dragging-move-with-click" class="card">
+<section id="identify-modified-dragging-move-with-click" class="card hidden">
 	<h2>Let's find another sequence where the shackle comes out while dragging.</h2>
 	<p>Same as the last page. For each sequence below:</p>
 	<ol>
@@ -198,7 +198,7 @@
 	<input type="button" value="I can't find one" data-next-card="confirm-assume-last-move-in-dragging-direction">
 </section>
 
-<section id="confirm-assume-last-move-in-dragging-direction" class="card">
+<section id="confirm-assume-last-move-in-dragging-direction" class="card hidden">
 	<h2>We can try something else.</h2>
 	<p>
 		Sometimes it's hard to feel a gate while dragging because the last move in the combination is in the dragging direction.
@@ -215,7 +215,7 @@
 	<input type="button" value="Let me try dragging again" data-nav-back="">
 </section>
 
-<section id="partial-moves-isolate-gate-on-second-binding-disk" class="card">
+<section id="partial-moves-isolate-gate-on-second-binding-disk" class="card hidden">
 	<h2>Let's use partial moves to find the gate on the second binding disk.</h2>
 	<details open>
 		<summary>Partial move technique</summary>
@@ -246,7 +246,7 @@
 	<input type="button" value="I can't find one" data-next-card="suggest-combination-listing-with-current-data">
 </section>
 
-<section id="partial-moves-indirectly-determine-gate-on-second-binding-disk" class="card">
+<section id="partial-moves-indirectly-determine-gate-on-second-binding-disk" class="card hidden">
 	<h2>Let's use partial moves to indirectly find the gate on the second binding disk.</h2>
 	<details open>
 		<summary>Partial move technique</summary>
@@ -280,7 +280,7 @@
 	<input type="button" value="I'm not sure" data-next-card="suggest-combination-listing-with-current-data">
 </section>
 
-<section id="suggest-combination-listing-with-current-data" class="card">
+<section id="suggest-combination-listing-with-current-data" class="card hidden">
 	<h2>We could try combinations using the data we already have.</h2>
 	<p>Our best bet is to try all combinations matching the data we already have. It's a little tedious but it's more reliable.</p>
 	<p>Would you like to try that?</p>
@@ -289,7 +289,7 @@
 	<input type="button" value="Let me check again" data-nav-back="">
 </section>
 
-<section id="suggest-locker-unlocker" class="card">
+<section id="suggest-locker-unlocker" class="card hidden">
 	<h2>Try the Locker Unlocker sheet?</h2>
 	<p>Our best bet is to try the combinations on <a href="https://drive.google.com/file/d/1u3AgRIjficr5jQgkzEi9W6LfUoCii-G_/view" style="white-space: nowrap;">Blank Registration's Locker Unlocker worksheet</a> with the information we have.</p>
 	<p>Would you like to try that?</p>
@@ -299,7 +299,7 @@
 </section>
 
 <!--
-<section id="" class="card">
+<section id="" class="card hidden">
 	<h2>title</h2>
 	<input type="button" value="OK" data-next-card="" data-nav-next-only-with-selection="">
 	<input type="button" value="Let me try again" data-nav-back="">
