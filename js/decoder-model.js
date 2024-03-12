@@ -228,17 +228,31 @@ export class Decoder {
             return null;
         }
 
-        const result = {};
+        // TODO: revamp these blocks to do more things in one pass
+        const usefulSequences = {};
         for (const [key, val] of Object.entries(secondBindingDiskPossibleCombinations)) {
             if (val) {
                 let partialMovesReducingCombinations = val.map(properPartialMovesGivenCombination.bind(this)).filter(x => Object.keys(x).length);
                 if (partialMovesReducingCombinations.length) {
                     let partialMovesReducingCombinationsIsolatingTwoDisks = partialMovesReducingCombinations.filter(o => Object.keys(o).length === 2);
-                    result[key] = (partialMovesReducingCombinationsIsolatingTwoDisks.length ? partialMovesReducingCombinationsIsolatingTwoDisks : partialMovesReducingCombinations);
+                    usefulSequences[key] = (partialMovesReducingCombinationsIsolatingTwoDisks.length ? partialMovesReducingCombinationsIsolatingTwoDisks : partialMovesReducingCombinations);
                 }
             }
         }
-        return Object.keys(result).length ? result : null;
+        // take one result per gate + affected disk
+        const applicablePartialMoveSequences = {};
+        for (const [gate, partialMoveSequences] of Object.entries(usefulSequences)) {
+            partialMoveSequences.forEach(function(sequence) {
+                for (let [affectedDisk, combination] of Object.entries(sequence)) {
+                    let hash = `${gate}-${affectedDisk}`;
+                    if (!applicablePartialMoveSequences[hash]) {
+                        applicablePartialMoveSequences[hash] = combination;
+                    }
+                }
+            });
+        }
+
+        return Object.keys(applicablePartialMoveSequences).length ? applicablePartialMoveSequences : null;
 
         // TODO: whole function (AND NOW DOWNSTREAM) makes direct use of DISK_TOP = 0, DISK_LEFT = 1, etc.
         function properPartialMovesGivenCombination(combination) {
@@ -303,10 +317,20 @@ export class Decoder {
                 possiblePositions.high += 15;
             }
             return new Array(2*15+1).fill(true).map((x, i) => (i % 15) || 15).slice(possiblePositions.low, possiblePositions.high + 1);
-        }        
+        }
     }
 
     thirdBindingDisk() {
+        let result = this.thirdBindingDiskSuggestedByPartialMovesWithResistanceOnNonBindingDisk();
+        if (this.thirdBindingDiskBindingOrderCheckResults && this.thirdBindingDiskBindingOrderCheckResults.bindsUnconditionally && !this.thirdBindingDiskBindingOrderCheckResults.trueBindingOrderIsObserved) {
+            // invert result
+            // HACK: includes() is overkill
+            result = [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT].filter(disk => ![this.firstBindingDisk, this.secondBindingDisk(), result].includes(disk))[0];
+        }
+        return result;
+    }
+
+    thirdBindingDiskSuggestedByPartialMovesWithResistanceOnNonBindingDisk() {
         if (!this.secondBindingDiskGatePosition()) {
             return null;
         }
@@ -324,6 +348,66 @@ export class Decoder {
                 }
             } else if (this.partialMoveWithResistanceOnNonBindingDisk.negative && this.partialMoveWithResistanceOnNonBindingDisk.negative.length) {
                 // TODO: can we work it out by process of elimination?
+            }
+        }
+
+        return result;
+    }
+
+    howToIsolateThirdGate() {
+        const partialMoveSequencesToCheckBindingOrder = this.thirdBindingDiskPartialMoveSequencesToCheckBindingOrder();
+        if (partialMoveSequencesToCheckBindingOrder) {
+            return this.constructor.THIRD_GATE_ISOLATION_TECHNIQUE.CHECK_THIRD_DISK_BINDING_ORDER;
+        } else {
+            return this.constructor.THIRD_GATE_ISOLATION_TECHNIQUE.UNKNOWN;
+        }
+    }
+
+    thirdBindingDiskPartialMoveSequencesToCheckBindingOrder() {
+        const thirdDisk = this.thirdBindingDiskSuggestedByPartialMovesWithResistanceOnNonBindingDisk();
+        if (!thirdDisk) {
+            return null;
+        }
+        // HACK: ugly
+        const fourthDisk = [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT].filter(disk => ![this.firstBindingDisk, this.secondBindingDisk(), thirdDisk].includes(disk))[0];
+
+        const sequenceUsedToIsolateThirdDisk = this.partialMoveSequencesToIsolateGateOnSecondBindingDiskUsingNonBindingDisks()[ this.partialMoveWithResistanceOnNonBindingDisk.positive[0] ];
+        const trailingPartialMove = sequenceUsedToIsolateThirdDisk.pop();
+        const referenceState = movesToMHState(sequenceUsedToIsolateThirdDisk);
+        const referenceStateStateNumber = AxisStates.State2StateNumber(...referenceState);
+
+        const stateDisplacingThirdDisk = [ {N:0, M:0}, {N:0, M:0}, {N:0, M:0}, {N:0, M:0} ];
+        AxisStates.StateNumber2State(referenceStateStateNumber, ...stateDisplacingThirdDisk);
+        stateDisplacingThirdDisk[thirdDisk] = this.constructor.internalPositionToMHIndex( (((this.constructor.mhIndexToInternalPosition(stateDisplacingThirdDisk[thirdDisk])) - 3 + 15) % 15) || 15 );
+
+        const stateDisplacingFourthDisk = [ {N:0, M:0}, {N:0, M:0}, {N:0, M:0}, {N:0, M:0} ];
+        AxisStates.StateNumber2State(referenceStateStateNumber, ...stateDisplacingFourthDisk);
+        stateDisplacingFourthDisk[fourthDisk] = this.constructor.internalPositionToMHIndex( (((this.constructor.mhIndexToInternalPosition(stateDisplacingFourthDisk[fourthDisk])) - 3 + 15) % 15) || 15 );
+
+        return {
+            bindsUnconditionally: stateToApplicablePartialMoveSequence(stateDisplacingThirdDisk), // used as sanity check
+            trueBindingOrderIsObserved: stateToApplicablePartialMoveSequence(stateDisplacingFourthDisk)
+        };
+
+        function stateToApplicablePartialMoveSequence(st) {
+            return AxisStates.CombinationTable[AxisStates.State2StateNumber(...st)].split('').map(AxisHumanReadableHelper.readableMoveToMove).concat(trailingPartialMove);
+        }
+    }
+
+    thirdBindingDiskGatePosition() {
+        const thirdBindingDisk = this.thirdBindingDisk();
+        if (!thirdBindingDisk) {
+            return null;
+        }
+
+        let result = null;
+        if (this.thirdBindingDiskBindingOrderCheckResults) {
+            if (this.thirdBindingDiskBindingOrderCheckResults.bindsUnconditionally && !this.thirdBindingDiskBindingOrderCheckResults.trueBindingOrderIsObserved) {
+                // we actually found the third binding disk's position accidentally, and what seems to be the third disk is actually the fourth
+                const sequence = this.thirdBindingDiskPartialMoveSequencesToCheckBindingOrder().bindsUnconditionally;
+                sequence.pop(); // remove the trailing partial move
+
+                result = this.constructor.mhIndexToInternalPosition(movesToMHState(sequence)[thirdBindingDisk]);
             }
         }
 
@@ -354,6 +438,10 @@ export class Decoder {
                 const secondBindingDiskFilterName = AxisHumanReadableHelper.diskTo('long')(this.secondBindingDisk()).toLowerCase();
                 if (this.secondBindingDiskGatePosition()) {
                     filters.push(gateIs(secondBindingDiskFilterName, this.constructor.internalPositionToMHIndex(this.secondBindingDiskGatePosition())));
+                    if (this.thirdBindingDiskGatePosition()) {
+                        const thirdBindingDiskFilterName = AxisHumanReadableHelper.diskTo('long')(this.thirdBindingDisk()).toLowerCase();
+                        filters.push(gateIs(thirdBindingDiskFilterName, this.constructor.internalPositionToMHIndex(this.thirdBindingDiskGatePosition())));
+                    }
                 } else if (this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.negative && this.partialMoveWithResistanceOnNonBindingDisk.negative.length) {
                     let impossibleSecondGates = this.partialMoveWithResistanceOnNonBindingDisk.negative.map(s => +s.split('-')[0]);
                     let possibleSecondGates = unzipPossibleGatePositions(this.secondBindingDiskPossibleGatePositions()).filter(x => !impossibleSecondGates.includes(x));
@@ -445,6 +533,7 @@ Decoder.dependencies = [
     { name: 'draggingMoveWithClick' },
     { name: 'modifiedDraggingMoveWithClick' },
     [{name: 'partialMoveWithClickSecondGate'}, {name: 'partialMoveWithResistanceOnNonBindingDisk'}], // if in an array together, they are concurrently cleared
+    [{name: 'thirdBindingDiskBindingOrderCheckResults'}]
 ];
 Decoder.normalizeMove = function(unnormalizedMove, relativeTopDisk) {
     const isPartial = AxisMoves.isPartialMove(unnormalizedMove);
@@ -486,6 +575,10 @@ Decoder.immediateGlobalPartialMovesActingOnDisk = function(disk, diskPosition) {
 Decoder.SECOND_GATE_ISOLATION_TECHNIQUE = {
     PARTIAL_MOVES_ON_SECOND_DISK: 0,
     INDIRECT_VIA_PARTIAL_MOVES_ON_OTHER_DISK: 1,
+    UNKNOWN: 15
+};
+Decoder.THIRD_GATE_ISOLATION_TECHNIQUE = {
+    CHECK_THIRD_DISK_BINDING_ORDER: 0,
     UNKNOWN: 15
 };
 Decoder.mhIndexToInternalPosition = function(o) {

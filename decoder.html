@@ -279,8 +279,37 @@
 		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
 	</ul>
 	<hr>
-	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next-only-with-selection="">
+	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next-branching="" data-nav-next-only-with-selection="">
 	<input type="button" value="None of these drag or give resistance" data-next-card="combination-listing" data-no-options-apply="">
+	<input type="button" value="I'm not sure" data-next-card="suggest-combination-listing-with-current-data">
+</section>
+
+<section id="third-binding-disk-check-binding-order" class="card hidden">
+	<h2>Let's use partial moves to indirectly find the third binding disk.</h2>
+	<details open>
+		<summary>Partial move technique</summary>
+		<ol>
+			<li>Slowly move the knob in a given direction, <em>halfway out</em> and back to center.</li>
+		</ol>
+	</details>
+	<p>For each sequence below:</p>
+	<ol>
+		<li>Reset.</li>
+		<li><strong>Lowercase letters represent partial moves.</strong></li>
+		<li>Enter all but the last move in the sequence.</li>
+		<li>Before moving the knob on the final move, apply medium-heavy opening tension to the shackle.</li>
+		<li>Slowly move the knob in the direction of the final move, <em>halfway out</em> and back to center.</li>
+		<li><strong>We're looking for a grinding feeling or resistance to movement when making the last move.</strong></li>
+	</ol>
+	<p>
+		Which sequence(s) give resistance during the last move?
+	</p>
+	<ul class="hide-list-format space-out-list-items as-buttons">
+		<li><label><input type="checkbox" name="thirdBindingDiskBindingOrderCheckResults" value="bindsUnconditionally"><span><output data-third-binding-disk-binding-order-check-results="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="thirdBindingDiskBindingOrderCheckResults" value="trueBindingOrderIsObserved"><span><output data-third-binding-disk-binding-order-check-results="" class='mono-output short-generate'></output></span></label></li>
+	</ul>
+	<hr>
+	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next-only-with-selection="">
 	<input type="button" value="I'm not sure" data-next-card="suggest-combination-listing-with-current-data">
 </section>
 

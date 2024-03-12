@@ -217,6 +217,16 @@ const cards = {
                 let inapplicableGates = options.filter(el => el.value !== "").reduce((prev, cur) => prev.concat(cur.value), []);
                 decoder.partialMoveWithResistanceOnNonBindingDisk = { negative: inapplicableGates }; 
             });
+
+            // TODO: dynamic dispatch here
+            Array.from(document.forms['decoder'].elements['partialMoveWithResistanceOnNonBindingDisk']).forEach(nestedEl => nestedEl.addEventListener('change', function(e) { 
+                let nextCard;
+                switch(decoder.howToIsolateThirdGate()) {
+                    case Decoder.THIRD_GATE_ISOLATION_TECHNIQUE.CHECK_THIRD_DISK_BINDING_ORDER: nextCard = 'third-binding-disk-check-binding-order'; break;
+                    case Decoder.THIRD_GATE_ISOLATION_TECHNIQUE.UNKNOWN:                        nextCard = 'combination-listing'; break;
+                }
+                el.querySelector("[data-nav-next-branching]").dataset.nextCard = nextCard;
+            }));
         },
         onShow: function(e) {
             const uiEls = Array.from(document.querySelectorAll('[data-partial-move-with-resistance-on-non-binding-disk]'));
@@ -227,19 +237,7 @@ const cards = {
                 el.closest('li').style.display = 'none';
             });
 
-            const applicablePartialMoveSequences = {};
-            const partialMoveSequencesObject = decoder.partialMoveSequencesToIsolateGateOnSecondBindingDiskUsingNonBindingDisks();
-            for (const [gate, partialMoveSequences] of Object.entries(partialMoveSequencesObject)) {
-                partialMoveSequences.forEach(function(sequence) {
-                    for (let [partialMove, combination] of Object.entries(sequence)) {
-                        let partialMoveHash = `${gate}-${partialMove}`;
-                        if (!applicablePartialMoveSequences[partialMoveHash]) {
-                            applicablePartialMoveSequences[partialMoveHash] = combination;
-                        }
-                    }
-                });
-            }
-
+            const applicablePartialMoveSequences = decoder.partialMoveSequencesToIsolateGateOnSecondBindingDiskUsingNonBindingDisks();
             Object.entries(applicablePartialMoveSequences).forEach(function(o, i) {
                 let which = uiEls[i].closest('label').control;
                 which.value = o[0];
@@ -249,6 +247,28 @@ const cards = {
             });
 
             setOptionsFromDecoderModel(e.currentTarget, (o) => o.positive || []);
+            updateForwardButtons(e.currentTarget);
+        }
+    },
+
+    'third-binding-disk-check-binding-order': {
+        setup: function(el) {
+            autoEnableForwardButtonsWithSelection(el);
+            autoSyncChangesToModel(el, function(arr){
+                const result = { bindsUnconditionally: false, trueBindingOrderIsObserved: false };
+                arr.forEach(prop => result[prop] = true);
+                return result;
+            });
+            el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ decoder.clearProgressIncluding('thirdBindingDiskBindingOrderCheckResults'); });
+        },
+        onShow: function(e) {
+            const uiEls = Array.from(document.querySelectorAll('[data-third-binding-disk-binding-order-check-results]'));
+            const sequences = decoder.thirdBindingDiskPartialMoveSequencesToCheckBindingOrder();
+            Object.entries(sequences).forEach(function(o) {
+                uiEls.filter(el => el.closest('label').control.value === o[0])[0].innerText = "0 " + formatMoveSequence(o[1].map(AxisHumanReadableHelper.moveTo('short')));
+            });
+
+            setOptionsFromDecoderModel(e.currentTarget, (o) => Object.keys(o).filter(key => o[key]));
             updateForwardButtons(e.currentTarget);
         }
     },
