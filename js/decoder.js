@@ -115,8 +115,8 @@ const cards = {
 
     'identify-gate-on-first-binding-disk': {
         setup: function(el){
-            autoEnableForwardButtonsWithRadioSelection(el);
-            autoSyncRadioChangesToModel(el);
+            autoEnableForwardButtonsWithSelection(el);
+            autoSyncChangesToModel(el);
             el.querySelector('[data-next-card=combination-listing]').addEventListener('click', function(){
                 decoder.set('onlyFactoryCombos', true);
                 decoder.set('forceOnlyFactoryCombos', true);
@@ -126,15 +126,15 @@ const cards = {
             });
         },
         onShow: function(e) {
-            setRadioOptionsFromDecoderModel(e.currentTarget);
+            setOptionsFromDecoderModel(e.currentTarget);
             updateForwardButtons(e.currentTarget);
         }
     },
 
     'identify-dragging-move-with-click': {
         setup: function(el) {
-            autoEnableForwardButtonsWithRadioSelection(el);
-            autoSyncRadioChangesToModel(el);
+            autoEnableForwardButtonsWithSelection(el);
+            autoSyncChangesToModel(el);
         },
         onShow: function(e) {
             const quickSequence = decoder.quickSequenceToFirstBindingGate();
@@ -145,15 +145,15 @@ const cards = {
                 });
             }
 
-            setRadioOptionsFromDecoderModel(e.currentTarget);
+            setOptionsFromDecoderModel(e.currentTarget);
             updateForwardButtons(e.currentTarget);
         }
     },
 
     'identify-modified-dragging-move-with-click': {
         setup: function(el){
-            autoEnableForwardButtonsWithRadioSelection(el);
-            autoSyncRadioChangesToModel(el);
+            autoEnableForwardButtonsWithSelection(el);
+            autoSyncChangesToModel(el);
             Array.from(el.querySelectorAll("[data-next-card]")).forEach(el => el.addEventListener('click', function(e) {
                 if (e.currentTarget.dataset.nextCard === "combination-listing") {
                     decoder.clearProgressPast('modifiedDraggingMoveWithClick');
@@ -184,15 +184,15 @@ const cards = {
                 });
             }
 
-            setRadioOptionsFromDecoderModel(e.currentTarget);
+            setOptionsFromDecoderModel(e.currentTarget);
             updateForwardButtons(e.currentTarget);
         }
     },
 
     'partial-moves-isolate-gate-on-second-binding-disk': {
         setup: function(el) {
-            autoEnableForwardButtonsWithRadioSelection(el);
-            autoSyncRadioChangesToModel(el);
+            autoEnableForwardButtonsWithSelection(el);
+            autoSyncChangesToModel(el);
             el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ decoder.clearProgressIncluding('partialMoveWithClickSecondGate'); });
         },
         onShow: function(e) {
@@ -202,19 +202,19 @@ const cards = {
                 el.innerText = "0 " + formatMoveSequence(partialMoveSequences[+which.value].map(AxisHumanReadableHelper.moveTo('short')));
             });
 
-            setRadioOptionsFromDecoderModel(e.currentTarget);
+            setOptionsFromDecoderModel(e.currentTarget);
             updateForwardButtons(e.currentTarget);
         }
     },
 
     'partial-moves-indirectly-determine-gate-on-second-binding-disk': {
         setup: function(el) {
-            autoEnableForwardButtonsWithRadioSelection(el);
-            autoSyncRadioChangesToModel(el, function(val){ return { positive: val }; });
+            autoEnableForwardButtonsWithSelection(el);
+            autoSyncChangesToModel(el, function(arr){ return { positive: arr }; });
             el.querySelector("[data-next-card=suggest-combination-listing-with-current-data]").addEventListener('click', function(){ decoder.clearProgressIncluding('partialMoveWithResistanceOnNonBindingDisk'); });
-            let radioOptions = Array.from(document.forms['decoder'].elements[radioOptionNamesAsChildrenOf(el)[0]]);
-            el.querySelector("[data-no-options-apply]").addEventListener('click', function(e){
-                let inapplicableGates = radioOptions.filter(el => el.value !== "").reduce((prev, cur) => prev.concat(cur.value), []);
+            let options = Array.from(document.forms['decoder'].elements[optionNamesAsChildrenOf(el)[0]]);
+            el.querySelector("[data-no-options-apply]").addEventListener('click', function(){
+                let inapplicableGates = options.filter(el => el.value !== "").reduce((prev, cur) => prev.concat(cur.value), []);
                 decoder.partialMoveWithResistanceOnNonBindingDisk = { negative: inapplicableGates }; 
             });
         },
@@ -248,7 +248,7 @@ const cards = {
                 uiEls[i].closest('li').style.display = 'revert';
             });
 
-            setRadioOptionsFromDecoderModel(e.currentTarget);
+            setOptionsFromDecoderModel(e.currentTarget, (o) => o.positive || []);
             updateForwardButtons(e.currentTarget);
         }
     },
@@ -349,52 +349,70 @@ function back(e) {
     }
 }
 
-function autoSyncRadioChangesToModel(el, conversionFunc) {
-    let radioOptionNames = radioOptionNamesAsChildrenOf(el);
-    for (let name of radioOptionNames) {
-        Array.from(document.forms['decoder'].elements[name]).forEach(el => el.addEventListener('change', function(e){ decoder.set(name, (conversionFunc || autoPromoteToInteger)(e.currentTarget.value)); }));
+function autoSyncChangesToModel(el, conversionFunc) {
+    let optionNames = optionNamesAsChildrenOf(el);
+    for (let name of optionNames) {
+        const type = document.forms['decoder'].elements[name][0].type;
+        if (type === 'checkbox') {
+            Array.from(document.forms['decoder'].elements[name]).forEach(el => el.addEventListener('change', wrapCheckboxValuesInArray));
+        } else if (type === 'radio') {
+            Array.from(document.forms['decoder'].elements[name]).forEach(el => el.addEventListener('change', function(e){ decoder.set(name, (conversionFunc || autoPromoteToInteger)(e.currentTarget.value)); }));
+        }
     }
 
     function autoPromoteToInteger(x) {
         let int = +x;
-        return (!Number.isNaN(x) ? int : x);
+        return (!Number.isNaN(int) ? int : x);
     }
+    function wrapCheckboxValuesInArray(e) {
+        const wrapped = Array.from(document.forms['decoder'].elements[e.currentTarget.name]).filter(el => el.checked).map(el => autoPromoteToInteger(el.value));
+        decoder.set(e.currentTarget.name, (conversionFunc || identity)(wrapped));
+    }
+    function identity(x) { return x; }
 }
-function autoEnableForwardButtonsWithRadioSelection(el) {
-    radioOptionNamesAsChildrenOf(el).forEach(name => enableButtonsWithRadioSelection(el.querySelectorAll("[data-nav-next-only-with-selection]"), name));
+function autoEnableForwardButtonsWithSelection(el) {
+    optionNamesAsChildrenOf(el).forEach(name => enableButtonsWithSelection(el.querySelectorAll("[data-nav-next-only-with-selection]"), name));
 }
-function enableButtonsWithRadioSelection(buttons, name) {
+function enableButtonsWithSelection(buttons, name) {
     buttons.forEach(function(button){
         let toggle = togglingFunc(button, name);
         toggle();
-        for (var i = 0, radioOptions = document.forms['decoder'][name]; i < radioOptions.length; ++i) {
-            radioOptions[i].addEventListener('change', toggle);
+        for (var i = 0, options = document.forms['decoder'][name]; i < options.length; ++i) {
+            options[i].addEventListener('change', toggle);
         }
         button.addEventListener('uiUpdate', toggle);
     });
 
-    function togglingFunc(button, name) { return function(){ enableButtonWithRadioSelection(button, name); }; }
+    function togglingFunc(button, name) { return function(){ enableButtonWithSelection(button, name); }; }
 }
-function enableButtonWithRadioSelection(button, name) {
+function enableButtonWithSelection(button, name) {
     button.disabled = !document.querySelector('input[name="' + name + '"]:checked');
 }
-function setRadioOptionsFromDecoderModel(el) {
-    for (let name of radioOptionNamesAsChildrenOf(el)) {
-        if (decoder[name]) {
-            document.forms['decoder'].elements[name].value = decoder[name].toString();
-        }
-
-        let checkedEl = document.querySelector('input[name="' + name + '"]:checked');
-
-        if (!decoder[name] && checkedEl) {
-                checkedEl.checked = false;
+function setOptionsFromDecoderModel(el, conversionFunc) {
+    for (let name of optionNamesAsChildrenOf(el)) {
+        const els = document.forms['decoder'].elements[name];
+        const type = els[0].type;
+        if (type === 'checkbox') {
+            Array.from(els).forEach(x => x.checked = false);
+            if (decoder[name]) {
+                (conversionFunc || identity)(decoder[name]).forEach(val => Array.from(els).filter(x => x.value === val.toString()).forEach(x => x.checked = true));
+            }
+        } else if (type === 'radio') {
+            if (decoder[name]) {
+                els.value = (conversionFunc || identity)(decoder[name]).toString();
+            }
+            let checkedEl = document.querySelector('input[name="' + name + '"]:checked');
+            if (!decoder[name] && checkedEl) {
+                    checkedEl.checked = false;
+            }
         }
     }
+    function identity(x) { return x; }
 }
 function updateForwardButtons(el) {
     Array.from(el.querySelectorAll("[data-nav-next-only-with-selection]")).forEach(button => button.dispatchEvent(new Event('uiUpdate')));
 }
-function radioOptionNamesAsChildrenOf(el) {
-    // uniqueness reduce() here isn't great but there shouldn't be that many radio options on a page (probably just one)
-    return Array.from(el.querySelectorAll("input[type=radio]")).reduce((prev, cur) => (prev.includes(cur.name) ? prev : prev.concat(cur.name)), []);
+function optionNamesAsChildrenOf(el) {
+    // uniqueness reduce() here isn't great but there shouldn't be that many options on a page (probably just one)
+    return Array.from(el.querySelectorAll("input[type=radio], input[type=checkbox]")).reduce((prev, cur) => (prev.includes(cur.name) ? prev : prev.concat(cur.name)), []);
 }

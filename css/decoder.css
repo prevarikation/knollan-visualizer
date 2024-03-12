@@ -42,11 +42,11 @@ input[type=radio]:disabled ~ span { color: lightgrey; }
 .card details { margin-bottom: 1em; background-color: var(--instructions-bg-color); }
 .card details ol { margin: 0; padding-left: 6vw; }
 
-.radio-as-button label span { cursor: pointer; }
-.radio-as-button input[type=radio] { margin: 0; appearance: none; }
-.radio-as-button input[type=radio] ~ span { display: inline-block; }
-.radio-as-button input[type=radio]:checked ~ span { background-color: lightgreen; }
-.radio-as-button input[type=radio]:not(:checked):not(:disabled) ~ span:hover { background-color: lightyellow; }
+.as-buttons label span { cursor: pointer; }
+.as-buttons input:is([type=radio], [type=checkbox]) { margin: 0; appearance: none; }
+.as-buttons input:is([type=radio], [type=checkbox]) ~ span { display: inline-block; }
+.as-buttons input:is([type=radio], [type=checkbox]):checked ~ span { background-color: lightgreen; }
+.as-buttons input:is([type=radio], [type=checkbox]):not(:checked):not(:disabled) ~ span:hover { background-color: lightyellow; }
 
 table.gate-selection { margin-top: 1em; border-collapse: collapse; }
 table.gate-selection tbody { font-family: monospace; }

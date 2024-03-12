@@ -233,13 +233,14 @@ export class Decoder {
             if (val) {
                 let partialMovesReducingCombinations = val.map(properPartialMovesGivenCombination.bind(this)).filter(x => Object.keys(x).length);
                 if (partialMovesReducingCombinations.length) {
-                    result[key] = partialMovesReducingCombinations;
+                    let partialMovesReducingCombinationsIsolatingTwoDisks = partialMovesReducingCombinations.filter(o => Object.keys(o).length === 2);
+                    result[key] = (partialMovesReducingCombinationsIsolatingTwoDisks.length ? partialMovesReducingCombinationsIsolatingTwoDisks : partialMovesReducingCombinations);
                 }
             }
         }
         return Object.keys(result).length ? result : null;
 
-        // TODO: whole function makes direct use of DISK_TOP = 0, DISK_LEFT = 1, etc.
+        // TODO: whole function (AND NOW DOWNSTREAM) makes direct use of DISK_TOP = 0, DISK_LEFT = 1, etc.
         function properPartialMovesGivenCombination(combination) {
             const state = movesToMHState(combination).map(this.constructor.mhIndexToInternalPosition);
             const partialMovesImmediatelyAffectingDisks = state.map((n, i) => this.constructor.immediateGlobalPartialMovesActingOnDisk(i, n));
@@ -247,14 +248,22 @@ export class Decoder {
             const fixedDisks = [this.firstBindingDisk, this.secondBindingDisk()];
             const variableDisks = [AxisDisk.DISK_TOP, AxisDisk.DISK_LEFT, AxisDisk.DISK_BOTTOM, AxisDisk.DISK_RIGHT].filter(disk => !fixedDisks.includes(disk));
 
-            const possibleVariableDiskFirstMoves = new Map(variableDisks.map(disk => [partialMovesImmediatelyAffectingDisks[disk][0], true]));
+            const possibleVariableDiskFirstMoves = new Map();
+            variableDisks.forEach(function(disk){
+                const firstMove = partialMovesImmediatelyAffectingDisks[disk][0];
+                if (possibleVariableDiskFirstMoves.has(firstMove)) {
+                    possibleVariableDiskFirstMoves.set(firstMove, `${possibleVariableDiskFirstMoves.get(firstMove)},${disk}`);
+                } else {
+                    possibleVariableDiskFirstMoves.set(firstMove, disk);
+                }
+            });
             fixedDisks.map(disk => partialMovesImmediatelyAffectingDisks[disk][0]).forEach((move) => possibleVariableDiskFirstMoves.delete(move));
 
             let result = {};
-            if (possibleVariableDiskFirstMoves.size == 2) {
+            if (possibleVariableDiskFirstMoves.size) {
                 for (let key of possibleVariableDiskFirstMoves.keys()) {
-                    // TODO: actually map result[TODO] to the affected disk(s)
-                    result[key] = combination.concat(key);
+                    let affectedDisk = possibleVariableDiskFirstMoves.get(key);
+                    result[affectedDisk] = combination.concat(key);
                 }
             }
 
@@ -266,14 +275,56 @@ export class Decoder {
         const approximatePositions = this.secondBindingDiskPossibleGatePositions();
 
         let result = null;
-        if (this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.positive) {
-            result = +this.partialMoveWithResistanceOnNonBindingDisk.positive.split('-')[0];
+        if (this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.positive && this.partialMoveWithResistanceOnNonBindingDisk.positive.length) {
+            const gates = new Map(this.partialMoveWithResistanceOnNonBindingDisk.positive.map(s => [+s.split('-')[0], true]));
+            // we only *really* have a gate if it's unique
+            if (gates.size === 1) {
+                result = +gates.keys().next().value;
+            }
+        } else if (approximatePositions && this.partialMoveWithResistanceOnNonBindingDisk && this.partialMoveWithResistanceOnNonBindingDisk.negative && this.partialMoveWithResistanceOnNonBindingDisk.negative.length) {
+            const possiblePositions = new Map(unzipPossibleGatePositions(approximatePositions).map(n => [n, true]));
+            this.partialMoveWithResistanceOnNonBindingDisk.negative.map(s => +s.split('-')[0]).forEach(n => possiblePositions.delete(n));
+            if (possiblePositions.size === 1) {
+                result = possiblePositions.keys().next().value;
+            }
         } else if (approximatePositions && this.partialMoveWithClickSecondGate) {
             if (approximatePositions.high < approximatePositions.low) {
                 approximatePositions.high += 15;
             }
             // BEWARE: off-by-one errors await any attempt to modify this. returned value is in range 1-15.
             result = (((approximatePositions.high + 1 - this.partialMoveWithClickSecondGate) + 15) % 15) || 15;    
+        }
+
+        return result;
+
+        // TODO: copy-pasted from above
+        function unzipPossibleGatePositions(possiblePositions) {
+            if (possiblePositions.low > possiblePositions.high) {
+                possiblePositions.high += 15;
+            }
+            return new Array(2*15+1).fill(true).map((x, i) => (i % 15) || 15).slice(possiblePositions.low, possiblePositions.high + 1);
+        }        
+    }
+
+    thirdBindingDisk() {
+        if (!this.secondBindingDiskGatePosition()) {
+            return null;
+        }
+
+        let result = null;
+        if (this.partialMoveWithResistanceOnNonBindingDisk) {
+            if (this.partialMoveWithResistanceOnNonBindingDisk.positive && this.partialMoveWithResistanceOnNonBindingDisk.positive.length) {
+                const affectedDisks = this.partialMoveWithResistanceOnNonBindingDisk.positive.map(s => s.split('-')[1].split(',').map(n => +n));
+                const counter = {};
+                affectedDisks.flat().forEach(n => counter[n] ? ++counter[n] : counter[n] = 1);
+                const disksAlwaysAffected = Object.keys(counter).filter(key => counter[key] === affectedDisks.length);
+                const isSingularDisk = disksAlwaysAffected.length === 1;
+                if (isSingularDisk) {
+                    result = +disksAlwaysAffected[0];
+                }
+            } else if (this.partialMoveWithResistanceOnNonBindingDisk.negative && this.partialMoveWithResistanceOnNonBindingDisk.negative.length) {
+                // TODO: can we work it out by process of elimination?
+            }
         }
 
         return result;

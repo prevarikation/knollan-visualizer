@@ -96,7 +96,7 @@
 		</ol>
 	</details>
 	<p>What's the last move in the <output data-stepping-pattern=""></output> pattern where the knob sticks for all five <output data-move-opposite-first-binding-disk=""></output> moves?</p>
-	<table class="gate-selection radio-as-button">
+	<table class="gate-selection as-buttons">
 		<tbody>
 			<tr>
 				<td><label><input type='radio' name='firstBindingDiskGatePosition' value='1'><span><output data-stepping-direction-1=""></output></span></label></td>
@@ -162,7 +162,7 @@
 	<p>
 		Which sequence has the <em>most</em> outward shackle movement on the next <output data-move-opposite-first-binding-disk=""></output> move?
 	</p>
-	<ul class="hide-list-format space-out-list-items radio-as-button">
+	<ul class="hide-list-format space-out-list-items as-buttons">
 		<li><label><input type="radio" name="draggingMoveWithClick" value="2"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="draggingMoveWithClick" value="3"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="draggingMoveWithClick" value="4"><span><output data-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
@@ -185,7 +185,7 @@
 	<p>
 		Which sequence has the <em>most</em> outward shackle movement on the next <output data-move-opposite-first-binding-disk=""></output> move?
 	</p>
-	<ul class="hide-list-format space-out-list-items radio-as-button">
+	<ul class="hide-list-format space-out-list-items as-buttons">
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="2"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="3"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="modifiedDraggingMoveWithClick" value="4"><span><output data-modified-dragging-moves="" class='mono-output short-generate'></output></span></label></li>
@@ -235,7 +235,7 @@
 	<p>
 		What's the first sequence to have outward shackle movement?
 	</p>
-	<ul class="hide-list-format space-out-list-items radio-as-button">
+	<ul class="hide-list-format space-out-list-items as-buttons">
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="1"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="2"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
 		<li><label><input type="radio" name="partialMoveWithClickSecondGate" value="3"><span><output data-partial-moves-second-gate="" class='mono-output short-generate'></output></span></label></li>
@@ -264,15 +264,19 @@
 		<li><strong>We're looking for a grinding feeling or resistance to movement when making the last move.</strong></li>
 	</ol>
 	<p>
-		Which sequence gives resistance during the last move?
+		Which sequence(s) give resistance during the last move?
 	</p>
-	<ul class="hide-list-format space-out-list-items radio-as-button">
-		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
-		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
-		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
-		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
-		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
-		<li><label><input type="radio" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+	<ul class="hide-list-format space-out-list-items as-buttons">
+		<!-- TODO: maximum of 9 should be ok? 3 possible positions x (2 complete isolations + 1 doubled move) -->
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
+		<li><label><input type="checkbox" name="partialMoveWithResistanceOnNonBindingDisk" value=""><span><output data-partial-move-with-resistance-on-non-binding-disk="" class='mono-output short-generate'></output></span></label></li>
 	</ul>
 	<hr>
 	<input type="button" value="OK" data-next-card="combination-listing" data-nav-next-only-with-selection="">
