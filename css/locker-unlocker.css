@@ -1,12 +1,40 @@
 :root {
+    --light-background: white;
+    --light-offset-background: #eee;
+    --light-colorful-background: lightblue;
+    --light-text: black;
+    --light-colorful-text-contrast: #5f77db;
+    --light-link: blue;
+    --light-link-visited: purple;
+    --light-outline: black;
+    --light-attention: khaki;
+    --light-error: pink;
+    --light-error-contrast: black;
+    --light-highlight: lightgreen;
+
+    --dark-background: black;
+    --dark-offset-background: #111;
+    --dark-colorful-background: #2d3739;
+    --dark-text: #eee;
+    --dark-colorful-text-contrast: #5f77db;
+    --dark-link: #9e9efb;
+    --dark-link-visited: #936a93;
+    --dark-outline: #eee;
+    --dark-attention: rgb(79, 71, 17);
+    --dark-error: pink;
+    --dark-error-contrast: #4f1721;
+    --dark-highlight: #006000;
+
     --selector-cell-width: 5em;
     --selector-cell-adjacent-width: 3em;
     --selector-cell-padding: 0.4em;
 }
 
-body { max-width: 8in; margin: 0 auto; padding: 0 0.5em; }
-.intro { padding: 0.5em; background-color: lightblue; }
-.right-wheel-position { color: #6f8bff; }
+body { max-width: 8in; margin: 0 auto; padding: 0 0.5em; color: var(--light-text); background-color: var(--light-background); }
+a { color: var(--light-link); }
+a:visited { color: var(--light-link-visited); }
+.intro { padding: 0.5em; background-color: var(--light-colorful-background); }
+.right-wheel-position { color: var(--light-colorful-text-contrast); }
 h3:first-child { margin-top: 0; }
 h3, h4 { margin-bottom: 0; }
 #quick-sequence-ui { margin: 1em 0; }
@@ -14,7 +42,7 @@ h3, h4 { margin-bottom: 0; }
 #right-wheel-ui { clear: both; }
 #top-gate-select, #right-gate-select { border-collapse: collapse; }
 #top-gate-select tbody, #right-gate-select tbody { font-family: monospace; }
-#top-gate-select tbody td, #right-gate-select tbody td { padding: 0; border: 1px solid black; }
+#top-gate-select tbody td, #right-gate-select tbody td { padding: 0; border: 1px solid var(--light-outline); }
 
 table:not(.not-enough-information) label span { cursor: pointer; }
 input[type=radio] {
@@ -24,8 +52,8 @@ input[type=radio] {
     appearance: none;
 }
 input[type=radio] ~ span { display: inline-block; width: var(--selector-cell-width); padding: var(--selector-cell-padding) 0; }
-input[type=radio]:checked ~ span { background-color: lightgreen; }
-table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled) ~ span:hover { background-color: lightyellow; }
+input[type=radio]:checked ~ span { background-color: var(--light-highlight); }
+table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled) ~ span:hover { background-color: var(--light-attention); }
 
 #top-gate-select label { text-align: center; }
 
@@ -39,8 +67,8 @@ table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled
 #right-gate-select tbody td.traverse-first label span { width: var(--selector-cell-adjacent-width); padding-left: var(--selector-cell-padding); padding-right: 0; }
 #right-gate-select tbody td.traverse-first ~ td label span { width: var(--selector-cell-adjacent-width); }
 
-input[type=radio]:disabled ~ span { cursor: default; background-color: lightgray; }
-output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
+input[type=radio]:disabled ~ span { cursor: default; background-color: var(--light-offset-background); }
+output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid var(--light-outline); font-family: monospace; }
 output.short-generate { width: 8em; text-align: center; font-size: 125%; font-weight: bold; }
 #combinations ul { font: 150% monospace; }
 
@@ -49,4 +77,26 @@ output.short-generate { width: 8em; text-align: center; font-size: 125%; font-we
     #top-gate-ui { float: left; margin-bottom: 2em; }
     #quick-sequence-ui { float: left; margin: 2em 0 0 2em; }
     #quick-sequence-ui h4 { margin-top: revert; }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+	body {
+		color: var(--dark-text);
+		background-color: var(--dark-background);
+	}
+	a { color: var(--dark-link); }
+	a:visited { color: var(--dark-link-visited); }
+	img {
+		opacity: 75%;
+		transition: opacity .5s ease-in-out;
+	}
+	img:hover { opacity: 100%; }
+
+    .intro { background-color: var(--dark-colorful-background); }
+    .right-wheel-position { color: var(--dark-colorful-text-contrast); }
+    #top-gate-select tbody td, #right-gate-select tbody td { border-color: var(--dark-outline); }
+    input[type=radio]:checked ~ span { background-color: var(--dark-highlight); }
+    table:not(.not-enough-information) input[type=radio]:not(:checked):not(:disabled) ~ span:hover { background-color: var(--dark-attention); }
+    input[type=radio]:disabled ~ span { background-color: var(--dark-offset-background); }
+    output.mono-output { border-color: var(--dark-outline); }
 }

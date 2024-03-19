@@ -242,11 +242,16 @@
 	</script>
     <style>
     html, body, #content { height: 100%; margin: 0; }
+    body { color: black; background-color: white; }
     .images { display: none; }
     #visualizer { vertical-align: top; }
     .scale-to-screen {
         max-width: 100%;
         max-height: 100%;
+    }
+    @media screen and (prefers-color-scheme: dark) {
+        body { color: white; background-color: black; }
+        canvas { opacity: 75%; }
     }
     </style>
 </head>

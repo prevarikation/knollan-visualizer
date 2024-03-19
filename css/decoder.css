@@ -1,23 +1,57 @@
 :root {
+    --light-background: white;
+    --light-offset-background: #eee;
+    --light-colorful-background: lightblue;
+    --light-text: black;
+    --light-colorful-text-contrast: #5f77db;
+    --light-link: blue;
+    --light-link-visited: purple;
+    --light-outline: black;
+    --light-attention: khaki;
+    --light-error: pink;
+    --light-error-contrast: black;
+    --light-highlight: lightgreen;
+
+    --dark-background: black;
+    --dark-offset-background: #111;
+    --dark-colorful-background: #2d3739;
+    --dark-text: #eee;
+    --dark-colorful-text-contrast: #5f77db;
+    --dark-link: #9e9efb;
+    --dark-link-visited: #936a93;
+    --dark-outline: #eee;
+    --dark-attention: rgb(79, 71, 17);
+    --dark-error: pink;
+    --dark-error-contrast: #4f1721;
+    --dark-highlight: #006000;
+
     --decoder-max-width: 500px;
     --back-button-height: 25vh;
     --back-button-width: 10vw;
-    --header-bg-color: lavender;
-    --instructions-bg-color: lavender;
+    --light-header-bg-color: lavender;
+    --dark-header-bg-color: #5b5b68;
+    --light-instructions-bg-color: lavender;
+    --dark-instructions-bg-color: #5b5b68;
+    --light-combination-pull: red;
+    --dark-combination-pull: red;
+    --light-combination-highlight: var(--light-attention);
+    --dark-combination-highlight: var(--dark-attention);
     --selector-cell-width: 2em;
     --selector-cell-adjacent-width: 3em;
     --selector-cell-padding: 0.4em;
 }
 
 html, body { margin: 0; padding: 0; }
-body > header { border-bottom: 2px solid black; text-align: center; background-color: var(--header-bg-color); }
+body { color: var(--light-text); background-color: var(--light-background); }
+body > header { border-bottom: 2px solid var(--light-outline); text-align: center; background-color: var(--light-header-bg-color); }
 body > header h1 { margin: 0; padding: 0.2em 0; }
 h3:first-child { margin-top: 0; }
 h3, h4 { margin-bottom: 0; }
 summary { cursor: pointer; }
 ul.hide-list-format { padding: 0; list-style: none; }
 .space-out-list-items li { margin: 0.2em 0; }
-input[type=radio]:disabled ~ span { color: lightgrey; }
+input[type=button] { cursor: pointer; padding: 4px; border: 2px outset var(--light-offset-background); border-radius: 5px; color: var(--light-text); background-color: var(--light-offset-background); }
+input[type=radio]:disabled ~ span { color: var(--light-offset-background); }
 
 #global-nav {
     position: fixed;
@@ -39,29 +73,29 @@ input[type=radio]:disabled ~ span { color: lightgrey; }
 .card p { margin-bottom: 0; }
 [data-next-card], [data-nav-back] { display: block; margin: 1em 0; }
 
-.card details { margin-bottom: 1em; background-color: var(--instructions-bg-color); }
+.card details { margin-bottom: 1em; background-color: var(--light-instructions-bg-color); }
 .card details ol { margin: 0; padding-left: 6vw; }
 
 .as-buttons label span { cursor: pointer; }
 .as-buttons input:is([type=radio], [type=checkbox]) { margin: 0; appearance: none; }
 .as-buttons input:is([type=radio], [type=checkbox]) ~ span { display: inline-block; }
-.as-buttons input:is([type=radio], [type=checkbox]):checked ~ span { background-color: lightgreen; }
-.as-buttons input:is([type=radio], [type=checkbox]):not(:checked):not(:disabled) ~ span:hover { background-color: lightyellow; }
+.as-buttons input:is([type=radio], [type=checkbox]):checked ~ span { background-color: var(--light-highlight); }
+.as-buttons input:is([type=radio], [type=checkbox]):not(:checked):not(:disabled) ~ span:hover { background-color: var(--light-attention); }
 
 table.gate-selection { margin-top: 1em; border-collapse: collapse; }
 table.gate-selection tbody { font-family: monospace; }
-table.gate-selection tbody td { padding: 0; border: 1px solid black; width: 26px; /* setting a fixed width for background image purposes */ }
+table.gate-selection tbody td { padding: 0; border: 1px solid var(--light-outline); width: 26px; /* setting a fixed width for background image purposes */ }
 table.gate-selection tbody td.rtl-arrow { height: 15.4px; background: url("../img/arrow-left-down-icon.svg"); }
 table.gate-selection label { text-align: center; }
 table.gate-selection input[type=radio] ~ span { display: inline-block; width: var(--selector-cell-width); padding: var(--selector-cell-padding) 0; }
 
-output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid black; font-family: monospace; }
+output.mono-output { display: inline-block; padding: 0.25em 0; border: 1px solid var(--light-outline); font-family: monospace; }
 output.short-generate { padding-left: 0.25em; padding-right: 0.25em; font-size: 125%; font-weight: bold; }
 
 #combination-listing h2 { margin-bottom: 0; }
 #combinations { display: block; margin-top: 1em; font-family: monospace; }
-.combination .pull { color: red; }
-.combination.highlight { background-color: yellow; }
+.combination .pull { color: var(--light-combination-pull); }
+.combination.highlight { background-color: var(--light-combination-highlight); }
 
 .hidden { display: none; }
 
@@ -72,4 +106,29 @@ output.short-generate { padding-left: 0.25em; padding-right: 0.25em; font-size: 
     body { overflow-y: scroll; width: var(--decoder-max-width); margin: 0 auto; }
     #global-nav { left: calc(50% - var(--decoder-max-width)/2); }
     .card details ol { padding-left: revert; }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+    body {
+		color: var(--dark-text);
+		background-color: var(--dark-background);
+	}
+	a { color: var(--dark-link); }
+	a:visited { color: var(--dark-link-visited); }
+	img {
+		opacity: 75%;
+		transition: opacity .5s ease-in-out;
+	}
+	img:hover { opacity: 100%; }
+
+    body > header { border-color: var(--dark-outline); background-color: var(--dark-header-bg-color); }
+    input[type=button] { border-color: var(--dark-offset-background); color: var(--dark-text); background-color: #444; }
+    input[type=radio]:disabled ~ span { color: var(--dark-offset-background); }
+    .card details { background-color: var(--dark-instructions-bg-color); }
+    .as-buttons input:is([type=radio], [type=checkbox]):checked ~ span { background-color: var(--dark-highlight); }
+    .as-buttons input:is([type=radio], [type=checkbox]):not(:checked):not(:disabled) ~ span:hover { background-color: var(--dark-attention); }
+    table.gate-selection tbody td { border-color: var(--dark-outline); }
+    output.mono-output { border-color: var(--dark-outline); }
+    .combination .pull { color: var(--dark-combination-pull); }
+    .combination.highlight { background-color: var(--dark-combination-highlight); }    
 }
