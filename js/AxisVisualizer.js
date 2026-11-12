@@ -414,6 +414,12 @@ class AxisVisualizer
         this.disks.disks[AxisVisualizer.selectedDisk].setMarkerToCurrentPosition( AxisColorSelector.COLOR_SELECTION[AxisColorSelector.currentColorIndex] );
 	}
 
+	setMarkerOnAllDisks() {
+		for (var disk of this.disks.disks) {
+			disk.setMarkerToCurrentPosition( AxisColorSelector.COLOR_SELECTION[AxisColorSelector.currentColorIndex] );
+		}
+	}
+
     clearAllMarkers() {
         for (var disk of this.disks.disks) {
             disk.clearAllMarkers();
@@ -423,6 +429,12 @@ class AxisVisualizer
     deleteMarker() {
         this.disks.disks[AxisVisualizer.selectedDisk].deleteMarker();
     }
+
+	deleteMarkerOnAllDisks() {
+		for (var disk of this.disks.disks) {
+			disk.deleteMarker();
+		}
+	}
 
     toggleCutawayColoringVisibility() {
         for (var disk of this.disks.disks) {
