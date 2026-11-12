@@ -39,16 +39,13 @@ class AxisUI
             // Attempt to recreate the original rendered instructions, but
             // allow us to tweak commands and formatting.
             // ALL MEASUREMENTS EMPIRICAL.
-            function cssFontString(type, prefix) {
-                return (typeof prefix !== 'undefined' ? prefix + ' ' : '') + (typeof AxisVisualizer.FONT_SIZES[type] !== 'undefined' ? AxisVisualizer.FONT_SIZES[type] : '16') + 'px Arial, sans-serif';
-            }
 
             // instructions
             var instructionFontSize = AxisVisualizer.FONT_SIZES.instruction;
             var rightColX = 796, rightColY = 158;
             var instructionRightColX = 1200;
 
-            ctx.font = cssFontString('instruction');
+            ctx.font = AxisUI.cssFontString('instruction');
             ctx.fillText(page.header, rightColX, rightColY);
             ctx.fillStyle = 'black';
             // draw underline beneath instructions
@@ -61,10 +58,10 @@ class AxisUI
             ctx.stroke();
 
             rightColY += Math.floor(1.2 * instructionFontSize);
-            ctx.font = cssFontString('instructionExplanation');
+            ctx.font = AxisUI.cssFontString('instructionExplanation');
             ctx.fillText(page.subheader, rightColX, rightColY);
 
-            ctx.font = cssFontString('instruction');
+            ctx.font = AxisUI.cssFontString('instruction');
             rightColY += (2.0 * instructionFontSize);
             var rightColYBeforeCommands = rightColY;
             for (var i = 0; i < page.commands.length; ++i) {
@@ -74,7 +71,7 @@ class AxisUI
                 ctx.fillText(page.commands[i][0] + (page.commands[i][1] ? ":" : ""), rightColX, rightColY);
 
                 var origFont = ctx.font;
-                ctx.font = cssFontString('instruction', 'bold');
+                ctx.font = AxisUI.cssFontString('instruction', 'bold');
                 for (var j = 1; j < page.commands[i].length; ++j) {
                     ctx.fillText(page.commands[i][j], instructionRightColX - ctx.measureText(page.commands[i][j]).width, rightColY);
                     rightColY += Math.floor(1.45 * instructionFontSize);
@@ -83,13 +80,13 @@ class AxisUI
                 // now we know how far the bounding box extends vertically
                 page.commands[i].bounds[1][1] = rightColY - instructionFontSize;
 
-                ctx.font = cssFontString('instruction');
+                ctx.font = AxisUI.cssFontString('instruction');
             }
 
             // TODO: refactor, pull this out of here
             if (name === "standard") {
                 // speed level indicators
-                ctx.font = cssFontString('instructionExplanation');
+                ctx.font = AxisUI.cssFontString('instructionExplanation');
                 ctx.fillStyle = '#2429bc';
                 var speedPositionInCommandList = 3;
                 rightColY = rightColYBeforeCommands + ((speedPositionInCommandList - 1) * 1.45 * instructionFontSize);
@@ -206,7 +203,6 @@ AxisUI.instructionPages = {
             ["Undo move", "<b>"],
             ["Reset the disks", "<r>"],
             ["Set / show the gates", "<s> / <g>"],
-            //["Select disk", "<8>, <4>, <6>, <2>", "or <u>, <h>, <j>, <n>"],
             ["Select disk", "<8/u , 4/h , 6/j , 2/n>"],
             ["Turn disk", "<+> / <->"],
             ["Change marker color", "<c>"],
@@ -260,4 +256,7 @@ AxisUI.instructionPages = {
             ["Standard menu", "</>"]
         ]
     }
+};
+AxisUI.cssFontString = function(type, prefix){
+	return (typeof prefix !== 'undefined' ? prefix + ' ' : '') + (typeof AxisVisualizer.FONT_SIZES[type] !== 'undefined' ? AxisVisualizer.FONT_SIZES[type] : '16') + 'px Arial, sans-serif';
 };

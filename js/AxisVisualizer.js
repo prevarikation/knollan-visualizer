@@ -95,6 +95,8 @@ class AxisVisualizer
         this.dynamicUI.willRedraw = function(){
             var currentOptions = this.generateOptions();
             return currentOptions.currentCombination || // current combination is in "active area" for disks
+                   // the expanded disk canvas (for stacking markers) enchroaches on the shortened move box, so we need to redraw if they're shown, which is default :(
+                   visualizerRef.showShortenedMoves ||
                    !visualizerRef.prevOptions ||
                    (visualizerRef.prevOptions.page !== visualizerRef.selectedUIPage) ||
                    (visualizerRef.prevOptions.options !== JSON.stringify(currentOptions));
@@ -516,7 +518,8 @@ AxisVisualizer.FONT_SIZES = {
     'instruction': 26,
     'instructionExplanation': 20,
     'OSLPromotion': 26,
-    'copyright': 18
+    'copyright': 18,
+    'markerCounts': 20
 };
 
 AxisVisualizer.ANIMATION_TIMES = { 'slow': 900, 'normal': 500, 'instant': 1 }; // milliseconds. let instant > 0 because we use SetTimeout() later on.
