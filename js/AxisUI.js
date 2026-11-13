@@ -94,7 +94,17 @@ class AxisUI
                 var speedTextX = instructionRightColX - (ctx.measureText(page.commands[speedPositionInCommandList-1][1]).width * instructionFontSize/AxisVisualizer.FONT_SIZES.instructionExplanation) -ctx.measureText(speedText + " ").width;
                 var speedTextY = rightColY - (ctx.measureText(speedText).actualBoundingBoxAscent * (instructionFontSize/AxisVisualizer.FONT_SIZES.instructionExplanation - 1.05));
                 ctx.fillText(speedText, speedTextX, speedTextY);
-            }
+            } else if (name === "research2") {
+                // cutaway type indicators
+                ctx.font = AxisUI.cssFontString('instructionExplanation');
+                ctx.fillStyle = '#2429bc';
+                let positionInCommandList = 2;
+                rightColY = rightColYBeforeCommands + ((positionInCommandList - 1) * 1.45 * instructionFontSize);
+                var cutawayText = "B_R  prev ";
+                var cutawayTextX = instructionRightColX - (ctx.measureText(page.commands[positionInCommandList-1][1]).width * instructionFontSize/AxisVisualizer.FONT_SIZES.instructionExplanation) -ctx.measureText(cutawayText + " ").width;
+                var cutawayTextY = rightColY - (ctx.measureText(cutawayText).actualBoundingBoxAscent * (instructionFontSize/AxisVisualizer.FONT_SIZES.instructionExplanation - 1.2));
+                ctx.fillText(cutawayText, cutawayTextX, cutawayTextY);
+	    }
 
             ctx.restore();
         }
@@ -139,6 +149,7 @@ class AxisUI
             ctx.restore();
         }
 
+        // TODO: make a more reusable version of this that doesn't require relentless tweaking
         if (page === "standard") {
             // speed indicator box
             var boundingRect = null;
@@ -156,7 +167,26 @@ class AxisUI
                 speedTextBackground.originY - speedTextBackground.fontSize,
                 boundingRect.width,
                 speedTextBackground.fontSize * 5/4);
-        }
+        } else if (page === "research2") {
+		// highlight cutaway type
+		var boundingRect = null;
+		switch(options.cutawayType) {
+			case AxisDisk.CUTAWAY_BLANK_REG:       boundingRect = { offsetX: 80, width: 49}; break;
+			case AxisDisk.CUTAWAY_PREVARIKATION:   boundingRect = { offsetX: 130, width: 48}; break;
+			default:                               break;
+		}
+
+		if (boundingRect) {
+			// values based off AxisBackground.js
+			var speedTextBackground = { fontSize: AxisVisualizer.FONT_SIZES.instructionExplanation, originX: 975, originY: 278 };
+			ctx.strokeStyle = '#2429bc';
+			ctx.strokeRect(
+				speedTextBackground.originX + boundingRect.offsetX - speedTextBackground.fontSize/4,
+				speedTextBackground.originY - 1.03*speedTextBackground.fontSize,
+				boundingRect.width,
+				speedTextBackground.fontSize * 11/8);
+		}
+	}
 
         ctx.restore();
 
@@ -242,7 +272,7 @@ AxisUI.instructionPages = {
         subheader: "All key commands still active",
         commands: [
             ["Blank_Reg cutaway windows", "<#>"],
-            ["Toggle cutaway type (B_R / p)", "<$>"],
+            ["Toggle cutaway type", "<$>"],
             ["Set gate(s) as if cutaway coloring", ""],
             ["was at reset position", "<E> / <e>"],
             ["", ""],

@@ -107,7 +107,8 @@ class AxisVisualizer
                 shortenedMoves: (visualizerRef.showShortenedMoves ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.index))) : null),
                 rawMoves: null,
                 antecedentMoves: null,
-                currentCombination: (visualizerRef.showCurrentCombination ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index))) : null)
+                currentCombination: (visualizerRef.showCurrentCombination ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index))) : null),
+                cutawayType: visualizerRef.disks.disks[0].cutawayType
             };
             if (visualizerRef.rawMoveDisplay) {
                 var lastResetIndex = visualizerRef.history.lastIndexOf(AxisMoves.MOVE_UNAFFECTED);
