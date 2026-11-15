@@ -126,15 +126,68 @@ class AxisDisk
         }
 
         // draw markers
+	let usedMarkerPositions = new Array(15).fill(1).map(function(_){ return []; });
         for (var marker of this.markers) {
-            var markerAngle = -(72 * marker.index.N + 24 * marker.index.M);
-            ctx.beginPath();
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = marker.color;
-            // matches (N, M) coordinates like those for rotations, gates etc.
-            ctx.arc(0, 0, AxisDisk.radius, (-78 - markerAngle)*Math.PI/180, (-78 - (markerAngle + 24))*Math.PI/180, true);
-            ctx.stroke();
-        }
+		const pos = 3*marker.index.N + marker.index.M + 1; // maps to 0->14, "position" doesn't really matter except as a hash
+		usedMarkerPositions[pos].push(marker);
+	}
+	for (let markersInPosition of usedMarkerPositions) {
+		for (let i = 0, markerDepthLevel = 0; i < markersInPosition.length; ++i, ++markerDepthLevel) {
+			let marker = markersInPosition[i];
+			let contiguousMarkersWithSameColor = 1;
+			while (i < markersInPosition.length-1 && (marker.color === markersInPosition[i+1].color)) {
+				++contiguousMarkersWithSameColor;
+				++i;
+			}
+			var markerAngle = -(72 * marker.index.N + 24 * marker.index.M);
+			const effectiveRadius = AxisDisk.radius + (ctx.lineWidth * 1.25)*markerDepthLevel;
+			const markerRadianStartAngle = (-78 - markerAngle)*Math.PI/180;
+			ctx.beginPath();
+			ctx.lineWidth = AxisDisk.MARKER_LINE_WIDTH;
+			ctx.strokeStyle = marker.color;
+			// matches (N, M) coordinates like those for rotations, gates etc.
+			ctx.arc(0, 0, effectiveRadius, markerRadianStartAngle, markerRadianStartAngle - 24*Math.PI/180, true);
+			ctx.stroke();
+			// draw text showing the number of repeated markers
+			if (contiguousMarkersWithSameColor > 1) {
+				ctx.save();
+				ctx.textBaseline = 'middle';
+				ctx.textAlign = 'center';
+				ctx.font = AxisUI.cssFontString('markerCounts');
+				const textCoordinates = [Math.cos, Math.sin].map(function(f){ return effectiveRadius*f(markerRadianStartAngle - (2-(markerDepthLevel % 2))*8*Math.PI/180); });
+
+				// save context to restore and undo clipping path later
+				ctx.save();
+				const drawnTextSizing = ctx.measureText(contiguousMarkersWithSameColor.toString()[0]);
+				// empirically messing with the effective width to make things look about right-ish
+				const effectiveWidth = (1 + 0.2*(contiguousMarkersWithSameColor.toString().length-1))*(drawnTextSizing.actualBoundingBoxRight + drawnTextSizing.actualBoundingBoxLeft);
+				const circleRadius = Math.sqrt(Math.pow(effectiveWidth, 2) + Math.pow(drawnTextSizing.actualBoundingBoxAscent - drawnTextSizing.actualBoundingBoxDescent, 2));
+				ctx.beginPath();
+				// draw clipping path
+				ctx.fillStyle = 'black';
+				ctx.arc(0, 0, effectiveRadius + (circleRadius), 0, 2*Math.PI, false);
+				ctx.arc(0, 0, effectiveRadius + (ctx.lineWidth/2 - 0*0.1), 0, 2*Math.PI, true);
+				ctx.arc(0, 0, effectiveRadius - (ctx.lineWidth/2 - 0*0.1), 0, 2*Math.PI, false);
+				ctx.moveTo(0, 0);
+				ctx.arc(0, 0, effectiveRadius + (ctx.lineWidth/2 - 0*0.1), markerRadianStartAngle, markerRadianStartAngle - 24*Math.PI/180, false);
+				ctx.clip();
+				// draw circle
+				ctx.beginPath();
+				ctx.fillStyle = marker.color;
+				ctx.translate(textCoordinates[0], textCoordinates[1]);
+				ctx.arc(0, 0, circleRadius, 0, 2*Math.PI);
+				ctx.fill();
+				// undo clipping path
+				ctx.restore();
+
+				// translate to our text origin and rotate so text always appears upright
+				ctx.translate(textCoordinates[0], textCoordinates[1]);
+				ctx.rotate(-this._rotation * Math.PI/180);
+				ctx.fillText(contiguousMarkersWithSameColor, 0, 0);
+				ctx.restore();
+			}
+		}
+	}
 
 		// TODO: where does this belong?
 		// TODO: contact Blank_Reg to finalize colors and adjustments based on his cutaways :D
@@ -462,7 +515,9 @@ class AxisDisk
 	}
 }
 //statics
-AxisDisk.ACTIVE_DISK_AREA_WIDTH = 640;
+// disk area width includes up to 6 stacked color markers
+AxisDisk.MARKER_LINE_WIDTH = 8;
+AxisDisk.ACTIVE_DISK_AREA_WIDTH = 640 + 6*AxisDisk.MARKER_LINE_WIDTH;
 AxisDisk.SCALE = 0.78;
 AxisDisk.centerX = undefined;
 AxisDisk.centerY = undefined;

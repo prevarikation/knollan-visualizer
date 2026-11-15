@@ -95,6 +95,8 @@ class AxisVisualizer
         this.dynamicUI.willRedraw = function(){
             var currentOptions = this.generateOptions();
             return currentOptions.currentCombination || // current combination is in "active area" for disks
+                   // the expanded disk canvas (for stacking markers) enchroaches on the shortened move box, so we need to redraw if they're shown, which is default :(
+                   visualizerRef.showShortenedMoves ||
                    !visualizerRef.prevOptions ||
                    (visualizerRef.prevOptions.page !== visualizerRef.selectedUIPage) ||
                    (visualizerRef.prevOptions.options !== JSON.stringify(currentOptions));
@@ -105,7 +107,8 @@ class AxisVisualizer
                 shortenedMoves: (visualizerRef.showShortenedMoves ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.index))) : null),
                 rawMoves: null,
                 antecedentMoves: null,
-                currentCombination: (visualizerRef.showCurrentCombination ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index))) : null)
+                currentCombination: (visualizerRef.showCurrentCombination ? AxisStates.GetCombination(AxisStates.State2StateNumber.apply(null, visualizerRef.disks.disks.map(o => o.gate.index))) : null),
+                cutawayType: visualizerRef.disks.disks[0].cutawayType
             };
             if (visualizerRef.rawMoveDisplay) {
                 var lastResetIndex = visualizerRef.history.lastIndexOf(AxisMoves.MOVE_UNAFFECTED);
@@ -414,6 +417,12 @@ class AxisVisualizer
         this.disks.disks[AxisVisualizer.selectedDisk].setMarkerToCurrentPosition( AxisColorSelector.COLOR_SELECTION[AxisColorSelector.currentColorIndex] );
 	}
 
+	setMarkerOnAllDisks() {
+		for (var disk of this.disks.disks) {
+			disk.setMarkerToCurrentPosition( AxisColorSelector.COLOR_SELECTION[AxisColorSelector.currentColorIndex] );
+		}
+	}
+
     clearAllMarkers() {
         for (var disk of this.disks.disks) {
             disk.clearAllMarkers();
@@ -423,6 +432,12 @@ class AxisVisualizer
     deleteMarker() {
         this.disks.disks[AxisVisualizer.selectedDisk].deleteMarker();
     }
+
+	deleteMarkerOnAllDisks() {
+		for (var disk of this.disks.disks) {
+			disk.deleteMarker();
+		}
+	}
 
     toggleCutawayColoringVisibility() {
         for (var disk of this.disks.disks) {
@@ -504,7 +519,8 @@ AxisVisualizer.FONT_SIZES = {
     'instruction': 26,
     'instructionExplanation': 20,
     'OSLPromotion': 26,
-    'copyright': 18
+    'copyright': 18,
+    'markerCounts': 20
 };
 
 AxisVisualizer.ANIMATION_TIMES = { 'slow': 900, 'normal': 500, 'instant': 1 }; // milliseconds. let instant > 0 because we use SetTimeout() later on.
