@@ -495,8 +495,23 @@ class AxisVisualizer
         for (const command of AxisUI.instructionPages[this.selectedUIPage].commands) {
             if (command.bounds[0][0] <= coords.x && coords.x <= command.bounds[1][0] && command.bounds[0][1] <= coords.y && coords.y < command.bounds[1][1]) {
                 // iff the first <key> given is a single character, we'll return that, otherwise assume the command is too complex for a single tap
-                var firstGivenKey = command[1].match(/<(.*?)>/);
-                return { type: 'instructionPage', key: (firstGivenKey && firstGivenKey[1].length === 1 ? firstGivenKey[1] : null) };
+		let firstGivenKey = null;
+                if (command[0].toLowerCase().trim() === 'select disk') {
+                	// special case for disk selection tap
+                	firstGivenKey = '8';
+		} else {
+                	let firstGivenKeyFromCommand = command[1].match(/<(.*?)>/);
+			if (firstGivenKeyFromCommand) {
+				if (firstGivenKeyFromCommand[1].length === 1) {
+					// iff the first <key> given is a single character, we'll return that, otherwise assume the command is too complex for a single tap
+					firstGivenKey = firstGivenKeyFromCommand[1];
+				} else if (firstGivenKeyFromCommand[1] === 'del') {
+					// except for the special case where it's the delete command
+					firstGivenKey = 'Delete';
+				}
+			}
+		}
+                return { type: 'instructionPage', key: firstGivenKey };
             }
         }
 
